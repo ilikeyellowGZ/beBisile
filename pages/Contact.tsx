@@ -1,54 +1,8 @@
-import React from 'react';
-import { FadeIn } from '../components/UI/FadeIn';
+import React, { useState } from 'react';
+import { ArrowRight, CheckCircle2, MessageCircle } from 'lucide-react';
+import { CONTACT_EMAIL, CONTACT_PHONE, ORDER_EMAIL, getWhatsAppUrl } from '../constants';
 
 export const Contact: React.FC = () => {
-  return (
-    <div className="pt-32 pb-24 bg-white min-h-screen flex items-center justify-center">
-      <div className="max-w-2xl w-full px-6">
-        <FadeIn>
-          <div className="text-center mb-16">
-            <h1 className="font-serif text-5xl mb-4">Contact Us</h1>
-            <p className="font-sans text-sm text-gray-500 tracking-wide">
-              We are here to help you find your signature scent.
-            </p>
-          </div>
-
-          <form className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="flex flex-col space-y-2">
-                <label className="font-sans text-[10px] uppercase tracking-widest text-gray-500">First Name</label>
-                <input type="text" className="border-b border-gray-300 py-2 outline-none focus:border-black transition-colors bg-transparent" />
-              </div>
-              <div className="flex flex-col space-y-2">
-                <label className="font-sans text-[10px] uppercase tracking-widest text-gray-500">Last Name</label>
-                <input type="text" className="border-b border-gray-300 py-2 outline-none focus:border-black transition-colors bg-transparent" />
-              </div>
-            </div>
-
-            <div className="flex flex-col space-y-2">
-              <label className="font-sans text-[10px] uppercase tracking-widest text-gray-500">Email Address</label>
-              <input type="email" className="border-b border-gray-300 py-2 outline-none focus:border-black transition-colors bg-transparent" />
-            </div>
-
-            <div className="flex flex-col space-y-2">
-              <label className="font-sans text-[10px] uppercase tracking-widest text-gray-500">Message</label>
-              <textarea rows={4} className="border-b border-gray-300 py-2 outline-none focus:border-black transition-colors bg-transparent resize-none"></textarea>
-            </div>
-
-            <div className="pt-4 text-center">
-              <button className="px-12 py-4 bg-black text-white font-sans text-xs uppercase tracking-[0.2em] hover:opacity-80 transition-opacity">
-                Send Message
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-20 text-center space-y-2">
-             <p className="font-serif italic text-lg text-gray-800">Customer Service</p>
-             <p className="font-sans text-xs text-gray-500">hello@lessence-parfums.com</p>
-             <p className="font-sans text-xs text-gray-500">+1 (555) 123-4567</p>
-          </div>
-        </FadeIn>
-      </div>
-    </div>
-  );
+  const [submitted, setSubmitted] = useState(false);
+  return <div className="min-h-screen bg-secondary px-6 pb-24 pt-32 md:px-12"><div className="mx-auto max-w-[1260px]"><p className="mb-3 font-sans text-[10px] uppercase tracking-[0.22em] text-accent">Customer care</p><h1 className="font-serif text-6xl md:text-8xl">Let us help.</h1><p className="mt-5 max-w-lg font-sans text-sm leading-7 text-primary/60">Questions, order concerns, gifting advice, delivery quotes, or product guidance. Choose the easiest way to reach us.</p><div className="mt-10 grid gap-6 md:grid-cols-[0.8fr_1.2fr]"><div className="flex flex-col justify-between border border-black/10 bg-white p-8"><div><MessageCircle className="mb-5 text-accent" strokeWidth={1.2} /><h2 className="font-serif text-5xl">WhatsApp concierge.</h2><p className="mt-5 font-sans text-sm leading-7 text-primary/60">For product guidance and order concerns, start a direct conversation with the BISILE team.</p><div className="mt-6 space-y-2 font-sans text-xs text-primary/60"><p>{CONTACT_PHONE}</p><p>{CONTACT_EMAIL}</p><p>{ORDER_EMAIL}</p></div></div><a href={getWhatsAppUrl('Hello BISILE, I need assistance with an order or product concern.')} target="_blank" rel="noreferrer" className="mt-8 flex items-center justify-between border-t border-black/15 pt-5 font-sans text-[10px] uppercase tracking-[0.18em] hover:text-accent">Start a chat <ArrowRight size={14} /></a></div><div className="border border-black/10 bg-white p-8">{submitted ? <div className="flex min-h-[360px] flex-col justify-center"><CheckCircle2 className="mb-4 text-accent" /><h2 className="font-subhead text-3xl">Your note has been received.</h2></div> : <form onSubmit={(event) => { event.preventDefault(); setSubmitted(true); }} className="grid gap-4 sm:grid-cols-2"><h2 className="font-subhead text-3xl sm:col-span-2">Contact us</h2><input required placeholder="Full name" className="field-light px-4 py-4 text-xs" /><input required type="email" placeholder="Email address" className="field-light px-4 py-4 text-xs" /><input placeholder="Order number (optional)" className="field-light px-4 py-4 text-xs sm:col-span-2" /><textarea required rows={6} placeholder="How can we help?" className="field-light px-4 py-4 text-xs sm:col-span-2" /><button className="flex items-center justify-between bg-primary px-5 py-4 font-sans text-[10px] uppercase tracking-[0.18em] text-white hover:bg-accent sm:col-span-2">Send message <ArrowRight size={14} /></button></form>}</div></div></div></div>;
 };

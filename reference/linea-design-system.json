@@ -1,0 +1,125 @@
+{
+  "source_urls": [
+    "https://linea-jewelry.lovable.app/",
+    "https://linea-jewelry.lovable.app/product/3",
+    "https://linea-jewelry.lovable.app/category/shop"
+  ],
+  "analyzed_on": "2026-06-03",
+  "platform": {
+    "type": "Vite React single-page app",
+    "evidence": [
+      "All requested routes return the same HTML shell.",
+      "HTML references /assets/index-Cdq_KXhv.js and /assets/index-UVLv3reW.css.",
+      "Compiled bundle contains React-style jsx runtime output and route/page copy."
+    ]
+  },
+  "css_variables": {
+    "--background": "0 0% 100%",
+    "--foreground": "0 0% 9%",
+    "--status-bar": "0 0% 0%",
+    "--status-bar-foreground": "0 0% 100%",
+    "--nav-background": "0 0% 100%",
+    "--nav-foreground": "0 0% 20%",
+    "--nav-hover": "0 0% 5%",
+    "--primary": "0 0% 9%",
+    "--primary-foreground": "0 0% 98%",
+    "--primary-hover": "0 0% 15%",
+    "--secondary": "0 0% 96%",
+    "--secondary-foreground": "0 0% 20%",
+    "--muted": "0 0% 96%",
+    "--muted-foreground": "0 0% 45%",
+    "--accent": "0 0% 96%",
+    "--accent-foreground": "0 0% 9%",
+    "--border": "0 0% 90%",
+    "--input": "0 0% 90%",
+    "--ring": "0 0% 9%",
+    "--card": "0 0% 100%",
+    "--card-foreground": "0 0% 9%",
+    "--popover": "0 0% 100%",
+    "--popover-foreground": "0 0% 9%",
+    "--destructive": "0 84% 60%",
+    "--destructive-foreground": "0 0% 98%",
+    "--radius": ".375rem",
+    "--transition-smooth": "all .2s cubic-bezier(.4, 0, .2, 1)",
+    "--transition-bounce": "all .3s cubic-bezier(.68, -.55, .265, 1.55)"
+  },
+  "resolved_colors": {
+    "background": "#ffffff",
+    "foreground": "#171717",
+    "nav_background": "#ffffff",
+    "nav_foreground": "#333333",
+    "muted": "#f5f5f5",
+    "muted_foreground": "#737373",
+    "border": "#e5e5e5",
+    "primary": "#171717",
+    "primary_foreground": "#fafafa"
+  },
+  "typography": {
+    "font_families_found": [
+      "DM Sans, sans-serif",
+      "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace",
+      "inherit"
+    ],
+    "font_sizes_found": [
+      ".5rem",
+      ".75rem",
+      ".8rem",
+      ".875rem",
+      "1rem",
+      "1.125rem",
+      "1.25rem",
+      "1.5rem",
+      "1.875rem",
+      "2.25rem",
+      "3rem",
+      "75%",
+      "80%",
+      "100%",
+      "1em",
+      "inherit"
+    ],
+    "observed_text_style": "Minimal, light-weight sans typography. Headings use normal or light weight rather than decorative serif."
+  },
+  "layout_tokens": {
+    "breakpoints_found": [
+      "640px",
+      "768px",
+      "1024px",
+      "1400px"
+    ],
+    "radius": ".375rem",
+    "primary_page_padding": "px-6 in compiled Tailwind classes",
+    "main_grid_patterns": [
+      "grid grid-cols-1 md:grid-cols-2 gap-6",
+      "grid gap-6 md:grid-cols-4",
+      "grid md:grid-cols-2 gap-12",
+      "w-full lg:w-[70vw] lg:ml-auto px-6"
+    ]
+  },
+  "motion": {
+    "image_hover": "Images use hover:scale-105 with transition-transform duration-300.",
+    "nav_and_ui_transitions": "Compiled CSS includes smooth transition variables and many Tailwind transition utilities.",
+    "heavy_animation_libraries_found": "No GSAP identifier was found in the extracted evidence; interactions appear React state and CSS transition driven."
+  },
+  "assets_found": [
+    "/assets/hero-image-Biu-8NYF.png",
+    "/assets/earrings-collection-6O5tp3RC.png",
+    "/assets/link-bracelet-CMFM2KKw.png",
+    "/assets/circular-collection-B1hP9RgJ.png",
+    "/assets/organic-earring-BV1LtJhH.png",
+    "/assets/shadowline-DPSA61jB.jpg",
+    "/assets/lintel-CG5vNX3U.jpg",
+    "/assets/founders-ioSVwXFB.png",
+    "/assets/pantheon-ChbEbbTu.jpg",
+    "/assets/eclipse-ErA5xE4T.jpg",
+    "/assets/halo-CMlMG7vQ.jpg",
+    "/assets/oblique-BrLAWbgb.jpg",
+    "/LINEA-1.svg",
+    "/Linea_Jewelry_Inc-2.svg",
+    "/rings-collection.png",
+    "/earrings-collection.png",
+    "/arcus-bracelet.png",
+    "/span-bracelet.png",
+    "/founders.png"
+  ]
+}

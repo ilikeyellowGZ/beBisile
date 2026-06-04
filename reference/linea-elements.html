@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Linea Elements Reference</title>
+    <link rel="stylesheet" href="./linea-tokens.css" />
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: hsl(var(--linea-background));
+        color: hsl(var(--linea-foreground));
+        font-family: var(--linea-font-body);
+      }
+      a { color: inherit; text-decoration: none; }
+      img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .linea-shell { max-width: 1440px; margin: 0 auto; padding: 0 24px; }
+      .linea-nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        height: 56px;
+        background: hsl(var(--linea-nav-background));
+      }
+      .linea-nav__links,
+      .linea-nav__icons { display: flex; gap: 28px; align-items: center; font-size: var(--linea-text-sm); font-weight: 300; }
+      .linea-nav__icons { justify-content: flex-end; }
+      .linea-logo { font-size: 30px; letter-spacing: .03em; font-weight: 300; line-height: 1; }
+      .linea-feature-grid,
+      .linea-products,
+      .linea-editorial-pair { display: grid; gap: 24px; }
+      .linea-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 24px 0 64px; }
+      .linea-products { grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 64px 0; }
+      .linea-editorial-pair { grid-template-columns: 1fr 2fr; padding: 64px 0; }
+      .linea-image-square { aspect-ratio: 1; overflow: hidden; background: hsl(var(--linea-muted)); }
+      .linea-image-wide { aspect-ratio: 16 / 7; overflow: hidden; background: hsl(var(--linea-muted)); }
+      .linea-image-square img,
+      .linea-image-wide img { transition: transform .3s ease; }
+      .linea-image-square:hover img,
+      .linea-image-wide:hover img { transform: scale(1.05); }
+      .linea-title { margin: 12px 0 4px; font-size: var(--linea-text-sm); font-weight: 400; }
+      .linea-copy { margin: 0; font-size: var(--linea-text-sm); font-weight: 300; line-height: 1.5; }
+      .linea-product__meta { margin-top: 14px; display: grid; gap: 6px; font-size: var(--linea-text-sm); }
+      .linea-product__row { display: flex; justify-content: space-between; gap: 16px; }
+      .linea-muted { color: hsl(var(--linea-muted-foreground)); }
+      .linea-category-header {
+        padding: 32px 0 24px;
+        border-bottom: 1px solid hsl(var(--linea-border));
+      }
+      .linea-breadcrumb { display: flex; gap: 10px; font-size: var(--linea-text-sm); font-weight: 300; color: hsl(var(--linea-muted-foreground)); }
+      .linea-h1 { margin: 28px 0 40px; font-size: var(--linea-text-4xl); font-weight: 300; line-height: 1.1; }
+      .linea-toolbar { display: flex; justify-content: space-between; align-items: center; }
+      .linea-toolbar__actions { display: flex; gap: 40px; align-items: center; font-size: var(--linea-text-sm); font-weight: 300; }
+      .linea-filter-drawer {
+        width: min(320px, 100%);
+        margin-left: auto;
+        border-left: 1px solid hsl(var(--linea-border));
+        background: white;
+        padding: 24px;
+      }
+      .linea-filter-group { padding: 24px 0; border-top: 1px solid hsl(var(--linea-border)); }
+      .linea-check { display: flex; align-items: center; gap: 12px; margin: 14px 0; font-size: var(--linea-text-sm); font-weight: 300; }
+      .linea-check span:first-child { width: 15px; height: 15px; border: 1px solid hsl(var(--linea-border)); }
+      .linea-story { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: center; padding: 96px 0; }
+      .linea-story h2 { margin: 0 0 24px; font-size: var(--linea-text-3xl); font-weight: 300; }
+      .linea-footer {
+        margin-top: 192px;
+        padding: 32px 24px 8px;
+        border-top: 1px solid hsl(var(--linea-border));
+        background: white;
+      }
+      .linea-footer__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 32px; }
+      .linea-footer__cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+      .linea-footer h4 { margin: 0 0 20px; font-size: var(--linea-text-sm); font-weight: 400; }
+      .linea-footer p,
+      .linea-footer li { font-size: var(--linea-text-sm); font-weight: 300; color: rgba(0, 0, 0, .7); line-height: 1.55; }
+      .linea-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+      @media (max-width: 768px) {
+        .linea-feature-grid,
+        .linea-products,
+        .linea-editorial-pair,
+        .linea-story,
+        .linea-footer__grid,
+        .linea-footer__cols { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="linea-nav linea-shell">
+      <nav class="linea-nav__links">
+        <a href="#">Shop</a>
+        <a href="#">New in</a>
+        <a href="#">About</a>
+      </nav>
+      <a class="linea-logo" href="#">LINEA</a>
+      <div class="linea-nav__icons" aria-label="Utility navigation">
+        <span>Search</span>
+        <span>Wishlist</span>
+        <span>Bag</span>
+      </div>
+    </header>
+
+    <main class="linea-shell">
+      <section class="linea-feature-grid">
+        <article>
+          <a class="linea-image-square" href="#"><img src="/assets/earrings-collection-6O5tp3RC.png" alt="Earrings collection" /></a>
+          <h3 class="linea-title">Organic Forms</h3>
+          <p class="linea-copy">Nature-inspired pieces with fluid, sculptural details</p>
+        </article>
+        <article>
+          <a class="linea-image-square" href="#"><img src="/assets/link-bracelet-CMFM2KKw.png" alt="Chain link bracelet" /></a>
+          <h3 class="linea-title">Chain Collection</h3>
+          <p class="linea-copy">Refined links and connections in precious metals</p>
+        </article>
+      </section>
+
+      <section class="linea-products" aria-label="Product row">
+        <article class="linea-product">
+          <a class="linea-image-square" href="#"><img src="/assets/pantheon-ChbEbbTu.jpg" alt="Pantheon earrings" /></a>
+          <div class="linea-product__meta">
+            <span class="linea-muted">Earrings</span>
+            <div class="linea-product__row"><strong>Pantheon</strong><span>€2,850</span></div>
+          </div>
+        </article>
+        <article class="linea-product">
+          <a class="linea-image-square" href="#"><img src="/assets/eclipse-ErA5xE4T.jpg" alt="Eclipse bracelet" /></a>
+          <div class="linea-product__meta">
+            <span class="linea-muted">Bracelets</span>
+            <div class="linea-product__row"><strong>Eclipse</strong><span>€3,200</span></div>
+          </div>
+        </article>
+        <article class="linea-product">
+          <a class="linea-image-square" href="#"><img src="/assets/halo-CMlMG7vQ.jpg" alt="Halo earrings" /></a>
+          <div class="linea-product__meta">
+            <span class="linea-muted">Earrings</span>
+            <div class="linea-product__row"><strong>Halo</strong><span>€1,950</span></div>
+          </div>
+        </article>
+        <article class="linea-product">
+          <a class="linea-image-square" href="#"><img src="/assets/oblique-BrLAWbgb.jpg" alt="Oblique earrings" /></a>
+          <div class="linea-product__meta">
+            <span class="linea-muted">Earrings</span>
+            <div class="linea-product__row"><strong>Oblique</strong><span>€1,650</span></div>
+          </div>
+        </article>
+      </section>
+
+      <section>
+        <div class="linea-image-wide"><img src="/assets/hero-image-Biu-8NYF.png" alt="Modern jewelry collection" /></div>
+        <h3 class="linea-title">Modern Heritage</h3>
+        <p class="linea-copy">Contemporary jewelry crafted with timeless elegance</p>
+      </section>
+
+      <section class="linea-category-header">
+        <div class="linea-breadcrumb"><span>Home</span><span>›</span><strong>Necklaces</strong></div>
+        <h1 class="linea-h1">Necklaces</h1>
+        <div class="linea-toolbar">
+          <p class="linea-copy linea-muted">24 items</p>
+          <div class="linea-toolbar__actions"><button>Filters</button><button>Featured⌄</button></div>
+        </div>
+      </section>
+
+      <aside class="linea-filter-drawer">
+        <h2 class="linea-title">Filters</h2>
+        <div class="linea-filter-group">
+          <h3 class="linea-title">Category</h3>
+          <label class="linea-check"><span></span>Earrings</label>
+          <label class="linea-check"><span></span>Bracelets</label>
+          <label class="linea-check"><span></span>Rings</label>
+          <label class="linea-check"><span></span>Necklaces</label>
+        </div>
+        <div class="linea-filter-group">
+          <h3 class="linea-title">Price</h3>
+          <label class="linea-check"><span></span>Under €1,000</label>
+          <label class="linea-check"><span></span>€1,000 - €2,000</label>
+          <label class="linea-check"><span></span>€2,000 - €3,000</label>
+          <label class="linea-check"><span></span>Over €3,000</label>
+        </div>
+        <div class="linea-filter-group">
+          <h3 class="linea-title">Material</h3>
+          <label class="linea-check"><span></span>Gold</label>
+          <label class="linea-check"><span></span>Silver</label>
+          <label class="linea-check"><span></span>Rose Gold</label>
+          <label class="linea-check"><span></span>Platinum</label>
+        </div>
+      </aside>
+
+      <section class="linea-story">
+        <div>
+          <h2>Jewelry Drawn From Shadows and Lines</h2>
+          <p class="linea-copy">Linea was born from the meeting of two minds who saw beauty not just in extension of space, light, and line.</p>
+          <p class="linea-copy" style="margin-top: 24px;">Read our full story →</p>
+        </div>
+        <div class="linea-image-wide"><img src="/assets/founders-ioSVwXFB.png" alt="Company founders" /></div>
+      </section>
+    </main>
+
+    <footer class="linea-footer">
+      <div class="linea-footer__grid">
+        <div>
+          <h2 class="linea-logo">Linea Jewelry Inc.</h2>
+          <p>Minimalist jewelry crafted for the modern individual</p>
+          <h4>Visit Us</h4>
+          <p>123 Madison Avenue<br />New York, NY 10016</p>
+        </div>
+        <div class="linea-footer__cols">
+          <div><h4>Shop</h4><ul><li>New In</li><li>Rings</li><li>Earrings</li><li>Bracelets</li><li>Necklaces</li></ul></div>
+          <div><h4>Support</h4><ul><li>Size Guide</li><li>Care Instructions</li><li>Returns</li><li>Shipping</li><li>Contact</li></ul></div>
+          <div><h4>Connect</h4><ul><li>Instagram</li><li>Pinterest</li><li>Newsletter</li></ul></div>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

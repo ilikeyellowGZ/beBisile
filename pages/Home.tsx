@@ -1,205 +1,163 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { ArrowRight, MessageCircle, Star } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { FadeIn } from '../components/UI/FadeIn';
 import { ProductCard } from '../components/UI/ProductCard';
-import { PRODUCTS } from '../constants';
+import { DELIVERY_OPTIONS, FRAGRANCE_PRODUCTS, HAIR_PRODUCTS, getWhatsAppUrl } from '../constants';
+
+const reviews = [
+  { quote: 'The fragrance feels personal and elegant. It settles beautifully and lasts through the day.', name: 'Amara N.', product: 'Indoniyamanzi' },
+  { quote: 'My wig arrived beautifully finished and the WhatsApp support made ordering easy.', name: 'Nandi K.', product: 'BISILE Hair Collection' },
+  { quote: 'The packaging, the service, and the scent all feel carefully considered.', name: 'Lerato M.', product: 'BISILE Fragrance' },
+];
 
 export const Home: React.FC = () => {
-  const featuredProducts = PRODUCTS.slice(0, 3);
-
   const location = useLocation();
+  const state = location.state as { scrollTo?: string } | null;
+  const bottleRef = useRef<HTMLImageElement>(null);
 
-  // Smooth-scroll to targeted sections when Home is loaded with state.scrollTo
   useEffect(() => {
-    const state = location.state as { scrollTo?: string } | null;
-    if (state?.scrollTo) {
-      const el = document.getElementById(state.scrollTo);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  }, [location]);
+    if (state?.scrollTo) window.setTimeout(() => document.getElementById(state.scrollTo!)?.scrollIntoView({ behavior: 'smooth' }), 80);
+  }, [state?.scrollTo]);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !bottleRef.current) return;
+    const tween = gsap.to(bottleRef.current, { y: -14, duration: 4.5, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    return () => tween.kill();
+  }, []);
 
   return (
-    <div className="w-full overflow-hidden">
-      
-      {/* Hero Section */}
-      <section className="relative h-screen w-full flex items-center justify-center bg-[#1a1917] overflow-hidden">
-        {/* Background Image/Video Placeholder */}
-        <div className="absolute inset-0 z-0">
-           <img 
-             src="/public/media/image 33.png" 
-             alt="Hero Texture" 
-             className="w-full h-full object-cover opacity-40"
-           />
-           {/* Abstract Overlay Shapes */}
-           <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-[#dccfb8] rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse"></div>
-           <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-[#b8c6dc] rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
-        </div>
-
-        {/* Hero Content - Replicating Abel Style */}
-        <div className="relative z-10 w-full max-w-[1440px] px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-8 items-center h-full">
-          <div className="md:col-span-7 flex flex-col justify-center">
-            <FadeIn>
-              <h1 className="font-serif text-6xl md:text-9xl leading-[0.9] text-white mb-8">
-                RADICAL <br/>
-                <span className="italic font-light ml-12 md:ml-24">FRAGRANCE</span>
-              </h1>
-            </FadeIn>
-            <FadeIn delay={200}>
-               <p className="max-w-md font-sans text-xs md:text-sm tracking-widest leading-relaxed uppercase border-l border-accent/70 text-gray-100 pl-6 ml-2 mb-12">
-                 Leading a shift in fragrance through biotechnology, master perfumery and 100% natural ingredients.
-               </p>
-               <Link 
-                 to="/shop" 
-                 className="inline-block px-12 py-4 border border-white/80 text-xs tracking-[0.25em] uppercase text-white hover:border-accent hover:text-accent transition-all duration-300 w-fit"
-               >
-                 Discover Our Fragrance
-               </Link>
-            </FadeIn>
+    <div className="overflow-hidden bg-secondary text-primary">
+      <section className="relative flex min-h-screen items-center overflow-hidden bg-primary">
+        <img src="/media/bisile/hero-perfume.jpg" alt="BISILE perfume editorial" className="absolute inset-0 h-full w-full object-cover opacity-55" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/25 to-black/10" />
+        <div className="relative z-10 mx-auto grid min-h-screen w-full max-w-[1480px] items-center gap-10 px-6 pb-16 pt-28 md:grid-cols-12 md:px-12">
+          <div className="md:col-span-7">
+            <p className="reveal-up mb-5 font-sans text-[10px] uppercase tracking-[0.34em] text-accent">BISILE / Be luxury</p>
+            <h1 className="reveal-up font-serif text-6xl leading-[0.84] text-white md:text-9xl" style={{ animationDelay: '100ms' }}>
+              RADICAL
+              <span className="block pl-8 font-subhead text-[0.78em] font-light italic md:pl-20">FRAGRANCE</span>
+            </h1>
+            <p className="reveal-up mt-7 max-w-md border-l border-accent pl-5 font-sans text-xs leading-7 tracking-[0.1em] text-white/80" style={{ animationDelay: '220ms' }}>
+              A curated world of fragrance, processed virgin hair, beauty rituals, and everyday luxury.
+            </p>
+            <div className="reveal-up mt-8 flex flex-wrap gap-4" style={{ animationDelay: '320ms' }}>
+              <Link to="/shop" className="border border-white/70 px-7 py-4 font-sans text-[10px] uppercase tracking-[0.22em] text-white transition-colors hover:border-accent hover:text-accent">Discover fragrance</Link>
+              <Link to="/hair" className="px-3 py-4 font-sans text-[10px] uppercase tracking-[0.22em] text-white/80 transition-colors hover:text-accent">Explore hair <ArrowRight size={14} className="ml-2 inline" /></Link>
+            </div>
           </div>
+          <FadeIn delay={350} className="relative hidden h-full items-center justify-end md:col-span-5 md:flex">
+            <img ref={bottleRef} src="/media/bisile/perfume-bottles.jpg" alt="BISILE perfumes" className="relative z-10 w-80 object-cover shadow-2xl will-change-transform" />
+          </FadeIn>
+        </div>
+      </section>
 
-          <div className="md:col-span-5 relative h-full flex items-end md:items-center justify-center md:justify-end pb-12 md:pb-0">
-             <FadeIn delay={400} className="relative">
-                <img 
-                  src="/public/media/image 49.png" 
-                  alt="Feature Perfume Bottle" 
-                  className="w-48 md:w-80 h-auto object-contain drop-shadow-2xl relative z-10"
-                />
-                {/* Collage Element */}
-                <div className="absolute -top-12 -right-12 w-40 h-56 bg-white p-2 shadow-lg transform rotate-6 z-0 hidden md:block">
-                  <img src="public/media/image 47.png" className="w-full h-full object-cover opacity-80" alt="Ingredient"/>
-                </div>
-             </FadeIn>
+      <section className="px-6 py-20 md:px-12 md:py-28">
+        <div className="mx-auto max-w-[1480px]">
+          <div className="mb-12 flex items-end justify-between gap-6">
+            <FadeIn>
+              <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.24em] text-accent">Fragrance catalog</p>
+              <h2 className="font-serif text-5xl md:text-7xl">Signature scents.</h2>
+            </FadeIn>
+            <Link to="/shop" className="hidden items-center gap-2 font-sans text-[10px] uppercase tracking-[0.2em] hover:text-accent md:flex">View all <ArrowRight size={14} /></Link>
+          </div>
+          <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+            {FRAGRANCE_PRODUCTS.slice(0, 4).map((product, index) => <FadeIn key={product.id} delay={index * 80}><ProductCard product={product} /></FadeIn>)}
           </div>
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="py-24 px-6 md:px-12 bg-secondary">
-        <div className="max-w-[1440px] mx-auto">
-          <div className="flex justify-between items-end mb-16">
-            <FadeIn>
-              <h2 className="font-sans text-xs tracking-[0.2em] uppercase text-accent mb-3">Discover Be Bisile</h2>
-              <p className="font-inter font-medium tracking-[-1.25px] leading-none uppercase text-4xl md:text-5xl text-primary">Best Sellers</p>
-            </FadeIn>
-            <Link to="/shop" className="hidden md:block font-sans text-xs tracking-widest border-b border-black pb-1 hover:text-accent hover:border-accent transition-all">
-              View All
-            </Link>
-          </div>
+      <section id="our-story" className="grid border-y border-black/10 bg-white md:grid-cols-2">
+        <div className="flex items-center px-7 py-20 md:px-16 md:py-28">
+          <FadeIn>
+            <p className="mb-4 font-sans text-[10px] uppercase tracking-[0.24em] text-accent">About BISILE</p>
+            <h2 className="max-w-xl font-serif text-5xl leading-[0.94] md:text-7xl">Beauty that feels considered.</h2>
+            <p className="mt-7 max-w-lg font-sans text-sm leading-8 text-primary/65">
+              BISILE is a luxury beauty destination built around fragrance, processed virgin hair, wig care, and gifting rituals. Every piece is selected to make self-care feel polished, personal, and easy to love.
+            </p>
+            <p className="mt-6 font-subhead text-xl italic text-accent">Be Luxury.</p>
+          </FadeIn>
+        </div>
+        <div className="min-h-[540px] overflow-hidden"><img loading="lazy" src="/media/bisile/perfume-basket.jpg" alt="BISILE product arrangement" className="h-full w-full object-cover" /></div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            {featuredProducts.map((product, idx) => (
-              <FadeIn key={product.id} delay={idx * 150}>
-                <ProductCard product={product} />
+      <section className="px-6 py-20 md:px-12 md:py-28">
+        <div className="mx-auto max-w-[1480px]">
+          <FadeIn className="mb-12">
+            <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.24em] text-accent">Hair collection</p>
+            <h2 className="font-serif text-5xl md:text-7xl">Processed virgin hair.</h2>
+          </FadeIn>
+          <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+            {HAIR_PRODUCTS.slice(0, 4).map((product, index) => <FadeIn key={product.id} delay={index * 80}><ProductCard product={product} /></FadeIn>)}
+          </div>
+          <Link to="/hair" className="mt-10 inline-flex items-center gap-2 font-sans text-[10px] uppercase tracking-[0.2em] hover:text-accent">View hair catalog <ArrowRight size={14} /></Link>
+        </div>
+      </section>
+
+      <section className="grid border-y border-black/10 bg-white md:grid-cols-3">
+        {[
+          { title: 'Pamper Packages', body: 'Three considered gifting options for beauty rituals and thoughtful care.', image: '/media/bisile/perfume-picnic.jpg', path: '/pamper' },
+          { title: 'Creator Community', body: 'Applications for content creators who align with BISILE beauty and luxury.', image: '/media/bisile/packaging-black.jpg', path: '/community' },
+          { title: 'Wig Laundry', body: 'Wash, treatment, customisation, and full laundry packages.', image: '/media/bisile/laundry.png', path: '/hair' },
+        ].map((item, index) => (
+          <FadeIn key={item.title} delay={index * 90}>
+            <Link to={item.path} className="group block border-b border-black/10 p-6 md:border-b-0 md:border-r">
+              <div className="aspect-[4/5] overflow-hidden bg-secondary"><img loading="lazy" src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" /></div>
+              <h3 className="mt-5 font-subhead text-xl">{item.title}</h3>
+              <p className="mt-2 font-sans text-xs leading-6 text-primary/60">{item.body}</p>
+            </Link>
+          </FadeIn>
+        ))}
+      </section>
+
+      <section className="px-6 py-20 md:px-12 md:py-24">
+        <div className="mx-auto max-w-[1260px]">
+          <FadeIn>
+            <p className="mb-3 text-center font-sans text-[10px] uppercase tracking-[0.24em] text-accent">Delivery</p>
+            <h2 className="text-center font-serif text-5xl md:text-7xl">Choose your delivery.</h2>
+          </FadeIn>
+          <div className="mt-12 grid gap-4 md:grid-cols-5">
+            {DELIVERY_OPTIONS.map((option) => (
+              <FadeIn key={option.name} className="border border-black/10 bg-white p-6">
+                <h3 className="font-subhead text-lg">{option.name}</h3>
+                <p className="mt-3 font-sans text-xs leading-6 text-primary/60">{option.price}</p>
               </FadeIn>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mt-12 md:hidden text-center">
-             <Link to="/shop" className="font-sans text-xs tracking-widest border-b border-black pb-1">
-              View All
-            </Link>
+      <section className="border-y border-black/10 bg-white px-6 py-20 md:px-12 md:py-24">
+        <div className="mx-auto max-w-[1260px]">
+          <FadeIn>
+            <p className="mb-3 text-center font-sans text-[10px] uppercase tracking-[0.24em] text-accent">Customer reviews</p>
+            <h2 className="text-center font-serif text-5xl md:text-7xl">Loved in the details.</h2>
+          </FadeIn>
+          <div className="mt-12 grid gap-5 md:grid-cols-3">
+            {reviews.map((review, index) => (
+              <FadeIn key={review.name} delay={index * 80} className="border border-black/10 bg-white p-7">
+                <div className="mb-5 flex gap-1 text-accent">{[1, 2, 3, 4, 5].map((item) => <Star key={item} size={12} fill="currentColor" />)}</div>
+                <p className="font-subhead text-xl italic leading-8">{review.quote}</p>
+                <p className="mt-6 font-sans text-[10px] uppercase tracking-[0.16em] text-primary/50">{review.name} / {review.product}</p>
+              </FadeIn>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Storytelling / Quote Section */}
-      <section className="py-32 bg-[#f4f3f0] border-t border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-           <FadeIn>
-             <span className="font-serif text-6xl text-accent block mb-8">"</span>
-             <h3 className="font-serif text-3xl md:text-5xl leading-tight mb-8">
-               Be Bisile is dedicated to making 100% natural fragrances that don't rely on harsh petrochemicals to make boundary-pushing scents.
-             </h3>
-             <img 
-               src="public/media/image 33.png" 
-               alt="Press Logo" 
-               className="h-6 mx-auto opacity-50" 
-             />
-           </FadeIn>
+      <section className="grid bg-white md:grid-cols-2">
+        <div className="px-7 py-16 md:px-16 md:py-20">
+          <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.24em] text-accent">Checkout</p>
+          <h2 className="font-serif text-5xl">Personal details before payment.</h2>
+          <Link to="/cart" className="mt-7 inline-flex items-center gap-2 font-sans text-[10px] uppercase tracking-[0.2em] hover:text-accent">Go to cart <ArrowRight size={14} /></Link>
+        </div>
+        <div className="border-t border-black/10 bg-white px-7 py-16 md:border-l md:border-t-0 md:px-16 md:py-20">
+          <MessageCircle size={22} strokeWidth={1.2} className="mb-4 text-accent" />
+          <h2 className="font-serif text-5xl">Need support?</h2>
+          <a href={getWhatsAppUrl('Hello BISILE, I would like assistance with a product or order concern.')} target="_blank" rel="noreferrer" className="mt-7 inline-flex items-center gap-2 font-sans text-[10px] uppercase tracking-[0.2em] hover:text-accent">Start a WhatsApp chat <ArrowRight size={14} /></a>
         </div>
       </section>
-
-      {/* Split Banner Section – Discovery Set */}
-      <section id="discovery-section" className="grid grid-cols-1 md:grid-cols-2 min-h-screen">
-        <div className="relative h-[60vh] md:h-auto overflow-hidden">
-          <img 
-            src="public/media/image 35.png" 
-            alt="Lifestyle Model" 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        </div>
-        <div className="flex flex-col justify-center items-center p-12 md:p-24 bg-[#f9f9f9]">
-           <FadeIn className="max-w-md text-center">
-             <h4 className="font-sans text-xs tracking-[0.2em] uppercase text-accent mb-4">Natural Perfume</h4>
-             <h2 className="font-inter font-medium tracking-[-1.25px] leading-none uppercase text-4xl md:text-5xl mb-8">Discovery Set</h2>
-             <p className="font-sans text-sm leading-7 text-gray-600 mb-10">
-               Take the guesswork out of finding your favourite 100% Natural Be Bisile Fragrance.
-               <br/><br/>
-               "You can always layer the spritzes for a fragrant impression that's entirely personal to you." — Byrdie
-             </p>
-             <Link 
-               to="/product/5" 
-               className="inline-block px-10 py-3 border border-gray-300 text-xs tracking-[0.25em] uppercase hover:border-accent hover:text-accent transition-colors"
-             >
-               Build Your Set
-             </Link>
-           </FadeIn>
-        </div>
-      </section>
-
-      {/* Founder/About Section */}
-      <section id="our-story" className="grid grid-cols-1 md:grid-cols-2 min-h-screen">
-         <div className="flex flex-col justify-center items-center p-12 md:p-24 bg-[#f0eee9] order-2 md:order-1">
-           <FadeIn className="max-w-md">
-             <h4 className="font-sans text-xs tracking-[0.2em] uppercase text-accent mb-4">About Be Bisile</h4>
-             <h2 className="font-inter font-medium tracking-[-1.25px] leading-none uppercase text-4xl md:text-5xl mb-8">Our Story</h2>
-             <p className="font-sans text-sm leading-7 text-gray-600 mb-10 text-justify">
-               Founded by former winemaker Frances Shoemack in 2013, Be Bisile first emerged in Amsterdam and is now headquartered in Wellington, New Zealand. Operating across oceans, we work closely with master perfumer Isaac Sinclair to create the world's best natural perfume.
-             </p>
-             <Link 
-               to="/story" 
-               className="inline-block px-8 py-3 border border-gray-400 text-[10px] tracking-[0.25em] uppercase hover:border-accent hover:text-accent transition-all"
-             >
-               Read More
-             </Link>
-           </FadeIn>
-        </div>
-        <div className="relative h-[60vh] md:h-auto overflow-hidden order-1 md:order-2">
-          <img 
-            src="public/media/image 50.png" 
-            alt="Founder Portrait" 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        </div>
-      </section>
-
-      {/* Select Collection Grid – Care Packages & Make Up */}
-      <section id="collections" className="py-24 px-6 md:px-0 bg-white">
-        <div className="max-w-[1440px] mx-auto text-center mb-16">
-          <h2 className="font-inter font-medium tracking-[-1.25px] leading-none uppercase text-4xl text-gray-800">Select Collection</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 h-[60vh]">
-          {[
-            { title: 'Care Packages', image: 'public/media/image 43.png', link: '/care-packages' },
-            { title: 'Make Up', image: 'public/media/image 61.png', link: '/make-up' }
-          ].map((item) => (
-          <Link key={item.title} to={item.link} className="relative group overflow-hidden border-r border-b border-gray-100 last:border-r-0">
-               <img 
-                 src={item.image} 
-                 alt={item.title}
-                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 filter grayscale group-hover:grayscale-0"
-               />
-               <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-transparent transition-colors">
-                 <span className="font-inter font-medium tracking-[-1.25px] leading-none uppercase text-3xl md:text-4xl text-white group-hover:text-accent transition-colors">
-                   {item.title}
-                 </span>               </div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
     </div>
   );
 };

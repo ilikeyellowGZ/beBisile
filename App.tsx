@@ -7,10 +7,14 @@ import { Shop } from './pages/Shop';
 import { ProductDetail } from './pages/ProductDetail';
 import { Contact } from './pages/Contact';
 import { CarePackages } from './pages/CarePackages';
-import { MakeUp } from './pages/MakeUp';
+import { Hair } from './pages/Hair';
+import { Community } from './pages/Community';
 import { CartProvider } from './CartContext';
 import { Cart } from './pages/Cart';
 import { Checkout } from './pages/Checkout';
+import { Payment } from './pages/Payment';
+import { PaymentSuccess } from './pages/PaymentSuccess';
+import { Dashboard } from './pages/Dashboard';
 
 // Scroll to top on route change wrapper, but allow section scrolling via state
 const ScrollToTop = () => {
@@ -31,7 +35,7 @@ const App: React.FC = () => {
     <HashRouter>
       <ScrollToTop />
       <CartProvider>
-        <div className="flex flex-col min-h-screen text-primary font-sans antialiased selection:bg-accent selection:text-white">
+        <div className="flex flex-col min-h-screen bg-off-white text-primary font-sans antialiased selection:bg-accent selection:text-white">
           <Navbar />
           <main className="flex-grow">
             <Routes>
@@ -40,11 +44,16 @@ const App: React.FC = () => {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/care-packages" element={<CarePackages />} />
-              <Route path="/make-up" element={<MakeUp />} />
+              <Route path="/pamper" element={<CarePackages />} />
+              <Route path="/hair" element={<Hair />} />
+              <Route path="/community" element={<Community />} />
               {/* Fallback / additional routes */}
               <Route path="/story" element={<Home />} /> 
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/payment" element={<Payment />} />
+              <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/dashboard" element={<Dashboard />} />
             </Routes>
           </main>
           <Footer />

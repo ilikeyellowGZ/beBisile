@@ -1,0 +1,42 @@
+:root {
+  --linea-background: 0 0% 100%;
+  --linea-foreground: 0 0% 9%;
+  --linea-status-bar: 0 0% 0%;
+  --linea-status-bar-foreground: 0 0% 100%;
+  --linea-nav-background: 0 0% 100%;
+  --linea-nav-foreground: 0 0% 20%;
+  --linea-nav-hover: 0 0% 5%;
+  --linea-primary: 0 0% 9%;
+  --linea-primary-foreground: 0 0% 98%;
+  --linea-primary-hover: 0 0% 15%;
+  --linea-secondary: 0 0% 96%;
+  --linea-secondary-foreground: 0 0% 20%;
+  --linea-muted: 0 0% 96%;
+  --linea-muted-foreground: 0 0% 45%;
+  --linea-accent: 0 0% 96%;
+  --linea-accent-foreground: 0 0% 9%;
+  --linea-border: 0 0% 90%;
+  --linea-input: 0 0% 90%;
+  --linea-ring: 0 0% 9%;
+  --linea-card: 0 0% 100%;
+  --linea-card-foreground: 0 0% 9%;
+  --linea-radius: .375rem;
+  --linea-transition-smooth: all .2s cubic-bezier(.4, 0, .2, 1);
+  --linea-transition-bounce: all .3s cubic-bezier(.68, -.55, .265, 1.55);
+
+  --linea-font-body: "DM Sans", sans-serif;
+  --linea-text-xs: .75rem;
+  --linea-text-sm: .875rem;
+  --linea-text-base: 1rem;
+  --linea-text-lg: 1.125rem;
+  --linea-text-xl: 1.25rem;
+  --linea-text-2xl: 1.5rem;
+  --linea-text-3xl: 1.875rem;
+  --linea-text-4xl: 2.25rem;
+  --linea-text-5xl: 3rem;
+
+  --linea-breakpoint-sm: 640px;
+  --linea-breakpoint-md: 768px;
+  --linea-breakpoint-lg: 1024px;
+  --linea-breakpoint-2xl: 1400px;
+}

@@ -1,297 +1,39 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../CartContext';
+import type { CheckoutDetails } from '../types';
 
-interface CheckoutFormState {
-  fullName: string;
-  email: string;
-  phone: string;
-  addressLine1: string;
-  addressLine2: string;
-  city: string;
-  postalCode: string;
-  notes: string;
-}
+export const CHECKOUT_STORAGE_KEY = 'bisile-checkout-details-v1';
+
+const initial: CheckoutDetails = { fullName: '', email: '', phone: '', address: '', city: '', postalCode: '', notes: '' };
 
 export const Checkout: React.FC = () => {
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal } = useCart();
   const navigate = useNavigate();
-  const [form, setForm] = useState<CheckoutFormState>({
-    fullName: '',
-    email: '',
-    phone: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    postalCode: '',
-    notes: '',
+  const [form, setForm] = useState<CheckoutDetails>(() => {
+    try { return JSON.parse(sessionStorage.getItem(CHECKOUT_STORAGE_KEY) ?? '') as CheckoutDetails; } catch { return initial; }
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof CheckoutFormState, string>>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof CheckoutDetails, string>>>({});
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const next: Partial<Record<keyof CheckoutDetails, string>> = {};
+    if (form.fullName.trim().length < 3) next.fullName = 'Please enter your full name.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = 'Please enter a valid email address.';
+    if (form.phone.replace(/\D/g, '').length < 7) next.phone = 'Please enter a valid phone number.';
+    if (form.address.trim().length < 5) next.address = 'Please enter your delivery address.';
+    if (!form.city.trim()) next.city = 'Please enter your city.';
+    if (form.postalCode.trim().length < 3) next.postalCode = 'Please enter a valid postal code.';
+    setErrors(next);
+    if (Object.keys(next).length) return;
+    sessionStorage.setItem(CHECKOUT_STORAGE_KEY, JSON.stringify(form));
+    navigate('/payment');
   };
 
-  const validate = (): boolean => {
-    const nextErrors: Partial<Record<keyof CheckoutFormState, string>> = {};
+  if (!items.length) return <div className="flex min-h-screen items-center justify-center bg-off-white px-6 text-center"><div><h1 className="font-serif text-6xl">Your bag is empty.</h1><Link to="/shop" className="mt-7 inline-block border border-primary px-6 py-4 text-[10px] uppercase tracking-[0.18em]">Return to shop</Link></div></div>;
 
-    if (!form.fullName.trim()) nextErrors.fullName = 'Please enter your full name.';
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      nextErrors.email = 'Please enter a valid email.';
-    }
-    if (!form.phone.trim()) nextErrors.phone = 'Please enter a contact number.';
-    if (!form.addressLine1.trim()) nextErrors.addressLine1 = 'Address is required.';
-    if (!form.city.trim()) nextErrors.city = 'City is required.';
-    if (!form.postalCode.match(/^\d{4}$/)) {
-      nextErrors.postalCode = 'Postal code should be 4 digits.';
-    }
-
-    setErrors(nextErrors);
-    return Object.keys(nextErrors).length === 0;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!items.length) return;
-    if (!validate()) return;
-
-    // Simulate secure order creation on the server:
-    // In production, this POST should go to a backend or payment gateway;
-    // we intentionally avoid collecting card details in the browser here.
-    setIsSubmitting(true);
-    setTimeout(() => {
-      clearCart();
-      setIsSubmitting(false);
-      navigate('/', { state: { checkoutSuccess: true } });
-    }, 1200);
-  };
-
-  if (!items.length) {
-    return (
-      <div className="pt-32 pb-24 bg-secondary min-h-screen flex items-center justify-center">
-        <div className="text-center px-6">
-          <p className="font-serif text-2xl mb-4">Your bag is empty.</p>
-          <Link
-            to="/shop"
-            className="inline-block px-10 py-3 border border-primary text-xs tracking-[0.25em] uppercase hover:border-accent hover:text-accent transition-colors"
-          >
-            Return to Shop
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="pt-32 pb-24 bg-secondary min-h-screen">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Form */}
-        <section className="lg:col-span-2 bg-white border border-gray-200 shadow-sm px-6 md:px-10 py-8">
-          <header className="mb-8">
-            <h1 className="font-serif text-3xl md:text-4xl mb-2">Checkout</h1>
-            <p className="font-sans text-xs tracking-widest text-gray-500 uppercase">
-              Secure delivery details — no card details collected on-site.
-            </p>
-          </header>
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-sans text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={form.fullName}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm font-sans focus:outline-none focus:border-accent"
-                  autoComplete="name"
-                />
-                {errors.fullName && (
-                  <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
-                )}
-              </div>
-              <div>
-                <label className="block font-sans text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm font-sans focus:outline-none focus:border-accent"
-                  autoComplete="email"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-sans text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-2">
-                  Phone
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm font-sans focus:outline-none focus:border-accent"
-                  autoComplete="tel"
-                />
-                {errors.phone && (
-                  <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-sans text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-2">
-                Delivery Address
-              </label>
-              <input
-                type="text"
-                name="addressLine1"
-                value={form.addressLine1}
-                onChange={handleChange}
-                className="w-full border border-gray-300 px-3 py-2 text-sm font-sans mb-3 focus:outline-none focus:border-accent"
-                placeholder="Street address"
-                autoComplete="address-line1"
-              />
-              {errors.addressLine1 && (
-                <p className="mt-1 text-xs text-red-500">{errors.addressLine1}</p>
-              )}
-              <input
-                type="text"
-                name="addressLine2"
-                value={form.addressLine2}
-                onChange={handleChange}
-                className="w-full border border-gray-300 px-3 py-2 text-sm font-sans focus:outline-none focus:border-accent"
-                placeholder="Apartment, suite, etc. (optional)"
-                autoComplete="address-line2"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block font-sans text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-2">
-                  City
-                </label>
-                <input
-                  type="text"
-                  name="city"
-                  value={form.city}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm font-sans focus:outline-none focus:border-accent"
-                  autoComplete="address-level2"
-                />
-                {errors.city && (
-                  <p className="mt-1 text-xs text-red-500">{errors.city}</p>
-                )}
-              </div>
-              <div>
-                <label className="block font-sans text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-2">
-                  Postal Code
-                </label>
-                <input
-                  type="text"
-                  name="postalCode"
-                  value={form.postalCode}
-                  onChange={handleChange}
-                  className="w-full border border-gray-300 px-3 py-2 text-sm font-sans focus:outline-none focus:border-accent"
-                  autoComplete="postal-code"
-                />
-                {errors.postalCode && (
-                  <p className="mt-1 text-xs text-red-500">{errors.postalCode}</p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-sans text-[11px] uppercase tracking-[0.2em] text-gray-500 mb-2">
-                Order Notes (optional)
-              </label>
-              <textarea
-                name="notes"
-                value={form.notes}
-                onChange={handleChange}
-                rows={3}
-                className="w-full border border-gray-300 px-3 py-2 text-sm font-sans focus:outline-none focus:border-accent resize-none"
-                placeholder="Delivery instructions, gift message, etc."
-              />
-            </div>
-
-            <p className="font-sans text-[11px] text-gray-500 leading-relaxed">
-              By placing your order you agree to our{" "}
-              <span className="underline">Terms</span> and{" "}
-              <span className="underline">Privacy Policy</span>. Payment is processed
-              securely via your chosen provider — we never store card details in this
-              application.
-            </p>
-
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-              <Link
-                to="/cart"
-                className="text-xs uppercase tracking-[0.2em] text-gray-500 hover:text-accent"
-              >
-                Back to Bag
-              </Link>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-10 py-3 bg-primary text-white text-xs uppercase tracking-[0.25em] hover:bg-accent transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? 'Placing Order…' : 'Place Order'}
-              </button>
-            </div>
-          </form>
-        </section>
-
-        {/* Summary */}
-        <aside className="bg-white border border-gray-200 shadow-sm px-6 md:px-8 py-6">
-          <h2 className="font-serif text-2xl mb-4">Order Summary</h2>
-          <ul className="space-y-3 mb-6 max-h-64 overflow-y-auto pr-1">
-            {items.map((item) => (
-              <li key={item.id} className="flex justify-between text-sm font-sans text-gray-700">
-                <div>
-                  <p>{item.name}</p>
-                  <p className="text-xs text-gray-500">Qty {item.quantity}</p>
-                </div>
-                <p>R {(item.price * item.quantity).toFixed(2)}</p>
-              </li>
-            ))}
-          </ul>
-
-          <div className="space-y-3 mb-6">
-            <div className="flex justify-between text-sm font-sans text-gray-600">
-              <span>Subtotal</span>
-              <span>R {subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-xs font-sans text-gray-500">
-              <span>Shipping</span>
-              <span>Calculated based on address</span>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center border-t border-gray-200 pt-4">
-            <span className="font-sans text-xs uppercase tracking-[0.2em] text-gray-500">
-              Estimated Total
-            </span>
-            <span className="font-sans text-lg font-medium">
-              R {subtotal.toFixed(2)}
-            </span>
-          </div>
-        </aside>
-      </div>
-    </div>
-  );
+  return <div className="min-h-screen bg-off-white px-6 pb-24 pt-32 md:px-12"><div className="mx-auto max-w-[1320px]"><p className="mb-3 text-[10px] uppercase tracking-[0.22em] text-accent">Checkout / 01 Delivery details</p><h1 className="font-serif text-6xl md:text-7xl">Where should we send it?</h1><div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]"><form onSubmit={submit} className="grid gap-5 border border-black/10 bg-white p-6 sm:grid-cols-2 md:p-8">{[
+    ['fullName', 'Full name', 'name'], ['email', 'Email address', 'email'], ['phone', 'Contact number', 'tel'], ['address', 'Street address', 'street-address'], ['city', 'City', 'address-level2'], ['postalCode', 'Postal code', 'postal-code'],
+  ].map(([name, label, autocomplete]) => <label key={name} className={name === 'address' ? 'sm:col-span-2' : ''}><span className="mb-2 block text-[10px] text-primary/60">{label}</span><input required autoComplete={autocomplete} value={form[name as keyof CheckoutDetails]} onChange={(event) => setForm({ ...form, [name]: event.target.value })} className="field-light w-full px-4 py-4 text-xs" />{errors[name as keyof CheckoutDetails] && <span className="mt-2 block text-[11px] text-red-700">{errors[name as keyof CheckoutDetails]}</span>}</label>)}<label className="sm:col-span-2"><span className="mb-2 block text-[10px] text-primary/60">Order notes (optional)</span><textarea rows={4} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} className="field-light w-full px-4 py-4 text-xs" /></label><div className="flex flex-col gap-4 border-t border-black/10 pt-5 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"><Link to="/cart" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-primary/60 hover:text-accent"><ArrowLeft size={14} /> Back to bag</Link><button className="flex items-center justify-between gap-8 bg-primary px-6 py-4 text-[10px] uppercase tracking-[0.18em] text-white hover:bg-accent">Continue to payment <ArrowRight size={14} /></button></div></form><aside className="h-fit border border-black/10 bg-white p-7"><p className="mb-5 text-[10px] uppercase tracking-[0.18em] text-accent">Order summary</p>{items.map((item) => <div key={item.id} className="mb-3 flex justify-between gap-3 text-xs text-primary/60"><span>{item.name} x{item.quantity}</span><span>R {(item.price * item.quantity).toFixed(2)}</span></div>)}<div className="mt-5 flex justify-between border-t border-black/10 pt-5"><span className="text-[10px] uppercase tracking-[0.16em] text-primary/55">Estimated total</span><span className="font-subhead text-2xl">R {subtotal.toFixed(2)}</span></div><p className="mt-6 flex gap-3 text-[11px] leading-5 text-primary/55"><ShieldCheck size={16} className="shrink-0 text-accent" /> Payment details are entered securely on Stripe Checkout after your review.</p></aside></div></div></div>;
 };
-

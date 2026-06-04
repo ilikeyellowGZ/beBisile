@@ -1,93 +1,48 @@
-import React, { useState, useMemo } from 'react';
-import { ProductCard } from '../components/UI/ProductCard';
-import { PRODUCTS } from '../constants';
+import React from 'react';
+import { ArrowRight } from 'lucide-react';
 import { FadeIn } from '../components/UI/FadeIn';
+import { ProductCard } from '../components/UI/ProductCard';
+import { FRAGRANCE_PRODUCTS, getWhatsAppUrl } from '../constants';
 
-export const Shop: React.FC = () => {
-  const [filter, setFilter] = useState<'all' | 'parfum' | 'set'>('all');
-  const [sort, setSort] = useState<'default' | 'price-asc' | 'price-desc'>('default');
+const enquiryItems = [
+  { name: 'Discovery Set', image: '/media/bisile/perfume-picnic.jpg', body: 'Sample the BISILE fragrance wardrobe before choosing your full-size scent.' },
+  { name: 'Diffuser', image: '/media/bisile/perfume-basket.jpg', body: 'Home fragrance for a softer atmosphere and a more considered room ritual.' },
+  { name: 'Candle', image: '/media/bisile/packaging-black.jpg', body: 'A warm ritual piece for gifting, pamper packages, and everyday luxury.' },
+];
 
-  const handleFilterClick = () => {
-    setFilter((prev) => {
-      if (prev === 'all') return 'parfum';
-      if (prev === 'parfum') return 'set';
-      return 'all';
-    });
-  };
+export const Shop: React.FC = () => (
+  <div className="min-h-screen bg-secondary pb-24 pt-28 text-primary">
+    <section className="mx-auto max-w-[1480px] px-6 py-16 md:px-12 md:py-20">
+      <FadeIn>
+        <p className="mb-4 font-sans text-[10px] uppercase tracking-[0.3em] text-accent">BISILE fragrance</p>
+        <h1 className="font-serif text-6xl leading-[0.88] md:text-8xl">The scent <span className="font-subhead italic">wardrobe.</span></h1>
+        <p className="mt-6 max-w-xl font-sans text-sm leading-7 text-primary/65">Six signature perfumes with discovery, diffuser, and candle options available by enquiry.</p>
+      </FadeIn>
+      <div className="mt-14 border-y border-primary/15 py-5 font-sans text-[10px] uppercase tracking-[0.22em] text-primary/55">Perfumes</div>
+      <div className="mt-10 grid gap-x-7 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+        {FRAGRANCE_PRODUCTS.map((product, index) => <FadeIn key={product.id} delay={index * 70}><ProductCard product={product} /></FadeIn>)}
+      </div>
+    </section>
 
-  const handleSortClick = () => {
-    setSort((prev) => {
-      if (prev === 'default') return 'price-asc';
-      if (prev === 'price-asc') return 'price-desc';
-      return 'default';
-    });
-  };
-
-  const visibleProducts = useMemo(() => {
-    let result = PRODUCTS;
-
-    if (filter !== 'all') {
-      result = result.filter((product) => product.category === filter);
-    }
-
-    if (sort === 'price-asc') {
-      result = [...result].sort((a, b) => a.price - b.price);
-    } else if (sort === 'price-desc') {
-      result = [...result].sort((a, b) => b.price - a.price);
-    }
-
-    return result;
-  }, [filter, sort]);
-
-  return (
-    <div className="pt-32 pb-24 bg-secondary min-h-screen">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 border-b border-gray-300 pb-8">
-          <div>
-            <h1 className="font-serif text-5xl md:text-6xl mb-4">All Fragrances</h1>
-            <p className="font-sans text-xs tracking-widest text-gray-500 uppercase max-w-md">
-              100% Natural. Unisex. Created by Master Perfumers.
-            </p>
-          </div>
-          <div className="flex space-x-6 mt-8 md:mt-0">
-             <button
-               onClick={handleFilterClick}
-               className="font-sans text-xs uppercase tracking-widest hover:text-gray-500"
-             >
-               Filter
-               {filter !== 'all' && (
-                 <span className="ml-1 text-[10px] lowercase text-gray-500">
-                   {filter === 'parfum' ? '(Fragrances)' : '(Discovery Sets)'}
-                 </span>
-               )}
-             </button>
-             <button
-               onClick={handleSortClick}
-               className="font-sans text-xs uppercase tracking-widest hover:text-gray-500"
-             >
-               Sort
-               {sort === 'price-asc' && (
-                 <span className="ml-1 text-[10px] lowercase text-gray-500">Price ↑</span>
-               )}
-               {sort === 'price-desc' && (
-                 <span className="ml-1 text-[10px] lowercase text-gray-500">Price ↓</span>
-               )}
-             </button>
-          </div>
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
-          {visibleProducts.map((product, idx) => (
-             <FadeIn key={product.id} delay={idx * 100}>
-               <ProductCard product={product} />
-             </FadeIn>
+    <section className="border-y border-black/10 bg-white px-6 py-16 md:px-12 md:py-20">
+      <div className="mx-auto max-w-[1480px]">
+        <FadeIn>
+          <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.24em] text-accent">By enquiry</p>
+          <h2 className="font-serif text-5xl md:text-7xl">Discovery and home fragrance.</h2>
+        </FadeIn>
+        <div className="mt-10 grid gap-6 md:grid-cols-3">
+          {enquiryItems.map((item, index) => (
+            <FadeIn key={item.name} delay={index * 80} className="border border-black/10 bg-white">
+              <div className="aspect-[4/3] overflow-hidden"><img src={item.image} alt={item.name} className="h-full w-full object-cover" /></div>
+              <div className="p-6">
+                <h3 className="font-subhead text-2xl">{item.name}</h3>
+                <p className="mt-3 font-sans text-xs leading-6 text-primary/60">{item.body}</p>
+                <a href={getWhatsAppUrl(`Hello BISILE, I would like to enquire about the ${item.name}.`)} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 font-sans text-[10px] uppercase tracking-[0.18em] hover:text-accent">Enquire <ArrowRight size={14} /></a>
+              </div>
+            </FadeIn>
           ))}
         </div>
-
       </div>
-    </div>
-  );
-};
+    </section>
+  </div>
+);

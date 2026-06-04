@@ -1,145 +1,52 @@
 import React from 'react';
+import { ArrowRight, Minus, Plus, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '../CartContext';
 
 export const Cart: React.FC = () => {
   const { items, subtotal, totalItems, updateQuantity, removeItem } = useCart();
   const navigate = useNavigate();
 
-  const handleCheckout = () => {
-    if (!items.length) return;
-    navigate('/checkout');
-  };
-
-  if (!items.length) {
-    return (
-      <div className="pt-32 pb-24 bg-secondary min-h-screen flex items-center justify-center">
-        <div className="text-center px-6">
-          <p className="font-serif text-2xl mb-4">Your bag is empty.</p>
-          <p className="font-sans text-xs tracking-widest text-gray-500 uppercase mb-8">
-            Start with our best-selling fragrances.
-          </p>
-          <Link
-            to="/shop"
-            className="inline-block px-10 py-3 border border-primary text-xs tracking-[0.25em] uppercase hover:border-accent hover:text-accent transition-colors"
-          >
-            Browse Collection
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  if (!items.length) return (
+    <div className="flex min-h-screen items-center justify-center bg-off-white px-6 pt-24 text-center">
+      <div><p className="mb-3 text-[10px] uppercase tracking-[0.22em] text-accent">Your bag</p><h1 className="font-serif text-6xl">Your bag is empty.</h1><Link to="/shop" className="mt-7 inline-block border border-primary px-6 py-4 text-[10px] uppercase tracking-[0.18em] hover:border-accent hover:text-accent">Browse fragrance</Link></div>
+    </div>
+  );
 
   return (
-    <div className="pt-32 pb-24 bg-secondary min-h-screen">
-      <div className="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Items */}
-        <div className="lg:col-span-2 bg-white border border-gray-200 shadow-sm">
-          <div className="border-b border-gray-200 px-6 md:px-10 py-6 flex justify-between items-center">
-            <div>
-              <h1 className="font-serif text-3xl md:text-4xl">Your Bag</h1>
-              <p className="font-sans text-xs tracking-widest text-gray-500 uppercase mt-2">
-                {totalItems} item{totalItems !== 1 ? 's' : ''}
-              </p>
-            </div>
-          </div>
-
-          <ul className="divide-y divide-gray-100">
+    <div className="min-h-screen bg-off-white px-6 pb-24 pt-32 md:px-12">
+      <div className="mx-auto max-w-[1320px]">
+        <p className="mb-3 text-[10px] uppercase tracking-[0.22em] text-accent">Shopping bag</p>
+        <h1 className="font-serif text-6xl md:text-7xl">Your selections.</h1>
+        <p className="mt-3 text-xs text-primary/55">{totalItems} item{totalItems === 1 ? '' : 's'}</p>
+        <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
+          <div className="border border-black/10 bg-white">
             {items.map((item) => (
-              <li key={item.id} className="px-6 md:px-10 py-6 flex gap-4 md:gap-6">
-                <div className="w-24 h-32 bg-secondary overflow-hidden flex-shrink-0">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <h2 className="font-serif text-lg md:text-xl">{item.name}</h2>
-                    <p className="font-sans text-xs text-gray-500 uppercase tracking-widest mt-1">
-                      {item.subtitle}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => removeItem(item.id)}
-                      className="mt-4 inline-flex items-center text-[11px] uppercase tracking-[0.2em] text-gray-400 hover:text-accent transition-colors"
-                    >
-                      <Trash2 size={14} className="mr-1" /> Remove
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between md:justify-end gap-4 md:gap-8">
-                    <div className="flex items-center border border-gray-300 px-3 py-2">
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="p-1 hover:text-accent"
-                      >
-                        <Minus size={14} />
-                      </button>
-                      <span className="px-3 font-sans text-sm">{item.quantity}</span>
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="p-1 hover:text-accent"
-                      >
-                        <Plus size={14} />
-                      </button>
+              <div key={item.id} className="flex gap-4 border-b border-black/10 p-5 last:border-b-0 md:gap-6 md:p-7">
+                <img src={item.image} alt={item.name} className="h-32 w-24 shrink-0 object-cover md:h-40 md:w-32" />
+                <div className="flex flex-1 flex-col justify-between gap-5 md:flex-row md:items-center">
+                  <div><p className="mb-2 text-[9px] uppercase tracking-[0.18em] text-accent">{item.eyebrow}</p><h2 className="font-subhead text-2xl">{item.name}</h2><p className="mt-2 text-xs text-primary/55">R {item.price.toFixed(2)}</p></div>
+                  <div className="flex items-center gap-5">
+                    <div className="flex items-center border border-black/15">
+                      <button aria-label={`Decrease ${item.name} quantity`} onClick={() => item.quantity === 1 ? removeItem(item.id) : updateQuantity(item.id, item.quantity - 1)} className="p-3 hover:text-accent"><Minus size={13} /></button>
+                      <span className="min-w-7 text-center text-xs">{item.quantity}</span>
+                      <button aria-label={`Increase ${item.name} quantity`} onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-3 hover:text-accent"><Plus size={13} /></button>
                     </div>
-                    <div className="text-right">
-                      <p className="font-sans text-sm text-gray-500">R {item.price.toFixed(2)}</p>
-                      <p className="font-sans text-xs text-gray-900 mt-1">
-                        R {(item.price * item.quantity).toFixed(2)}
-                      </p>
-                    </div>
+                    <button aria-label={`Remove ${item.name}`} onClick={() => removeItem(item.id)} className="text-primary/45 hover:text-accent"><Trash2 size={16} strokeWidth={1.2} /></button>
                   </div>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
-        </div>
-
-        {/* Summary */}
-        <aside className="bg-white border border-gray-200 shadow-sm px-6 md:px-8 py-6 flex flex-col justify-between">
-          <div>
-            <h2 className="font-serif text-2xl mb-4">Summary</h2>
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-sm font-sans text-gray-600">
-                <span>Subtotal</span>
-                <span>R {subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-xs font-sans text-gray-500">
-                <span>Shipping</span>
-                <span>Calculated at checkout</span>
-              </div>
-            </div>
-            <div className="flex justify-between items-center border-t border-gray-200 pt-4 mb-6">
-              <span className="font-sans text-xs uppercase tracking-[0.2em] text-gray-500">
-                Total (incl. VAT)
-              </span>
-              <span className="font-sans text-lg font-medium">
-                R {subtotal.toFixed(2)}
-              </span>
-            </div>
           </div>
-          <button
-            type="button"
-            onClick={handleCheckout}
-            className="w-full py-4 text-xs uppercase tracking-[0.25em] bg-primary text-white hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!items.length}
-          >
-            Proceed to Checkout
-          </button>
-          <Link
-            to="/shop"
-            className="mt-4 text-xs uppercase tracking-[0.2em] text-gray-500 text-center hover:text-accent"
-          >
-            Continue Shopping
-          </Link>
-        </aside>
+          <aside className="h-fit border border-black/10 bg-white p-7">
+            <p className="mb-5 text-[10px] uppercase tracking-[0.2em] text-accent">Order summary</p>
+            <div className="space-y-3 border-b border-black/10 pb-5 text-xs text-primary/60"><div className="flex justify-between"><span>Subtotal</span><span>R {subtotal.toFixed(2)}</span></div><div className="flex justify-between"><span>Delivery</span><span>Calculated next</span></div></div>
+            <div className="flex items-center justify-between py-5"><span className="text-[10px] uppercase tracking-[0.16em] text-primary/55">Estimated total</span><span className="font-subhead text-2xl">R {subtotal.toFixed(2)}</span></div>
+            <button onClick={() => navigate('/checkout')} className="flex w-full items-center justify-between bg-primary px-5 py-4 text-[10px] uppercase tracking-[0.18em] text-white transition-colors hover:bg-accent">Continue to checkout <ArrowRight size={14} /></button>
+            <Link to="/shop" className="mt-5 block text-center text-[10px] uppercase tracking-[0.16em] text-primary/55 hover:text-accent">Continue shopping</Link>
+          </aside>
+        </div>
       </div>
     </div>
   );
 };
-
