@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import { carouselImages, hairImages, packageImages } from '../../src/assets/images';
 
 type DiscoverItem = {
   label: string;
@@ -17,25 +19,31 @@ const discoverItems: DiscoverItem[] = [
     label: 'Fragrance',
     path: '/shop',
     description: 'Signature scents for quiet everyday luxury',
-    image: '/media/bisile/perfume-bottles.jpg',
+    image: carouselImages.perfumeDisplay04,
   },
   {
-    label: 'Processed hair',
+    label: 'Hair',
     path: '/hair',
-    description: 'Polished pieces made to feel effortless',
-    image: '/media/bisile/wig-straight.jpg',
+    description: 'Luxury wigs, bundles, closures, frontals, and wig laundry',
+    image: hairImages.straightWig01,
+  },
+  {
+    label: 'Diffuser',
+    path: '/shop',
+    description: 'Home fragrance for a softer BISILE room ritual',
+    image: carouselImages.perfumeDisplay04,
+  },
+  {
+    label: 'Candle',
+    path: '/shop',
+    description: 'Warm luxury for gifting and daily care moments',
+    image: packageImages.product07,
   },
   {
     label: 'Pamper packages',
     path: '/pamper',
     description: 'Soft gifting sets for considered care',
-    image: '/media/bisile/perfume-picnic.jpg',
-  },
-  {
-    label: 'Wig laundry',
-    path: '/hair',
-    description: 'Refresh, revive, and restyle your unit',
-    image: '/media/bisile/laundry.png',
+    image: packageImages.product04,
   },
 ];
 
@@ -73,8 +81,9 @@ export const DiscoverGrid: React.FC<DiscoverGridProps> = ({ onNavigate }) => {
             <div className="bisile-image-frame aspect-[4/3]">
               <img alt={item.label} className="editorial-image h-full w-full object-cover" src={item.image} />
             </div>
-            <p className="mt-3 font-inter text-sm font-light text-primary">
-              {item.label} <span className="inline-block transition-transform group-hover:translate-x-1">-&gt;</span>
+            <p className="mt-3 inline-flex items-center gap-2 font-inter text-sm font-light text-primary transition-colors group-hover:text-accent">
+              {item.label}
+              <ArrowRight size={15} strokeWidth={1.2} className="transition-transform duration-300 group-hover:translate-x-1" />
             </p>
           </Link>
         ))}

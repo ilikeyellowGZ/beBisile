@@ -9,7 +9,7 @@ export const Cart: React.FC = () => {
 
   if (!items.length) return (
     <div className="flex min-h-screen items-center justify-center bg-off-white px-6 pt-24 text-center">
-      <div><p className="mb-3 text-[10px] uppercase tracking-[0.22em] text-accent">Your bag</p><h1 className="font-serif text-6xl">Your bag is empty.</h1><Link to="/shop" className="mt-7 inline-block border border-primary px-6 py-4 text-[10px] uppercase tracking-[0.18em] hover:border-accent hover:text-accent">Browse fragrance</Link></div>
+      <div><p className="mb-3 text-[10px] uppercase tracking-[0.22em] text-accent">Your bag</p><h1 className="font-serif text-6xl">Your bag is empty.</h1><Link to="/hair" className="mt-7 inline-block border border-primary px-6 py-4 text-[10px] uppercase tracking-[0.18em] hover:border-accent hover:text-accent">Browse hair</Link></div>
     </div>
   );
 
@@ -23,9 +23,18 @@ export const Cart: React.FC = () => {
           <div className="border border-black/10 bg-white">
             {items.map((item) => (
               <div key={item.id} className="flex gap-4 border-b border-black/10 p-5 last:border-b-0 md:gap-6 md:p-7">
-                <img src={item.image} alt={item.name} className="h-32 w-24 shrink-0 object-cover md:h-40 md:w-32" />
+                <img src={item.image} alt={item.name} className={`h-32 w-24 shrink-0 md:h-40 md:w-32 ${item.imageFit === 'contain' ? 'object-contain p-3' : 'object-cover'}`} />
                 <div className="flex flex-1 flex-col justify-between gap-5 md:flex-row md:items-center">
-                  <div><p className="mb-2 text-[9px] uppercase tracking-[0.18em] text-accent">{item.eyebrow}</p><h2 className="font-subhead text-2xl">{item.name}</h2><p className="mt-2 text-xs text-primary/55">R {item.price.toFixed(2)}</p></div>
+                  <div>
+                    <p className="mb-2 text-[9px] uppercase tracking-[0.18em] text-accent">{item.eyebrow}</p>
+                    <h2 className="font-subhead text-2xl">{item.name}</h2>
+                    {item.selectedOptions && (
+                      <p className="mt-2 max-w-md text-xs leading-5 text-primary/50">
+                        {Object.entries(item.selectedOptions).map(([label, value]) => `${label}: ${value}`).join(' / ')}
+                      </p>
+                    )}
+                    <p className="mt-2 text-xs text-primary/55">R {item.price.toFixed(2)}</p>
+                  </div>
                   <div className="flex items-center gap-5">
                     <div className="flex items-center border border-black/15">
                       <button aria-label={`Decrease ${item.name} quantity`} onClick={() => item.quantity === 1 ? removeItem(item.id) : updateQuantity(item.id, item.quantity - 1)} className="p-3 hover:text-accent"><Minus size={13} /></button>
@@ -43,7 +52,7 @@ export const Cart: React.FC = () => {
             <div className="space-y-3 border-b border-black/10 pb-5 text-xs text-primary/60"><div className="flex justify-between"><span>Subtotal</span><span>R {subtotal.toFixed(2)}</span></div><div className="flex justify-between"><span>Delivery</span><span>Calculated next</span></div></div>
             <div className="flex items-center justify-between py-5"><span className="text-[10px] uppercase tracking-[0.16em] text-primary/55">Estimated total</span><span className="font-subhead text-2xl">R {subtotal.toFixed(2)}</span></div>
             <button onClick={() => navigate('/checkout')} className="flex w-full items-center justify-between bg-primary px-5 py-4 text-[10px] uppercase tracking-[0.18em] text-white transition-colors hover:bg-accent">Continue to checkout <ArrowRight size={14} /></button>
-            <Link to="/shop" className="mt-5 block text-center text-[10px] uppercase tracking-[0.16em] text-primary/55 hover:text-accent">Continue shopping</Link>
+            <Link to="/hair" className="mt-5 block text-center text-[10px] uppercase tracking-[0.16em] text-primary/55 hover:text-accent">Continue shopping</Link>
           </aside>
         </div>
       </div>

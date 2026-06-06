@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Boxes, CircleDollarSign, ClipboardList, Gauge, Inbox, KeyRound, Layers, Mail, PackageCheck, Percent, RefreshCw, Search, Settings, ShieldCheck, ShoppingBag, Star, Truck, Users } from 'lucide-react';
-import { PRODUCTS } from '../constants';
+import { CONFIGURABLE_HAIR_PRODUCTS, PRODUCTS } from '../constants';
+import { packageImages } from '../src/assets/images';
 
 type AdminSection = 'overview' | 'products' | 'categories' | 'orders' | 'customers' | 'payments' | 'refunds' | 'inventory' | 'reviews' | 'discounts' | 'messages' | 'newsletter' | 'admins' | 'audit' | 'settings';
 type ApiMap = Record<string, any[]>;
@@ -8,7 +9,8 @@ type ApiMap = Record<string, any[]>;
 const currency = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
 const dateFormatter = new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', timeStyle: 'short' });
 
-const productById = new Map(PRODUCTS.map((product) => [product.id, product]));
+const dashboardProductCatalog = [...PRODUCTS, ...CONFIGURABLE_HAIR_PRODUCTS];
+const productById = new Map(dashboardProductCatalog.map((product) => [product.id, product]));
 
 const sections: Array<{ id: AdminSection; label: string; icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }> }> = [
   { id: 'overview', label: 'Dashboard', icon: Gauge },
@@ -94,8 +96,10 @@ const apiFetch = async (url: string, options: RequestInit = {}) => {
   return response.json();
 };
 
+const normalizeOrderItemId = (item: any) => String(item.productId || item.variantId || item.sku || item.id || normalizeOrderItemName(item));
 const normalizeOrderItemName = (item: any) => item.productName || item.name || item.id || 'Product';
 const normalizeOrderTotal = (order: any) => Number(order.totalAmount ?? order.total ?? 0);
+const getProductRowId = (row: any) => String(row.productId || row.variantId || row.sku || row.id || row._id || '—');
 
 const DataTable: React.FC<{ title: string; rows: any[]; columns: Array<{ key: string; label: string; render?: (row: any) => React.ReactNode }> }> = ({ title, rows, columns }) => (
   <div className="border border-[#e5e2dd] bg-white">
@@ -157,7 +161,7 @@ export const Dashboard: React.FC = () => {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not load live dashboard data');
       setOrders(demoOrders);
-      setProducts(PRODUCTS.map((product) => ({ ...product, stock: product.collection === 'fragrance' ? 12 : 4, isActive: true })));
+      setProducts(dashboardProductCatalog.map((product) => ({ ...product, stock: product.collection === 'fragrance' ? 12 : 4, isActive: true })));
       setDashboard(null);
     } finally {
       setIsLoading(false);
@@ -191,6 +195,7 @@ export const Dashboard: React.FC = () => {
       order.paymentStatus,
       order.orderStatus,
       ...(order.items || []).map(normalizeOrderItemName),
+      ...(order.items || []).map(normalizeOrderItemId),
     ].join(' ').toLowerCase().includes(text));
   }, [orders, query]);
 
@@ -201,7 +206,7 @@ export const Dashboard: React.FC = () => {
     const customerCount = new Set(filteredOrders.map((order) => order.customerInfo?.email).filter(Boolean)).size;
     const movement = new Map<string, { id: string; name: string; quantity: number; revenue: number }>();
     filteredOrders.forEach((order) => (order.items || []).forEach((item: any) => {
-      const id = String(item.productId || item.id || normalizeOrderItemName(item));
+      const id = normalizeOrderItemId(item);
       const current = movement.get(id) || { id, name: normalizeOrderItemName(item), quantity: 0, revenue: 0 };
       current.quantity += Number(item.quantity || 0);
       current.revenue += Number(item.totalPrice ?? (item.unitPrice || 0) * (item.quantity || 0));
@@ -250,11 +255,15 @@ export const Dashboard: React.FC = () => {
           <h2 className="font-inter text-2xl font-light">Best-selling products</h2>
           <div className="mt-6 space-y-4">
             {computed.topProducts.map((item, index) => {
-              const product = productById.get(item.id) || products.find((candidate) => String(candidate._id) === item.id || candidate.name === item.name);
+              const product = productById.get(item.id) || products.find((candidate) => getProductRowId(candidate) === item.id || candidate.name === item.name);
               return (
                 <div key={item.id} className="grid grid-cols-[56px_1fr_auto] items-center gap-4">
-                  <div className="aspect-square overflow-hidden bg-[#f7f5f1]"><img src={product?.image || product?.images?.[0] || '/media/bisile/packaging-black.jpg'} alt={item.name} className="h-full w-full object-cover" /></div>
-                  <div><p className="font-inter text-sm font-normal">{index + 1}. {item.name}</p><p className="font-inter text-xs font-light text-primary/45">{item.quantity} sold</p></div>
+                  <div className="aspect-square overflow-hidden bg-[#f7f5f1]"><img src={product?.image || product?.images?.[0] || packageImages.product07} alt={item.name} className={`h-full w-full ${product?.imageFit === 'contain' ? 'object-contain p-2' : 'object-cover'}`} /></div>
+                  <div>
+                    <p className="font-inter text-sm font-normal">{index + 1}. {item.name}</p>
+                    <p className="font-inter text-xs font-light text-primary/45">{item.quantity} sold</p>
+                    <p className="mt-1 font-inter text-[10px] font-light uppercase tracking-[0.12em] text-primary/38">ID {item.id}</p>
+                  </div>
                   <p className="font-inter text-sm font-light">{currency.format(item.revenue)}</p>
                 </div>
               );
@@ -266,7 +275,7 @@ export const Dashboard: React.FC = () => {
 
       <DataTable title="Recent orders" rows={filteredOrders.slice(0, 10)} columns={[
         { key: 'customer', label: 'Customer', render: (row) => <div><p>{row.customerInfo?.fullName || row.customer?.fullName || 'Unknown'}</p><p className="text-xs text-primary/45">{row.customerInfo?.email || row.customer?.email}</p></div> },
-        { key: 'items', label: 'Products', render: (row) => <div className="flex flex-wrap gap-2">{(row.items || []).map((item: any) => <span key={`${row._id}-${normalizeOrderItemName(item)}`} className="border border-[#e5e2dd] px-2 py-1 text-xs">{item.quantity}x {normalizeOrderItemName(item)}</span>)}</div> },
+        { key: 'items', label: 'Products', render: (row) => <div className="flex flex-wrap gap-2">{(row.items || []).map((item: any) => <span key={`${row._id}-${normalizeOrderItemId(item)}`} className="border border-[#e5e2dd] px-2 py-1 text-xs">{item.quantity}x {normalizeOrderItemName(item)} <span className="text-primary/40">/ {normalizeOrderItemId(item)}</span></span>)}</div> },
         { key: 'totalAmount', label: 'Total', render: (row) => currency.format(normalizeOrderTotal(row)) },
         { key: 'paymentStatus', label: 'Payment', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.paymentStatus)}`}>{row.paymentStatus}</span> },
         { key: 'createdAt', label: 'Date', render: (row) => row.createdAt ? dateFormatter.format(new Date(row.createdAt)) : '—' },
@@ -277,8 +286,9 @@ export const Dashboard: React.FC = () => {
   const renderTable = () => {
     if (section === 'products') {
       return <DataTable title="Products" rows={products} columns={[
-        { key: 'image', label: 'Image', render: (row) => <div className="h-12 w-12 overflow-hidden bg-[#f7f5f1]"><img src={row.image || row.images?.[0] || '/media/bisile/packaging-black.jpg'} alt={row.name} className="h-full w-full object-cover" /></div> },
-        { key: 'name', label: 'Product' },
+        { key: 'image', label: 'Image', render: (row) => <div className="h-12 w-12 overflow-hidden bg-[#f7f5f1]"><img src={row.image || row.images?.[0] || packageImages.product07} alt={row.name} className="h-full w-full object-cover" /></div> },
+        { key: 'id', label: 'ID / SKU', render: (row) => <span className="font-inter text-xs font-light text-primary/58">{getProductRowId(row)}</span> },
+        { key: 'name', label: 'Product', render: (row) => <div><p>{row.name}</p>{row.selectedOptions && <p className="mt-1 text-xs text-primary/42">{Object.values(row.selectedOptions).join(' / ')}</p>}</div> },
         { key: 'category', label: 'Category', render: (row) => row.category || row.collection || '—' },
         { key: 'price', label: 'Price', render: (row) => currency.format(Number(row.price || 0)) },
         { key: 'stock', label: 'Stock', render: (row) => <span className={Number(row.stock || 0) <= Number(row.lowStockThreshold ?? 3) ? 'text-[#a63b2d]' : ''}>{row.stock ?? '—'}</span> },
@@ -291,7 +301,20 @@ export const Dashboard: React.FC = () => {
       return <DataTable title="Orders" rows={filteredOrders} columns={[
         { key: 'orderNumber', label: 'Order' },
         { key: 'customer', label: 'Customer', render: (row) => <div><p>{row.customerInfo?.fullName || '—'}</p><p className="text-xs text-primary/45">{row.customerInfo?.email}</p></div> },
-        { key: 'items', label: 'Items', render: (row) => (row.items || []).map((item: any) => `${item.quantity}x ${normalizeOrderItemName(item)}`).join(', ') },
+        {
+          key: 'items',
+          label: 'Items / IDs',
+          render: (row) => (
+            <div className="grid gap-2">
+              {(row.items || []).map((item: any) => (
+                <div key={`${row._id}-${normalizeOrderItemId(item)}`}>
+                  <p>{item.quantity}x {normalizeOrderItemName(item)}</p>
+                  <p className="text-[10px] uppercase tracking-[0.12em] text-primary/40">{normalizeOrderItemId(item)}</p>
+                </div>
+              ))}
+            </div>
+          ),
+        },
         { key: 'totalAmount', label: 'Total', render: (row) => currency.format(normalizeOrderTotal(row)) },
         { key: 'paymentStatus', label: 'Payment', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.paymentStatus)}`}>{row.paymentStatus}</span> },
         { key: 'shippingStatus', label: 'Shipping', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.shippingStatus)}`}>{row.shippingStatus}</span> },
