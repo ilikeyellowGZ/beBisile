@@ -7,18 +7,20 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => (
-  <div className="group cursor-pointer">
+  <article className="group cursor-pointer">
     <Link to={`/product/${product.id}`}>
-      <div className="relative overflow-hidden bg-white aspect-[4/5] mb-6">
-        {product.isBestSeller && <span className="absolute top-4 left-4 z-10 text-[10px] tracking-widest uppercase bg-accent text-white px-2 py-1">Best Seller</span>}
-        {product.isNew && <span className="absolute top-4 left-4 z-10 text-[10px] tracking-widest uppercase bg-white border border-accent text-accent px-2 py-1">New</span>}
-        <img src={product.image} alt={product.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out group-hover:opacity-0" />
-        <img src={product.secondaryImage} alt={`${product.name} alternate`} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-in-out opacity-0 scale-105 group-hover:opacity-100 group-hover:scale-100" />
+      <div className="relative mb-4 aspect-square overflow-hidden bg-[#f7f5f1]">
+        {product.isBestSeller && <span className="absolute left-3 top-3 z-10 bg-white/90 px-2.5 py-1 font-inter text-[10px] font-light uppercase tracking-[0.12em] text-primary backdrop-blur">Best seller</span>}
+        {product.isNew && <span className="absolute left-3 top-3 z-10 border border-[#e5e2dd] bg-white/90 px-2.5 py-1 font-inter text-[10px] font-light uppercase tracking-[0.12em] text-primary backdrop-blur">New</span>}
+        <img src={product.image} alt={product.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105" />
       </div>
-      <div className="text-left space-y-1">
-        <h3 className="font-sans text-xs tracking-[0.2em] uppercase text-gray-500">{product.name}</h3>
-        <p className="font-sans text-sm font-medium text-gray-900">R {product.price.toFixed(2)}</p>
+      <div className="space-y-2 text-left font-inter text-sm">
+        <p className="font-light text-primary/45">{product.eyebrow ?? product.subtitle}</p>
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="font-normal text-primary">{product.name}</h3>
+          <p className="shrink-0 font-light text-primary">R {product.price.toFixed(2)}</p>
+        </div>
       </div>
     </Link>
-  </div>
+  </article>
 );

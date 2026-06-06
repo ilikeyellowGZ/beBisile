@@ -1,8 +1,19 @@
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowRight, SlidersHorizontal } from 'lucide-react';
 import { FadeIn } from '../components/UI/FadeIn';
 import { ProductCard } from '../components/UI/ProductCard';
 import { FRAGRANCE_PRODUCTS, getWhatsAppUrl } from '../constants';
+import { SORT_OPTIONS, type CatalogSort, sortProducts } from '../utils/catalog';
+
+type FragranceFilter = 'all' | 'new' | 'best-seller' | 'under-550' | 'over-550';
+
+const filterOptions: Array<{ value: FragranceFilter; label: string }> = [
+  { value: 'all', label: 'All fragrance' },
+  { value: 'new', label: 'New' },
+  { value: 'best-seller', label: 'Best sellers' },
+  { value: 'under-550', label: 'Under R550' },
+  { value: 'over-550', label: 'R550 and over' },
+];
 
 const enquiryItems = [
   { name: 'Discovery Set', image: '/media/bisile/perfume-picnic.jpg', body: 'Sample the BISILE fragrance wardrobe before choosing your full-size scent.' },
@@ -10,39 +21,80 @@ const enquiryItems = [
   { name: 'Candle', image: '/media/bisile/packaging-black.jpg', body: 'A warm ritual piece for gifting, pamper packages, and everyday luxury.' },
 ];
 
-export const Shop: React.FC = () => (
-  <div className="min-h-screen bg-secondary pb-24 pt-28 text-primary">
-    <section className="mx-auto max-w-[1480px] px-6 py-16 md:px-12 md:py-20">
-      <FadeIn>
-        <p className="mb-4 font-sans text-[10px] uppercase tracking-[0.3em] text-accent">BISILE fragrance</p>
-        <h1 className="font-serif text-6xl leading-[0.88] md:text-8xl">The scent <span className="font-subhead italic">wardrobe.</span></h1>
-        <p className="mt-6 max-w-xl font-sans text-sm leading-7 text-primary/65">Six signature perfumes with discovery, diffuser, and candle options available by enquiry.</p>
-      </FadeIn>
-      <div className="mt-14 border-y border-primary/15 py-5 font-sans text-[10px] uppercase tracking-[0.22em] text-primary/55">Perfumes</div>
-      <div className="mt-10 grid gap-x-7 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
-        {FRAGRANCE_PRODUCTS.map((product, index) => <FadeIn key={product.id} delay={index * 70}><ProductCard product={product} /></FadeIn>)}
-      </div>
-    </section>
+const applyFilter = (filter: FragranceFilter) => {
+  if (filter === 'new') return FRAGRANCE_PRODUCTS.filter((product) => product.isNew);
+  if (filter === 'best-seller') return FRAGRANCE_PRODUCTS.filter((product) => product.isBestSeller);
+  if (filter === 'under-550') return FRAGRANCE_PRODUCTS.filter((product) => product.price < 550);
+  if (filter === 'over-550') return FRAGRANCE_PRODUCTS.filter((product) => product.price >= 550);
+  return FRAGRANCE_PRODUCTS;
+};
 
-    <section className="border-y border-black/10 bg-white px-6 py-16 md:px-12 md:py-20">
-      <div className="mx-auto max-w-[1480px]">
+export const Shop: React.FC = () => {
+  const [filter, setFilter] = useState<FragranceFilter>('all');
+  const [sort, setSort] = useState<CatalogSort>('featured');
+
+  const products = useMemo(() => sortProducts(applyFilter(filter), sort), [filter, sort]);
+  const activeFilterLabel = filterOptions.find((option) => option.value === filter)?.label ?? 'Filters';
+
+  return (
+    <div className="min-h-screen bg-white pb-24 pt-16 text-primary">
+      <section className="bisile-shell border-b bisile-rule py-10 md:py-14">
         <FadeIn>
-          <p className="mb-3 font-sans text-[10px] uppercase tracking-[0.24em] text-accent">By enquiry</p>
-          <h2 className="font-serif text-5xl md:text-7xl">Discovery and home fragrance.</h2>
+          <p className="mb-3 font-inter text-sm font-light text-primary/45">Home / Fragrance</p>
+          <h1 className="font-inter text-4xl font-light leading-tight md:text-5xl">Fragrance</h1>
+          <div className="mt-10 flex flex-col gap-5 font-inter text-sm font-light text-primary/55 md:flex-row md:items-center md:justify-between">
+            <p>{products.length} of {FRAGRANCE_PRODUCTS.length} items</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex h-11 items-center gap-2 border border-[#e5e2dd] bg-white px-3">
+                <SlidersHorizontal size={15} strokeWidth={1.25} />
+                <span className="sr-only">Filter fragrance</span>
+                <select value={filter} onChange={(event) => setFilter(event.target.value as FragranceFilter)} className="h-full min-w-40 bg-transparent text-sm font-light outline-none">
+                  {filterOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+              <label className="flex h-11 items-center border border-[#e5e2dd] bg-white px-3">
+                <span className="sr-only">Sort fragrance</span>
+                <select value={sort} onChange={(event) => setSort(event.target.value as CatalogSort)} className="h-full min-w-44 bg-transparent text-sm font-light outline-none">
+                  {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+            </div>
+          </div>
         </FadeIn>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {enquiryItems.map((item, index) => (
-            <FadeIn key={item.name} delay={index * 80} className="border border-black/10 bg-white">
-              <div className="aspect-[4/3] overflow-hidden"><img src={item.image} alt={item.name} className="h-full w-full object-cover" /></div>
-              <div className="p-6">
-                <h3 className="font-subhead text-2xl">{item.name}</h3>
-                <p className="mt-3 font-sans text-xs leading-6 text-primary/60">{item.body}</p>
-                <a href={getWhatsAppUrl(`Hello BISILE, I would like to enquire about the ${item.name}.`)} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 font-sans text-[10px] uppercase tracking-[0.18em] hover:text-accent">Enquire <ArrowRight size={14} /></a>
-              </div>
-            </FadeIn>
-          ))}
+        <div className="mt-8 border-y bisile-rule py-4 font-inter text-sm font-light text-primary/50">
+          {activeFilterLabel} / {SORT_OPTIONS.find((option) => option.value === sort)?.label}
         </div>
-      </div>
-    </section>
-  </div>
-);
+        {products.length ? (
+          <div className="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product, index) => <FadeIn key={product.id} delay={index * 45}><ProductCard product={product} /></FadeIn>)}
+          </div>
+        ) : (
+          <div className="mt-10 border border-[#e5e2dd] p-8 font-inter text-sm font-light text-primary/60">
+            No fragrance products match this filter.
+          </div>
+        )}
+      </section>
+
+      <section className="bisile-shell bisile-section">
+        <div>
+          <FadeIn>
+            <p className="bisile-kicker mb-3">By enquiry</p>
+            <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">Discovery and home fragrance.</h2>
+          </FadeIn>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {enquiryItems.map((item, index) => (
+              <FadeIn key={item.name} delay={index * 80}>
+                <div className="bisile-image-frame aspect-square"><img src={item.image} alt={item.name} className="editorial-image" /></div>
+                <div className="p-6">
+                  <h3 className="font-inter text-sm font-normal">{item.name}</h3>
+                  <p className="mt-2 font-inter text-sm font-light leading-6 text-primary/60">{item.body}</p>
+                  <a href={getWhatsAppUrl(`Hello BISILE, I would like to enquire about the ${item.name}.`)} target="_blank" rel="noreferrer" className="bisile-link mt-5">Enquire <ArrowRight size={14} /></a>
+                </div>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};

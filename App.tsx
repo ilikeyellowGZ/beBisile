@@ -15,6 +15,7 @@ import { Checkout } from './pages/Checkout';
 import { Payment } from './pages/Payment';
 import { PaymentSuccess } from './pages/PaymentSuccess';
 import { Dashboard } from './pages/Dashboard';
+import { NotFound } from './pages/NotFound';
 
 // Scroll to top on route change wrapper, but allow section scrolling via state
 const ScrollToTop = () => {
@@ -54,6 +55,7 @@ const App: React.FC = () => {
               <Route path="/payment" element={<Payment />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
           <Footer />

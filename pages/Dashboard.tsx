@@ -1,150 +1,355 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowRight, LockKeyhole, RefreshCw } from 'lucide-react';
-import type { DashboardOrder } from '../types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Activity, Boxes, CircleDollarSign, ClipboardList, Gauge, Inbox, KeyRound, Layers, Mail, PackageCheck, Percent, RefreshCw, Search, Settings, ShieldCheck, ShoppingBag, Star, Truck, Users } from 'lucide-react';
+import { PRODUCTS } from '../constants';
 
-const ORDERS_API_URL = import.meta.env.VITE_ORDERS_API_URL || '/.netlify/functions/orders';
-const LOGIN_API_URL = import.meta.env.VITE_DASHBOARD_LOGIN_API_URL || '/.netlify/functions/admin-login';
+type AdminSection = 'overview' | 'products' | 'categories' | 'orders' | 'customers' | 'payments' | 'refunds' | 'inventory' | 'reviews' | 'discounts' | 'messages' | 'newsletter' | 'admins' | 'audit' | 'settings';
+type ApiMap = Record<string, any[]>;
+
+const currency = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
+const dateFormatter = new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', timeStyle: 'short' });
+
+const productById = new Map(PRODUCTS.map((product) => [product.id, product]));
+
+const sections: Array<{ id: AdminSection; label: string; icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }> }> = [
+  { id: 'overview', label: 'Dashboard', icon: Gauge },
+  { id: 'products', label: 'Products', icon: Boxes },
+  { id: 'categories', label: 'Categories', icon: Layers },
+  { id: 'orders', label: 'Orders', icon: ShoppingBag },
+  { id: 'customers', label: 'Customers', icon: Users },
+  { id: 'payments', label: 'Payments', icon: CircleDollarSign },
+  { id: 'refunds', label: 'Refunds', icon: RefreshCw },
+  { id: 'inventory', label: 'Inventory', icon: PackageCheck },
+  { id: 'reviews', label: 'Reviews', icon: Star },
+  { id: 'discounts', label: 'Discounts', icon: Percent },
+  { id: 'messages', label: 'Messages', icon: Inbox },
+  { id: 'newsletter', label: 'Newsletter', icon: Mail },
+  { id: 'admins', label: 'Admin Users', icon: KeyRound },
+  { id: 'audit', label: 'Audit Logs', icon: ShieldCheck },
+  { id: 'settings', label: 'Settings', icon: Settings },
+];
+
+const collectionResource: Partial<Record<AdminSection, string>> = {
+  categories: 'categories',
+  customers: 'customers',
+  payments: 'payments',
+  refunds: 'refunds',
+  inventory: 'inventoryLogs',
+  reviews: 'reviews',
+  discounts: 'discountCodes',
+  messages: 'contactMessages',
+  newsletter: 'newsletterSubscribers',
+  admins: 'admins',
+  audit: 'auditLogs',
+  settings: 'storeSettings',
+};
+
+const demoOrders = [
+  {
+    _id: 'demo-1001',
+    orderNumber: 'BIS-DEMO-1001',
+    customerInfo: { fullName: 'A. Mokoena', email: 'demo@bisile.co.za', phone: '+27 60 000 0001' },
+    shippingAddress: { city: 'Johannesburg' },
+    items: [{ id: 'indoniyamanzi', productName: 'Indoniyamanzi', quantity: 2, unitPrice: 499.99, totalPrice: 999.98 }],
+    totalAmount: 999.98,
+    paymentStatus: 'paid',
+    orderStatus: 'paid',
+    shippingStatus: 'processing',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+  },
+  {
+    _id: 'demo-1002',
+    orderNumber: 'BIS-DEMO-1002',
+    customerInfo: { fullName: 'N. Dlamini', email: 'client@example.com', phone: '+27 60 000 0002' },
+    shippingAddress: { city: 'Windhoek' },
+    items: [{ id: 'khwezilokusa', productName: 'Khwezilokusa', quantity: 1, unitPrice: 2799.99, totalPrice: 2799.99 }],
+    totalAmount: 2799.99,
+    paymentStatus: 'pending',
+    orderStatus: 'pending',
+    shippingStatus: 'not_shipped',
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 42).toISOString(),
+  },
+];
+
+const statusTone = (status: string) => {
+  const text = String(status || '').toLowerCase();
+  if (text.includes('paid') || text.includes('active') || text.includes('approved') || text.includes('delivered')) return 'bg-[#edf7ef] text-[#1d6b36]';
+  if (text.includes('pending') || text.includes('processing') || text.includes('new')) return 'bg-[#fff8e8] text-[#8a6420]';
+  if (text.includes('fail') || text.includes('cancel') || text.includes('reject') || text.includes('archived')) return 'bg-[#fff0ee] text-[#a63b2d]';
+  return 'bg-[#f7f5f1] text-primary/60';
+};
+
+const getToken = () => localStorage.getItem('bisileAdminToken') ?? localStorage.getItem('adminToken') ?? '';
+
+const apiFetch = async (url: string, options: RequestInit = {}) => {
+  const token = getToken();
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
+  if (!response.ok) throw new Error(`${url} returned ${response.status}`);
+  return response.json();
+};
+
+const normalizeOrderItemName = (item: any) => item.productName || item.name || item.id || 'Product';
+const normalizeOrderTotal = (order: any) => Number(order.totalAmount ?? order.total ?? 0);
+
+const DataTable: React.FC<{ title: string; rows: any[]; columns: Array<{ key: string; label: string; render?: (row: any) => React.ReactNode }> }> = ({ title, rows, columns }) => (
+  <div className="border border-[#e5e2dd] bg-white">
+    <div className="border-b border-[#e5e2dd] p-5">
+      <h2 className="font-inter text-2xl font-light">{title}</h2>
+    </div>
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[780px] border-collapse">
+        <thead>
+          <tr className="border-b border-[#e5e2dd] text-left">
+            {columns.map((column) => <th key={column.key} className="px-5 py-3 font-inter text-xs font-light text-primary/45">{column.label}</th>)}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[#e5e2dd]">
+          {rows.map((row, index) => (
+            <tr key={row._id || row.id || index}>
+              {columns.map((column) => <td key={column.key} className="px-5 py-4 align-top font-inter text-sm font-light">{column.render ? column.render(row) : row[column.key] ?? '—'}</td>)}
+            </tr>
+          ))}
+          {!rows.length && <tr><td colSpan={columns.length} className="px-5 py-8 font-inter text-sm font-light text-primary/50">No records yet.</td></tr>}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
+const RevenueBars: React.FC<{ data: Array<{ date: string; value: number }> }> = ({ data }) => {
+  const max = Math.max(...data.map((item) => item.value), 1);
+  return (
+    <div className="flex h-56 items-end gap-2 border border-[#e5e2dd] bg-white p-5">
+      {(data.length ? data : [{ date: 'No data', value: 0 }]).slice(-14).map((item) => (
+        <div key={item.date} className="flex flex-1 flex-col items-center gap-2">
+          <div className="w-full bg-primary transition-all" style={{ height: `${Math.max(6, (item.value / max) * 170)}px` }} />
+          <span className="max-w-16 truncate font-inter text-[10px] font-light text-primary/40">{item.date}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export const Dashboard: React.FC = () => {
-  const [sessionToken, setSessionToken] = useState(() => sessionStorage.getItem('bisile-dashboard-session') ?? '');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [orders, setOrders] = useState<DashboardOrder[]>([]);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [section, setSection] = useState<AdminSection>('overview');
+  const [orders, setOrders] = useState<any[]>([]);
+  const [dashboard, setDashboard] = useState<any | null>(null);
+  const [products, setProducts] = useState<any[]>([]);
+  const [collections, setCollections] = useState<ApiMap>({});
+  const [query, setQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadOrders = async (token = sessionToken) => {
-    if (!token) return;
-    setLoading(true);
-    setError('');
-
+  const loadDashboard = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch(ORDERS_API_URL, { headers: { Authorization: `Bearer ${token}` } });
-      const payload = await response.json() as { orders?: DashboardOrder[]; error?: string };
-      if (!response.ok) throw new Error(payload.error || 'Unable to load orders.');
-      setOrders(payload.orders ?? []);
-    } catch (requestError) {
-      setOrders([]);
-      setError(requestError instanceof Error ? requestError.message : 'Unable to load orders.');
-      sessionStorage.removeItem('bisile-dashboard-session');
-      setSessionToken('');
+      const payload = await apiFetch('/.netlify/functions/orders');
+      setOrders(payload.orders || []);
+      setProducts(payload.products || []);
+      setDashboard(payload.dashboard || null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not load live dashboard data');
+      setOrders(demoOrders);
+      setProducts(PRODUCTS.map((product) => ({ ...product, stock: product.collection === 'fragrance' ? 12 : 4, isActive: true })));
+      setDashboard(null);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  const loadCollection = async (nextSection: AdminSection) => {
+    setSection(nextSection);
+    const resource = collectionResource[nextSection];
+    if (!resource || collections[resource]) return;
+    try {
+      const payload = await apiFetch(`/.netlify/functions/admin-collections?resource=${resource}`);
+      setCollections((current) => ({ ...current, [resource]: payload[resource] || payload[nextSection] || [] }));
+    } catch {
+      setCollections((current) => ({ ...current, [resource]: [] }));
     }
   };
 
   useEffect(() => {
-    if (sessionToken) void loadOrders(sessionToken);
+    void loadDashboard();
   }, []);
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
+  const filteredOrders = useMemo(() => {
+    const text = query.trim().toLowerCase();
+    if (!text) return orders;
+    return orders.filter((order) => [
+      order.orderNumber,
+      order.customerInfo?.fullName,
+      order.customerInfo?.email,
+      order.customerInfo?.phone,
+      order.paymentStatus,
+      order.orderStatus,
+      ...(order.items || []).map(normalizeOrderItemName),
+    ].join(' ').toLowerCase().includes(text));
+  }, [orders, query]);
 
-    try {
-      const response = await fetch(LOGIN_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const payload = await response.json() as { token?: string; error?: string };
-      if (!response.ok || !payload.token) throw new Error(payload.error || 'Unable to log in.');
-      sessionStorage.setItem('bisile-dashboard-session', payload.token);
-      setSessionToken(payload.token);
-      setPassword('');
-      await loadOrders(payload.token);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Unable to log in.');
-    } finally {
-      setLoading(false);
+  const computed = useMemo(() => {
+    const paid = filteredOrders.filter((order) => String(order.paymentStatus).toLowerCase().includes('paid'));
+    const revenue = paid.reduce((sum, order) => sum + normalizeOrderTotal(order), 0);
+    const itemCount = filteredOrders.reduce((sum, order) => sum + (order.items || []).reduce((inner: number, item: any) => inner + Number(item.quantity || 0), 0), 0);
+    const customerCount = new Set(filteredOrders.map((order) => order.customerInfo?.email).filter(Boolean)).size;
+    const movement = new Map<string, { id: string; name: string; quantity: number; revenue: number }>();
+    filteredOrders.forEach((order) => (order.items || []).forEach((item: any) => {
+      const id = String(item.productId || item.id || normalizeOrderItemName(item));
+      const current = movement.get(id) || { id, name: normalizeOrderItemName(item), quantity: 0, revenue: 0 };
+      current.quantity += Number(item.quantity || 0);
+      current.revenue += Number(item.totalPrice ?? (item.unitPrice || 0) * (item.quantity || 0));
+      movement.set(id, current);
+    }));
+    return {
+      revenue,
+      itemCount,
+      customerCount,
+      avgOrder: filteredOrders.length ? revenue / filteredOrders.length : 0,
+      topProducts: [...movement.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 8),
+    };
+  }, [filteredOrders]);
+
+  const currentResource = collectionResource[section];
+  const currentRows = currentResource ? collections[currentResource] || [] : [];
+
+  const renderOverview = () => (
+    <div className="space-y-6">
+      <div className="grid gap-px bg-[#e5e2dd] md:grid-cols-2 xl:grid-cols-6">
+        {[
+          ['Revenue', currency.format(dashboard?.totals?.totalRevenue ?? computed.revenue), CircleDollarSign],
+          ['Orders', String(dashboard?.totals?.totalOrders ?? filteredOrders.length), ShoppingBag],
+          ['Pending', String(dashboard?.totals?.pendingOrders ?? filteredOrders.filter((order) => order.orderStatus === 'pending').length), ClipboardList],
+          ['Customers', String(dashboard?.totals?.totalCustomers ?? computed.customerCount), Users],
+          ['In stock', String(dashboard?.totals?.productsInStock ?? products.filter((product) => Number(product.stock || 0) > 0).length), Boxes],
+          ['Low stock', String(dashboard?.totals?.lowStockProducts ?? products.filter((product) => Number(product.stock || 0) <= Number(product.lowStockThreshold ?? 3)).length), Activity],
+        ].map(([label, value, Icon]) => (
+          <div key={String(label)} className="bg-white p-5">
+            <Icon size={18} strokeWidth={1.25} className="mb-5 text-primary/45" />
+            <p className="font-inter text-xs font-light text-primary/45">{label}</p>
+            <p className="mt-2 font-inter text-2xl font-light">{value as string}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-inter text-2xl font-light">Revenue chart</h2>
+            <span className="font-inter text-xs font-light text-primary/45">Webhook-confirmed payments only</span>
+          </div>
+          <RevenueBars data={dashboard?.revenueChart || []} />
+        </div>
+        <div className="border border-[#e5e2dd] bg-white p-5">
+          <h2 className="font-inter text-2xl font-light">Best-selling products</h2>
+          <div className="mt-6 space-y-4">
+            {computed.topProducts.map((item, index) => {
+              const product = productById.get(item.id) || products.find((candidate) => String(candidate._id) === item.id || candidate.name === item.name);
+              return (
+                <div key={item.id} className="grid grid-cols-[56px_1fr_auto] items-center gap-4">
+                  <div className="aspect-square overflow-hidden bg-[#f7f5f1]"><img src={product?.image || product?.images?.[0] || '/media/bisile/packaging-black.jpg'} alt={item.name} className="h-full w-full object-cover" /></div>
+                  <div><p className="font-inter text-sm font-normal">{index + 1}. {item.name}</p><p className="font-inter text-xs font-light text-primary/45">{item.quantity} sold</p></div>
+                  <p className="font-inter text-sm font-light">{currency.format(item.revenue)}</p>
+                </div>
+              );
+            })}
+            {!computed.topProducts.length && <p className="font-inter text-sm font-light text-primary/50">No purchases yet.</p>}
+          </div>
+        </div>
+      </div>
+
+      <DataTable title="Recent orders" rows={filteredOrders.slice(0, 10)} columns={[
+        { key: 'customer', label: 'Customer', render: (row) => <div><p>{row.customerInfo?.fullName || row.customer?.fullName || 'Unknown'}</p><p className="text-xs text-primary/45">{row.customerInfo?.email || row.customer?.email}</p></div> },
+        { key: 'items', label: 'Products', render: (row) => <div className="flex flex-wrap gap-2">{(row.items || []).map((item: any) => <span key={`${row._id}-${normalizeOrderItemName(item)}`} className="border border-[#e5e2dd] px-2 py-1 text-xs">{item.quantity}x {normalizeOrderItemName(item)}</span>)}</div> },
+        { key: 'totalAmount', label: 'Total', render: (row) => currency.format(normalizeOrderTotal(row)) },
+        { key: 'paymentStatus', label: 'Payment', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.paymentStatus)}`}>{row.paymentStatus}</span> },
+        { key: 'createdAt', label: 'Date', render: (row) => row.createdAt ? dateFormatter.format(new Date(row.createdAt)) : '—' },
+      ]} />
+    </div>
+  );
+
+  const renderTable = () => {
+    if (section === 'products') {
+      return <DataTable title="Products" rows={products} columns={[
+        { key: 'image', label: 'Image', render: (row) => <div className="h-12 w-12 overflow-hidden bg-[#f7f5f1]"><img src={row.image || row.images?.[0] || '/media/bisile/packaging-black.jpg'} alt={row.name} className="h-full w-full object-cover" /></div> },
+        { key: 'name', label: 'Product' },
+        { key: 'category', label: 'Category', render: (row) => row.category || row.collection || '—' },
+        { key: 'price', label: 'Price', render: (row) => currency.format(Number(row.price || 0)) },
+        { key: 'stock', label: 'Stock', render: (row) => <span className={Number(row.stock || 0) <= Number(row.lowStockThreshold ?? 3) ? 'text-[#a63b2d]' : ''}>{row.stock ?? '—'}</span> },
+        { key: 'status', label: 'Status', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.isActive === false ? 'inactive' : 'active')}`}>{row.isActive === false ? 'Inactive' : 'Active'}</span> },
+        { key: 'featured', label: 'Featured', render: (row) => row.isFeatured || row.isBestSeller ? 'Yes' : 'No' },
+      ]} />;
     }
-  };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('bisile-dashboard-session');
-    setSessionToken('');
-    setOrders([]);
+    if (section === 'orders') {
+      return <DataTable title="Orders" rows={filteredOrders} columns={[
+        { key: 'orderNumber', label: 'Order' },
+        { key: 'customer', label: 'Customer', render: (row) => <div><p>{row.customerInfo?.fullName || '—'}</p><p className="text-xs text-primary/45">{row.customerInfo?.email}</p></div> },
+        { key: 'items', label: 'Items', render: (row) => (row.items || []).map((item: any) => `${item.quantity}x ${normalizeOrderItemName(item)}`).join(', ') },
+        { key: 'totalAmount', label: 'Total', render: (row) => currency.format(normalizeOrderTotal(row)) },
+        { key: 'paymentStatus', label: 'Payment', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.paymentStatus)}`}>{row.paymentStatus}</span> },
+        { key: 'shippingStatus', label: 'Shipping', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.shippingStatus)}`}>{row.shippingStatus}</span> },
+      ]} />;
+    }
+
+    return <DataTable title={sections.find((item) => item.id === section)?.label || 'Records'} rows={currentRows} columns={[
+      { key: 'name', label: 'Name / ID', render: (row) => row.name || row.fullName || row.email || row.code || row.orderNumber || String(row._id || '—') },
+      { key: 'status', label: 'Status', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.status || row.paymentStatus || row.role || (row.isActive === false ? 'inactive' : 'active'))}`}>{row.status || row.paymentStatus || row.role || (row.isActive === false ? 'Inactive' : 'Active')}</span> },
+      { key: 'detail', label: 'Detail', render: (row) => row.message || row.subject || row.description || row.reason || row.action || row.storeEmail || row.phone || '—' },
+      { key: 'createdAt', label: 'Created', render: (row) => row.createdAt ? dateFormatter.format(new Date(row.createdAt)) : '—' },
+    ]} />;
   };
 
   return (
-    <div className="min-h-screen bg-secondary px-6 pb-24 pt-32 text-primary md:px-12">
-      <div className="mx-auto max-w-[1320px]">
-        <div className="flex flex-col gap-8 border-b border-black/10 pb-10 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="mb-4 font-sans text-[10px] uppercase tracking-[0.3em] text-accent">Private admin</p>
-            <h1 className="font-serif text-6xl leading-none md:text-7xl">Order dashboard.</h1>
-            <p className="mt-5 max-w-xl font-sans text-sm leading-7 text-primary/60">
-              Orders from Stripe Checkout are saved to the Bisile MongoDB database and shown here after admin login.
-            </p>
-          </div>
-
-          {!sessionToken ? (
-            <form onSubmit={handleLogin} className="grid w-full max-w-xl gap-3 sm:grid-cols-[1fr_1fr_auto]">
-              <label className="border border-black/15 bg-white px-4">
-                <span className="sr-only">Username</span>
-                <input value={username} onChange={(event) => setUsername(event.target.value)} required placeholder="Username" className="w-full bg-transparent py-4 font-sans text-xs outline-none" />
-              </label>
-              <label className="flex items-center gap-2 border border-black/15 bg-white px-4">
-                <LockKeyhole size={15} className="text-accent" />
-                <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required placeholder="Password" className="w-full bg-transparent py-4 font-sans text-xs outline-none" />
-              </label>
-              <button className="flex items-center justify-center gap-2 bg-primary px-5 py-4 font-sans text-[10px] uppercase tracking-[0.18em] text-white transition-colors hover:bg-accent">
-                {loading ? <RefreshCw size={14} className="animate-spin" /> : <ArrowRight size={14} />}
-                Login
-              </button>
-            </form>
-          ) : (
-            <div className="flex gap-3">
-              <button onClick={() => void loadOrders()} className="flex items-center gap-2 border border-primary px-5 py-4 font-sans text-[10px] uppercase tracking-[0.18em] transition-colors hover:border-accent hover:text-accent">
-                {loading ? <RefreshCw size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                Refresh
-              </button>
-              <button onClick={handleLogout} className="px-5 py-4 font-sans text-[10px] uppercase tracking-[0.18em] text-primary/55 hover:text-primary">Logout</button>
-            </div>
-          )}
-        </div>
-
-        {error && <p className="mt-7 border border-red-300 bg-red-50 px-4 py-3 font-sans text-xs text-red-800">{error}</p>}
-
-        <div className="mt-10 overflow-x-auto border border-black/10 bg-white">
-          <table className="min-w-full text-left font-sans text-xs">
-            <thead className="border-b border-black/10 bg-secondary text-[10px] uppercase tracking-[0.16em] text-primary/55">
-              <tr>
-                <th className="px-5 py-4">Created</th>
-                <th className="px-5 py-4">Customer</th>
-                <th className="px-5 py-4">Items</th>
-                <th className="px-5 py-4">Total</th>
-                <th className="px-5 py-4">Payment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order._id} className="border-b border-black/10 last:border-b-0">
-                  <td className="whitespace-nowrap px-5 py-4 text-primary/55">{new Date(order.createdAt).toLocaleString()}</td>
-                  <td className="px-5 py-4">
-                    <p>{order.customer.fullName}</p>
-                    <p className="mt-1 text-primary/50">{order.customer.email}</p>
-                  </td>
-                  <td className="px-5 py-4 text-primary/65">{order.items.map((item) => `${item.name} x${item.quantity}`).join(', ')}</td>
-                  <td className="whitespace-nowrap px-5 py-4">R {order.total.toFixed(2)}</td>
-                  <td className="px-5 py-4">
-                    <span className={`inline-block px-2 py-1 text-[10px] uppercase tracking-[0.12em] ${order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-secondary text-primary/60'}`}>
-                      {order.paymentStatus}
-                    </span>
-                  </td>
-                </tr>
+    <div className="min-h-screen bg-white pt-16 text-primary">
+      <div className="grid lg:grid-cols-[280px_1fr]">
+        <aside className="border-r border-[#e5e2dd] bg-white lg:min-h-[calc(100vh-4rem)]">
+          <div className="sticky top-16 p-5">
+            <p className="bisile-kicker mb-4">Admin</p>
+            <div className="grid gap-1">
+              {sections.map((item) => (
+                <button key={item.id} onClick={() => void loadCollection(item.id)} className={`flex items-center gap-3 px-3 py-2.5 text-left font-inter text-sm font-light transition-colors ${section === item.id ? 'bg-[#f7f5f1] text-primary' : 'text-primary/55 hover:bg-[#f7f5f1] hover:text-primary'}`}>
+                  <item.icon size={16} strokeWidth={1.25} />
+                  {item.label}
+                </button>
               ))}
-              {!orders.length && (
-                <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center text-primary/45">
-                    {sessionToken ? 'No orders yet.' : 'Log in to load orders.'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          </div>
+        </aside>
+
+        <main>
+          <section className="border-b border-[#e5e2dd] p-6 md:p-8">
+            <div className="grid gap-6 xl:grid-cols-[1fr_auto] xl:items-end">
+              <div>
+                <p className="bisile-kicker mb-3">BISILE backend</p>
+                <h1 className="font-inter text-4xl font-light leading-tight md:text-5xl">{sections.find((item) => item.id === section)?.label}</h1>
+                <p className="mt-4 max-w-3xl font-inter text-sm font-light leading-7 text-primary/60">
+                  Manage products, backend-controlled prices, stock, orders, payments, customers, messages, discounts, refunds, settings, and audit history from one secure console.
+                </p>
+              </div>
+              <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                <label className="flex h-11 items-center gap-3 border border-[#e5e2dd] px-3">
+                  <Search size={16} strokeWidth={1.25} className="text-primary/45" />
+                  <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search orders..." className="h-full w-full bg-transparent font-inter text-sm font-light outline-none placeholder:text-primary/35" />
+                </label>
+                <button onClick={() => void loadDashboard()} className="flex h-11 items-center justify-center gap-2 border border-primary px-4 font-inter text-sm font-light transition-colors hover:border-accent hover:text-accent">
+                  <RefreshCw size={15} strokeWidth={1.25} /> Refresh
+                </button>
+              </div>
+            </div>
+            {error && <div className="mt-6 border border-[#e5e2dd] bg-[#f7f5f1] p-4 font-inter text-sm font-light text-primary/60">Live admin data could not load, showing local/demo data. Details: {error}</div>}
+          </section>
+
+          <section className="p-6 md:p-8">
+            {isLoading ? <div className="border border-[#e5e2dd] p-8 font-inter text-sm font-light text-primary/55">Loading dashboard...</div> : section === 'overview' ? renderOverview() : renderTable()}
+          </section>
+        </main>
       </div>
     </div>
   );

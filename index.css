@@ -1,14 +1,16 @@
 :root {
-  --bisile-black: #111111;
-  --bisile-charcoal: #1a1917;
-  --bisile-soft-black: #25231f;
+  --bisile-black: #171717;
+  --bisile-charcoal: #26221f;
+  --bisile-soft-black: #2f2b26;
   --bisile-white: #ffffff;
   --bisile-cream: #ffffff;
-  --bisile-muted-white: #d9d4ca;
-  --bisile-grey: #77736d;
-  --bisile-gold: #b49a60;
-  --bisile-dark-gold: #8f7a45;
-  --bisile-line: rgba(17, 17, 17, 0.14);
+  --bisile-bone: #f7f5f1;
+  --bisile-muted-white: #e7e1d8;
+  --bisile-grey: #73706a;
+  --bisile-gold: #a9874d;
+  --bisile-dark-gold: #80643a;
+  --bisile-line: #e5e2dd;
+  --bisile-soft-line: rgba(23, 23, 23, 0.09);
 }
 
 * {
@@ -23,6 +25,7 @@ body {
   margin: 0;
   background: var(--bisile-cream);
   color: var(--bisile-black);
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
 }
 
 button,
@@ -44,7 +47,7 @@ a {
 }
 
 .editorial-image {
-  filter: saturate(0.88) contrast(1.03);
+  filter: saturate(0.92) contrast(1.02);
 }
 
 .gold-rule {
@@ -56,7 +59,7 @@ a {
 
 .field-light {
   background: transparent;
-  border: 1px solid rgba(17, 17, 17, 0.18);
+  border: 1px solid var(--bisile-line);
   color: var(--bisile-black);
   outline: none;
   transition: border-color 220ms ease, background-color 220ms ease;
@@ -77,6 +80,61 @@ a {
 
 .float-slow {
   animation: float-slow 10s ease-in-out infinite;
+}
+
+.bisile-shell {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+.bisile-section {
+  padding-block: 64px;
+}
+
+.bisile-kicker {
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bisile-grey);
+}
+
+.bisile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--bisile-black);
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.bisile-link:hover {
+  color: var(--bisile-gold);
+}
+
+.bisile-image-frame {
+  display: block;
+  overflow: hidden;
+  background: var(--bisile-bone);
+}
+
+.bisile-image-frame img {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  transition: transform 320ms ease;
+}
+
+.bisile-image-frame:hover img {
+  transform: scale(1.045);
+}
+
+.bisile-rule {
+  border-color: var(--bisile-line);
 }
 
 @keyframes reveal-up {
@@ -108,5 +166,124 @@ a {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .bisile-shell {
+    padding-inline: 20px;
+  }
+
+  .bisile-section {
+    padding-block: 48px;
+  }
+}
+@keyframes bisile-sale-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.bisile-landing-hero {
+  --bisile-sale-stack-height: 98px;
+  position: relative;
+  padding-bottom: var(--bisile-sale-stack-height);
+}
+
+.bisile-sale-marquee {
+  width: 100%;
+  min-height: 46px;
+  overflow: hidden;
+  background: #000000;
+  color: #ffffff;
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+}
+
+.bisile-sale-stack {
+  position: sticky;
+  top: calc(100dvh - var(--bisile-sale-stack-height));
+  z-index: 30;
+  width: 100%;
+}
+
+.bisile-sale-marquee--urgent {
+  min-height: 52px;
+  background: #FFE438;
+  color: #000000;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.bisile-sale-marquee__track {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  will-change: transform;
+  animation: bisile-sale-marquee 18s linear infinite;
+}
+
+.bisile-sale-marquee__track--reverse {
+  animation-direction: reverse;
+  animation-duration: 22s;
+}
+
+.bisile-sale-marquee__row {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2.75rem;
+  padding-right: 2.75rem;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(0.875rem, 1.7vw, 1.375rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.bisile-sale-marquee__row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.75rem;
+}
+
+.bisile-sale-marquee__row span::after {
+  content: "•";
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bisile-sale-marquee__track {
+    animation: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .bisile-landing-hero {
+    --bisile-sale-stack-height: 88px;
+  }
+
+  .bisile-sale-marquee {
+    min-height: 42px;
+    padding: 11px 0;
+  }
+
+  .bisile-sale-marquee--urgent {
+    min-height: 46px;
+  }
+
+  .bisile-sale-marquee__row {
+    gap: 1.7rem;
+    padding-right: 1.7rem;
+    font-size: 0.875rem;
+  }
+
+  .bisile-sale-marquee__row span {
+    gap: 1.7rem;
   }
 }
