@@ -2,13 +2,16 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   NODE_ENV: z.string().default('development'),
-  PORT: z.coerce.number().default(4000),
+  PORT: z.coerce.number().default(5000),
   MONGODB_URI: z.string().min(1),
   MONGODB_DB: z.string().default('bisile'),
+  DATABASE_URL: z.string().optional(),
   JWT_SECRET: z.string().min(32),
   STRIPE_SECRET_KEY: z.string().min(1),
   STRIPE_WEBHOOK_SECRET: z.string().min(1),
-  CLIENT_URL: z.string().url(),
+  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  TEMP_NETLIFY_URL: z.string().url().or(z.literal('')).optional(),
+  CLIENT_URL: z.string().url().or(z.literal('')).optional(),
   SERVER_URL: z.string().url().optional(),
   CORS_ORIGINS: z.string().default(''),
   RESEND_API_KEY: z.string().optional(),
@@ -19,5 +22,18 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().optional()
 });
 
-export const env = envSchema.parse(process.env);
-export const corsOrigins = [env.CLIENT_URL, ...env.CORS_ORIGINS.split(',').map((item) => item.trim()).filter(Boolean)];
+const parsedEnv = envSchema.parse(process.env);
+
+export const env = {
+  ...parsedEnv,
+  CLIENT_URL: parsedEnv.CLIENT_URL || parsedEnv.FRONTEND_URL,
+};
+
+const isString = (value: string | undefined): value is string => Boolean(value);
+
+export const corsOrigins = Array.from(new Set([
+  env.FRONTEND_URL,
+  env.CLIENT_URL,
+  env.TEMP_NETLIFY_URL,
+  ...env.CORS_ORIGINS.split(',').map((item) => item.trim()).filter(Boolean),
+].filter(isString)));

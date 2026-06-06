@@ -1,14 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Music2 } from 'lucide-react';
-import { CONTACT_EMAIL, CONTACT_PHONE, getWhatsAppUrl } from '../../constants';
+import { Instagram } from 'lucide-react';
+import { CONTACT_EMAIL, CONTACT_PHONE, INSTAGRAM_URL, PINTEREST_URL, getWhatsAppUrl } from '../../constants';
+import { brandImages } from '../../src/assets/images';
 
 export const Footer: React.FC = () => (
   <footer className="relative z-10 border-t border-[#e5e2dd] bg-white px-6 pb-8 pt-14">
     <div className="w-full">
       <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[1.4fr_2fr]">
         <div>
-          <Link to="/" className="mb-6 inline-block"><img src="/media/logo 1.png" alt="BISILE - Be Luxury" className="h-10 w-auto object-contain" /></Link>
+          <Link to="/" className="mb-6 inline-block"><img src={brandImages.logo} alt="BISILE - Be Luxury" className="h-10 w-auto object-contain" /></Link>
           <p className="max-w-xs font-inter text-sm font-light leading-6 text-primary/60">
             Processed virgin hair.<br />BISILE fragrances.<br />Laundry services.<br />Be Luxury.
           </p>
@@ -18,7 +19,10 @@ export const Footer: React.FC = () => (
             <h4 className="mb-5 font-inter text-sm font-normal">Shop</h4>
             <ul className="space-y-3 font-inter text-sm font-light leading-relaxed text-primary/60">
               <li><Link to="/shop" className="hover:text-accent">Fragrances</Link></li>
-              <li><Link to="/hair" className="hover:text-accent">Hair Collection</Link></li>
+              <li><Link to="/hair/wigs" className="hover:text-accent">Wigs</Link></li>
+              <li><Link to="/hair/bundles" className="hover:text-accent">Bundles</Link></li>
+              <li><Link to="/hair/closures" className="hover:text-accent">Closures & Frontals</Link></li>
+              <li><Link to="/hair/laundry" className="hover:text-accent">Wig Laundry</Link></li>
               <li><Link to="/pamper" className="hover:text-accent">Pamper Packages</Link></li>
               <li><Link to="/cart" className="hover:text-accent">Cart</Link></li>
             </ul>
@@ -45,10 +49,13 @@ export const Footer: React.FC = () => (
       </div>
       <div className="flex flex-col items-center justify-between border-t border-[#e5e2dd] pt-6 md:flex-row">
         <a href="https://heyywebb.com" target="_blank" rel="noreferrer" className="font-inter text-xs font-light text-primary/40 hover:text-accent">Made by HeyyWebb</a>
-        <div className="mt-4 flex space-x-6 md:mt-0">
-          <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-primary/40 hover:text-accent" aria-label="Instagram"><Instagram size={18} strokeWidth={1.2} /></a>
-          <a href="https://tiktok.com" target="_blank" rel="noreferrer" className="text-primary/40 hover:text-accent" aria-label="TikTok"><Music2 size={18} strokeWidth={1.2} /></a>
-          <a href="https://facebook.com" target="_blank" rel="noreferrer" className="text-primary/40 hover:text-accent" aria-label="Facebook"><Facebook size={18} strokeWidth={1.2} /></a>
+        <div className="mt-4 flex items-center gap-6 md:mt-0">
+          <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-inter text-xs font-light uppercase tracking-[0.14em] text-primary/45 transition-colors hover:text-accent" aria-label="BISILE Instagram">
+            <Instagram size={17} strokeWidth={1.2} /> Instagram
+          </a>
+          <a href={PINTEREST_URL} target="_blank" rel="noreferrer" className="font-inter text-xs font-light uppercase tracking-[0.14em] text-primary/45 transition-colors hover:text-accent" aria-label="BISILE Pinterest">
+            Pinterest
+          </a>
         </div>
       </div>
     </div>

@@ -28,6 +28,12 @@ body {
   font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
 }
 
+p,
+p.font-inter,
+p.font-sans {
+  font-family: "Poppins", "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+
 button,
 a,
 input,
@@ -72,6 +78,15 @@ a {
 
 .field-light::placeholder {
   color: rgba(17, 17, 17, 0.42);
+}
+
+select.field-light {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='7' viewBox='0 0 12 7' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' fill='none' stroke='%23171717' stroke-width='1.25' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: calc(100% - 1.45rem) 50%;
+  background-repeat: no-repeat;
+  background-size: 12px 7px;
+  padding-right: 3.25rem;
 }
 
 .reveal-up {

@@ -6,8 +6,13 @@ import { Home } from './pages/Home';
 import { Shop } from './pages/Shop';
 import { ProductDetail } from './pages/ProductDetail';
 import { Contact } from './pages/Contact';
+import { About } from './pages/About';
 import { CarePackages } from './pages/CarePackages';
 import { Hair } from './pages/Hair';
+import { Wigs } from './pages/Wigs';
+import { Bundles } from './pages/Bundles';
+import { Closures } from './pages/Closures';
+import { WigLaundry } from './pages/WigLaundry';
 import { Community } from './pages/Community';
 import { CartProvider } from './CartContext';
 import { Cart } from './pages/Cart';
@@ -44,12 +49,17 @@ const App: React.FC = () => {
               <Route path="/shop" element={<Shop />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/about" element={<About />} />
               <Route path="/care-packages" element={<CarePackages />} />
               <Route path="/pamper" element={<CarePackages />} />
               <Route path="/hair" element={<Hair />} />
+              <Route path="/hair/wigs" element={<Wigs />} />
+              <Route path="/hair/bundles" element={<Bundles />} />
+              <Route path="/hair/closures" element={<Closures />} />
+              <Route path="/hair/laundry" element={<WigLaundry />} />
               <Route path="/community" element={<Community />} />
               {/* Fallback / additional routes */}
-              <Route path="/story" element={<Home />} /> 
+              <Route path="/story" element={<About />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/payment" element={<Payment />} />

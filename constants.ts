@@ -1,9 +1,13 @@
 import type { NavItem, Product } from './types';
+import { BUNDLE_PRODUCTS, CLOSURE_PRODUCT, WIG_LAUNDRY_PRODUCT } from './data/hairCatalog';
+import { carouselImages, fragranceImages, hairImages, packageImages } from './src/assets/images';
 
 export const WHATSAPP_NUMBER = (import.meta.env.VITE_WHATSAPP_NUMBER ?? '27608957481').replace(/\D/g, '');
-export const CONTACT_EMAIL = 'bisilebeautyandmakeup@gmail.com';
-export const ORDER_EMAIL = 'bisilebeautyandmakeup@mail.com';
+export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'bisilebeautyandmakeup@mail.com';
+export const ORDER_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'bisilebeautyandmakeup@mail.com';
 export const CONTACT_PHONE = '+27 60 895 7481';
+export const INSTAGRAM_URL = import.meta.env.VITE_INSTAGRAM_URL ?? 'https://www.instagram.com/be_bisile/';
+export const PINTEREST_URL = import.meta.env.VITE_PINTEREST_URL ?? 'https://za.pinterest.com/be_bisile/';
 
 export const getWhatsAppUrl = (message: string) => {
   const base = WHATSAPP_NUMBER ? `https://wa.me/${WHATSAPP_NUMBER}` : 'https://wa.me/';
@@ -13,18 +17,27 @@ export const getWhatsAppUrl = (message: string) => {
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Shop', path: '/shop' },
   { label: 'Hair', path: '/hair' },
-  { label: 'Our Story', path: '/', scrollTo: 'our-story' },
+  { label: 'Our Story', path: '/about' },
   { label: 'Contact', path: '/contact' },
 ];
 
-const perfumeHero = '/media/bisile/hero-perfume.jpg';
-const perfumeBasket = '/media/bisile/perfume-basket.jpg';
-const perfumePicnic = '/media/bisile/perfume-picnic.jpg';
-const perfumeBottles = '/media/bisile/perfume-bottles.jpg';
-const packaging = '/media/bisile/packaging-black.jpg';
-const hairStraight = '/media/bisile/wig-straight.jpg';
-const hairCurly = '/media/bisile/bundles-curly.jpg';
-const laundryImage = '/media/bisile/laundry.png';
+const perfumeFace = fragranceImages.face;
+const perfumeIndoniyamanzi = fragranceImages.indoniyamanzi;
+const perfumeInkanyezi = fragranceImages.inkanyezi;
+const perfumeSithelo = fragranceImages.sithelo;
+const perfumeLangelihle = fragranceImages.langelihle;
+const perfumeNdalwenhle = fragranceImages.ndalwenhle;
+const perfumeLuyanda = fragranceImages.luyanda;
+const perfumeHero = fragranceImages.product02;
+const perfumeBasket = fragranceImages.product01;
+const perfumePicnic = packageImages.product06;
+const perfumeBottles = carouselImages.perfumeDisplay04;
+const perfumeFloral = fragranceImages.product05;
+const perfumeDiffuser = fragranceImages.product06;
+const perfumeWrapped = fragranceImages.product07;
+const hairStraight = hairImages.straightWig01;
+const hairCurly = hairImages.kinkyWig01;
+const laundryImage = hairImages.straightWig07;
 
 export const PRODUCTS: Product[] = [
   {
@@ -35,8 +48,11 @@ export const PRODUCTS: Product[] = [
     price: 499.99,
     description: 'A BISILE fragrance made for everyday luxury and a memorable finishing ritual.',
     notes: ['Eau de Parfum', 'Be Luxury', 'Signature Scent'],
-    image: perfumeHero,
-    secondaryImage: perfumePicnic,
+    image: perfumeIndoniyamanzi,
+    secondaryImage: perfumeHero,
+    tertiaryImage: perfumePicnic,
+    galleryImages: [perfumeIndoniyamanzi, perfumeHero, perfumePicnic, perfumeFloral],
+    imageFit: 'contain',
     category: 'parfum',
     collection: 'fragrance',
     isBestSeller: true,
@@ -49,8 +65,11 @@ export const PRODUCTS: Product[] = [
     price: 499.99,
     description: 'A polished fragrance for soft presence, daily wear, and quiet elegance.',
     notes: ['Eau de Parfum', 'Everyday Luxury', 'Soft Finish'],
-    image: perfumeBottles,
-    secondaryImage: perfumeBasket,
+    image: perfumeInkanyezi,
+    secondaryImage: perfumeBottles,
+    tertiaryImage: perfumeBasket,
+    galleryImages: [perfumeInkanyezi, perfumeBottles, perfumeBasket, perfumeWrapped],
+    imageFit: 'contain',
     category: 'parfum',
     collection: 'fragrance',
     isNew: true,
@@ -63,8 +82,11 @@ export const PRODUCTS: Product[] = [
     price: 649.99,
     description: 'A richer scent expression made for statement moments and lasting impressions.',
     notes: ['Eau de Parfum', 'Statement Scent', 'Luxury Finish'],
-    image: perfumeBasket,
-    secondaryImage: perfumeHero,
+    image: perfumeSithelo,
+    secondaryImage: perfumeBasket,
+    tertiaryImage: perfumeFloral,
+    galleryImages: [perfumeSithelo, perfumeBasket, perfumeFloral, perfumeHero],
+    imageFit: 'contain',
     category: 'parfum',
     collection: 'fragrance',
   },
@@ -76,8 +98,11 @@ export const PRODUCTS: Product[] = [
     price: 629.99,
     description: 'Warm, graceful, and refined. Langelihle completes a considered scent wardrobe.',
     notes: ['Eau de Parfum', 'Warm Trail', 'Be Luxury'],
-    image: perfumePicnic,
-    secondaryImage: perfumeBottles,
+    image: perfumeLangelihle,
+    secondaryImage: perfumePicnic,
+    tertiaryImage: perfumeBottles,
+    galleryImages: [perfumeLangelihle, perfumePicnic, perfumeBottles, perfumeBasket],
+    imageFit: 'contain',
     category: 'parfum',
     collection: 'fragrance',
   },
@@ -89,8 +114,11 @@ export const PRODUCTS: Product[] = [
     price: 529.99,
     description: 'A clean everyday scent designed for subtle confidence and effortless wear.',
     notes: ['Eau de Parfum', 'Daily Ritual', 'Soft Finish'],
-    image: perfumeHero,
-    secondaryImage: perfumeBottles,
+    image: perfumeNdalwenhle,
+    secondaryImage: perfumeWrapped,
+    tertiaryImage: perfumeBottles,
+    galleryImages: [perfumeNdalwenhle, perfumeWrapped, perfumeBottles, perfumeDiffuser],
+    imageFit: 'contain',
     category: 'parfum',
     collection: 'fragrance',
   },
@@ -102,8 +130,11 @@ export const PRODUCTS: Product[] = [
     price: 689.99,
     description: 'A premium BISILE scent with a deeper profile for special days and evening rituals.',
     notes: ['Eau de Parfum', 'Premium Scent', 'Evening Ritual'],
-    image: perfumeBasket,
-    secondaryImage: perfumePicnic,
+    image: perfumeLuyanda,
+    secondaryImage: perfumeDiffuser,
+    tertiaryImage: perfumePicnic,
+    galleryImages: [perfumeLuyanda, perfumeDiffuser, perfumePicnic, perfumeHero],
+    imageFit: 'contain',
     category: 'parfum',
     collection: 'fragrance',
   },
@@ -116,7 +147,7 @@ export const PRODUCTS: Product[] = [
     description: '8 inch, 4x4 closure, natural black, 180% density, straight.',
     notes: ['Processed Virgin Hair', 'Natural Black', '180% Density'],
     image: hairStraight,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.straightWig02,
     category: 'wig',
     collection: 'hair',
     isBestSeller: true,
@@ -149,14 +180,15 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'khwezilokusa',
-    name: 'Khwezilokusa',
+    // TODO: Confirm spelling. Extracted text says "Khwezilikusa".
+    name: 'Khwezilikusa',
     subtitle: 'Soft Luxurious Quality Wig',
     eyebrow: '8 inch / Glueless lace',
     price: 2799.99,
     description: '8 inch, 4x4 closure, glueless lace, bob straight, 180% density, natural black.',
     notes: ['Processed Virgin Hair', 'Bob Straight', 'Glueless Lace'],
     image: hairStraight,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.straightWig04,
     category: 'wig',
     collection: 'hair',
     isNew: true,
@@ -183,7 +215,7 @@ export const PRODUCTS: Product[] = [
     description: '12 inch, 5x5 closure, HD lace, bob straight, 130% density, colour #4, blunt cut.',
     notes: ['Processed Virgin Hair', 'HD Lace', 'Colour #4'],
     image: hairStraight,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.straightWig08,
     category: 'wig',
     collection: 'hair',
   },
@@ -209,7 +241,7 @@ export const PRODUCTS: Product[] = [
     description: '16 inch, 4x4 closure, glueless lace, natural black, 180% density, jerry curls.',
     notes: ['Processed Virgin Hair', 'Jerry Curls', 'Glueless Lace'],
     image: hairCurly,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.curlyBundle01,
     category: 'wig',
     collection: 'hair',
   },
@@ -235,7 +267,7 @@ export const PRODUCTS: Product[] = [
     description: '12 inch, 5x5 closure, HD lace, bob straight, blunt cut, natural black, 180% density.',
     notes: ['Processed Virgin Hair', 'Premium Luxury', 'HD Lace'],
     image: hairStraight,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.straightWig10,
     category: 'wig',
     collection: 'hair',
   },
@@ -261,7 +293,7 @@ export const PRODUCTS: Product[] = [
     description: '16 inch, 13x4 closure, HD lace, straight, 180% density, natural black, blunt cut.',
     notes: ['Processed Virgin Hair', 'Straight', 'Blunt Cut'],
     image: hairStraight,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.straightWig11,
     category: 'wig',
     collection: 'hair',
   },
@@ -287,7 +319,7 @@ export const PRODUCTS: Product[] = [
     description: '12 inch, 13x4 closure, HD lace, bob straight, blunt cut, 130% density, ombre natural black roots and #4.',
     notes: ['Processed Virgin Hair', 'Ombre', 'Blunt Cut'],
     image: hairStraight,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.kinkyWig02,
     category: 'wig',
     collection: 'hair',
   },
@@ -313,7 +345,7 @@ export const PRODUCTS: Product[] = [
     description: '20 inch, 13x4 closure, HD lace, straight, 180% density, ombre natural black and #30.',
     notes: ['Processed Virgin Hair', 'Ombre', 'Colour #30'],
     image: hairStraight,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.straightWig06,
     category: 'wig',
     collection: 'hair',
   },
@@ -339,7 +371,7 @@ export const PRODUCTS: Product[] = [
     description: '18 inch, 13x4 closure, HD lace, kinky jerry curls, 200% density, natural black.',
     notes: ['Processed Virgin Hair', 'Kinky Jerry Curls', '200% Density'],
     image: hairCurly,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.kinkyWig04,
     category: 'wig',
     collection: 'hair',
   },
@@ -482,7 +514,7 @@ export const PRODUCTS: Product[] = [
     description: 'Dye service for wigs or bundles.',
     notes: ['Customisation', 'Dye'],
     image: laundryImage,
-    secondaryImage: packaging,
+    secondaryImage: hairImages.curlyBundle02,
     category: 'laundry',
     collection: 'service',
   },
@@ -528,8 +560,11 @@ export const PRODUCTS: Product[] = [
 ];
 
 export const FRAGRANCE_PRODUCTS = PRODUCTS.filter((product) => product.collection === 'fragrance');
-export const HAIR_PRODUCTS = PRODUCTS.filter((product) => product.collection === 'hair');
-export const SERVICE_PRODUCTS = PRODUCTS.filter((product) => product.collection === 'service');
+export const WIG_PRODUCTS = PRODUCTS.filter((product) => product.collection === 'hair' && product.category === 'wig');
+export const HAIR_PRODUCTS = WIG_PRODUCTS;
+export const CONFIGURABLE_HAIR_PRODUCTS = [...BUNDLE_PRODUCTS, CLOSURE_PRODUCT, WIG_LAUNDRY_PRODUCT];
+export const ALL_HAIR_PRODUCTS = [...WIG_PRODUCTS, ...CONFIGURABLE_HAIR_PRODUCTS];
+export const SERVICE_PRODUCTS = [WIG_LAUNDRY_PRODUCT];
 
 export const DELIVERY_OPTIONS = [
   { name: 'PostNet to PostNet', price: 'R109,99' },

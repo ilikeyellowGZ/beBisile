@@ -5,7 +5,9 @@ import { useCart } from '../CartContext';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
 import type { CheckoutDetails } from '../types';
 
-const API_URL = import.meta.env.VITE_CHECKOUT_API_URL || '/.netlify/functions/create-checkout-session';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+const API_URL = import.meta.env.VITE_CHECKOUT_API_URL
+  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/create-session` : '/.netlify/functions/create-checkout-session');
 
 export const Payment: React.FC = () => {
   const { items, subtotal } = useCart();

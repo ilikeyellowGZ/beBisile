@@ -1,6 +1,66 @@
 # BISILE Secure API
 
-Production Express/Mongoose backend scaffold for BISILE admin, catalog, orders, checkout, Stripe webhooks, and dashboard management.
+Express/Mongoose backend for BISILE admin, catalog, orders, checkout, Stripe webhooks, and dashboard management.
+
+## Local Development
+
+```bash
+npm install
+npm run dev
+```
+
+Copy `server/.env.example` to `server/.env` for local backend testing. Real secrets must not be committed.
+
+The backend listens on:
+
+```text
+process.env.PORT || 5000
+```
+
+Health check:
+
+```text
+GET /api/health
+Response: { "status": "ok" }
+```
+
+## Render Deployment
+
+Render service type:
+
+```text
+Web Service
+```
+
+Suggested Render settings:
+
+- Runtime: Node
+- Root directory: `server`
+- Build command: `npm install && npm run build`
+- Start command: `npm start`
+- Environment: Node
+
+Render provides the `PORT` environment variable automatically. The backend URL will look like:
+
+```text
+https://your-service-name.onrender.com
+```
+
+Use that Render URL as `VITE_API_BASE_URL` in the frontend.
+
+## Required Environment Variables
+
+- `NODE_ENV`: use `production` on Render.
+- `PORT`: local port only; Render sets it automatically.
+- `FRONTEND_URL`: final frontend URL allowed by CORS, later the DirectAdmin domain.
+- `TEMP_NETLIFY_URL`: optional temporary Netlify preview URL allowed by CORS while testing.
+- `CLIENT_URL`: optional legacy redirect URL. Leave blank to use `FRONTEND_URL`.
+- `MONGODB_URI`: MongoDB connection string.
+- `MONGODB_DB`: MongoDB database name.
+- `JWT_SECRET`: 32+ character auth secret.
+- `STRIPE_SECRET_KEY`: secret backend Stripe key.
+- `STRIPE_WEBHOOK_SECRET`: Stripe webhook signing secret.
+- `SERVER_URL`, `CORS_ORIGINS`, email, and Cloudinary variables are optional.
 
 ## Security Invariant
 
@@ -14,36 +74,9 @@ Frontend requests must never send trusted price fields. Checkout/cart requests m
 
 The backend fetches products from MongoDB, validates active status and stock, uses backend-controlled `price` and `stripePriceId`, creates a pending order, and only Stripe webhooks can mark an order as paid.
 
-## Required Env
-
-```env
-MONGODB_URI=
-MONGODB_DB=bisile
-JWT_SECRET=change-me-32-plus-characters
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-CLIENT_URL=https://your-site.example
-SERVER_URL=https://your-api.example
-CORS_ORIGINS=
-RESEND_API_KEY=
-SENDGRID_API_KEY=
-FROM_EMAIL=
-CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-```
-
-## Commands
-
-```bash
-npm install
-npm run dev
-npm run build
-npm start
-```
-
 ## Routes
 
+- `GET /api/health`
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`

@@ -16,13 +16,13 @@ adminRoutes.get('/dashboard/stats', async (_req, res) => {
   ]);
   const paidOrders = orders.filter((order) => String(order.paymentStatus).includes('paid'));
   res.json({
-    totalRevenue: paidOrders.reduce((sum, order) => sum + order.totalAmount, 0),
+    totalRevenue: paidOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0),
     totalOrders: orders.length,
     pendingOrders: orders.filter((order) => order.orderStatus === 'pending').length,
     completedOrders: orders.filter((order) => ['paid', 'delivered', 'completed'].includes(order.orderStatus)).length,
     cancelledOrders: orders.filter((order) => ['cancelled', 'refunded'].includes(order.orderStatus)).length,
     totalCustomers: customers,
-    lowStockProducts: products.filter((product) => product.stock <= product.lowStockThreshold),
+    lowStockProducts: products.filter((product) => Number(product.stock ?? 0) <= Number(product.lowStockThreshold ?? 3)),
     recentOrders: orders.slice(0, 10),
     recentPayments: payments
   });

@@ -26,8 +26,11 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
   for (const item of input.items) {
     const product = await Product.findById(item.productId);
     if (!product || product.isActive === false || product.isArchived === true) throw Object.assign(new Error('Product is not available'), { statusCode: 400 });
-    if (!product.stripePriceId) throw Object.assign(new Error('Product is missing Stripe Price ID'), { statusCode: 400 });
-    if (product.stock <= 0 || item.quantity > product.stock) throw Object.assign(new Error(`${product.name} does not have enough stock`), { statusCode: 400 });
+    const stripePriceId = product.stripePriceId;
+    if (!stripePriceId) throw Object.assign(new Error('Product is missing Stripe Price ID'), { statusCode: 400 });
+    const productStock = Number(product.stock ?? 0);
+    if (productStock <= 0 || item.quantity > productStock) throw Object.assign(new Error(`${product.name} does not have enough stock`), { statusCode: 400 });
+    const unitPrice = Number(product.price ?? 0);
 
     trustedItems.push({
       product,
@@ -35,9 +38,9 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
       productName: product.name,
       quantity: item.quantity,
       selectedVariant: item.selectedVariant,
-      unitPrice: product.price,
-      totalPrice: product.price * item.quantity,
-      stripePriceId: product.stripePriceId
+      unitPrice,
+      totalPrice: unitPrice * item.quantity,
+      stripePriceId
     });
   }
 
@@ -51,7 +54,8 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
     if (discount.minimumOrderAmount && subtotal < discount.minimumOrderAmount) throw Object.assign(new Error('Discount minimum not met'), { statusCode: 400 });
     if (discount.maxUses && discount.usedCount >= discount.maxUses) throw Object.assign(new Error('Discount usage limit reached'), { statusCode: 400 });
     discountCode = discount.code;
-    discountAmount = discount.type === 'percentage' ? subtotal * (discount.value / 100) : discount.value;
+    const discountValue = Number(discount.value ?? 0);
+    discountAmount = discount.type === 'percentage' ? subtotal * (discountValue / 100) : discountValue;
     discountAmount = Math.min(discountAmount, subtotal);
   }
 

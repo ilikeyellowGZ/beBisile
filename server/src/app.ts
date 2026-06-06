@@ -16,6 +16,10 @@ app.use(helmet());
 app.use(cors({ origin: corsOrigins, credentials: true }));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 200 }));
 
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
 app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookRoutes);
 app.use(express.json({ limit: '1mb' }));
 

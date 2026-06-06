@@ -7,6 +7,12 @@ export interface Product {
   notes: string[];
   image: string;
   secondaryImage: string;
+  tertiaryImage?: string;
+  galleryImages?: string[];
+  specs?: Record<string, string>;
+  pricePrefix?: string;
+  selectedOptions?: Record<string, string>;
+  imageFit?: 'cover' | 'contain';
   category: 'parfum' | 'wig' | 'bundle' | 'closure' | 'laundry' | 'care' | 'service';
   collection: 'fragrance' | 'hair' | 'service';
   eyebrow?: string;

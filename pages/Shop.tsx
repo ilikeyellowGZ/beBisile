@@ -1,14 +1,20 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, SlidersHorizontal } from 'lucide-react';
 import { FadeIn } from '../components/UI/FadeIn';
+import { BisileSelect } from '../components/UI/BisileSelect';
 import { ProductCard } from '../components/UI/ProductCard';
-import { FRAGRANCE_PRODUCTS, getWhatsAppUrl } from '../constants';
+import { ALL_HAIR_PRODUCTS, FRAGRANCE_PRODUCTS, getWhatsAppUrl } from '../constants';
+import { fragranceImages, packageImages } from '../src/assets/images';
 import { SORT_OPTIONS, type CatalogSort, sortProducts } from '../utils/catalog';
 
-type FragranceFilter = 'all' | 'new' | 'best-seller' | 'under-550' | 'over-550';
+type ShopFilter = 'all' | 'fragrance' | 'hair' | 'new' | 'best-seller' | 'under-550' | 'over-550';
 
-const filterOptions: Array<{ value: FragranceFilter; label: string }> = [
-  { value: 'all', label: 'All fragrance' },
+const shopProducts = [...FRAGRANCE_PRODUCTS, ...ALL_HAIR_PRODUCTS];
+
+const filterOptions: Array<{ value: ShopFilter; label: string }> = [
+  { value: 'all', label: 'All products' },
+  { value: 'fragrance', label: 'Fragrance' },
+  { value: 'hair', label: 'Hair' },
   { value: 'new', label: 'New' },
   { value: 'best-seller', label: 'Best sellers' },
   { value: 'under-550', label: 'Under R550' },
@@ -16,21 +22,23 @@ const filterOptions: Array<{ value: FragranceFilter; label: string }> = [
 ];
 
 const enquiryItems = [
-  { name: 'Discovery Set', image: '/media/bisile/perfume-picnic.jpg', body: 'Sample the BISILE fragrance wardrobe before choosing your full-size scent.' },
-  { name: 'Diffuser', image: '/media/bisile/perfume-basket.jpg', body: 'Home fragrance for a softer atmosphere and a more considered room ritual.' },
-  { name: 'Candle', image: '/media/bisile/packaging-black.jpg', body: 'A warm ritual piece for gifting, pamper packages, and everyday luxury.' },
+  { name: 'Discovery Set', image: packageImages.product06, body: 'Sample the BISILE fragrance wardrobe before choosing your full-size scent.' },
+  { name: 'Diffuser', image: fragranceImages.product06, body: 'Home fragrance for a softer atmosphere and a more considered room ritual.' },
+  { name: 'Candle', image: packageImages.product07, body: 'A warm ritual piece for gifting, pamper packages, and everyday luxury.' },
 ];
 
-const applyFilter = (filter: FragranceFilter) => {
-  if (filter === 'new') return FRAGRANCE_PRODUCTS.filter((product) => product.isNew);
-  if (filter === 'best-seller') return FRAGRANCE_PRODUCTS.filter((product) => product.isBestSeller);
-  if (filter === 'under-550') return FRAGRANCE_PRODUCTS.filter((product) => product.price < 550);
-  if (filter === 'over-550') return FRAGRANCE_PRODUCTS.filter((product) => product.price >= 550);
-  return FRAGRANCE_PRODUCTS;
+const applyFilter = (filter: ShopFilter) => {
+  if (filter === 'fragrance') return FRAGRANCE_PRODUCTS;
+  if (filter === 'hair') return ALL_HAIR_PRODUCTS;
+  if (filter === 'new') return shopProducts.filter((product) => product.isNew);
+  if (filter === 'best-seller') return shopProducts.filter((product) => product.isBestSeller);
+  if (filter === 'under-550') return shopProducts.filter((product) => product.price < 550);
+  if (filter === 'over-550') return shopProducts.filter((product) => product.price >= 550);
+  return shopProducts;
 };
 
 export const Shop: React.FC = () => {
-  const [filter, setFilter] = useState<FragranceFilter>('all');
+  const [filter, setFilter] = useState<ShopFilter>('all');
   const [sort, setSort] = useState<CatalogSort>('featured');
 
   const products = useMemo(() => sortProducts(applyFilter(filter), sort), [filter, sort]);
@@ -40,24 +48,29 @@ export const Shop: React.FC = () => {
     <div className="min-h-screen bg-white pb-24 pt-16 text-primary">
       <section className="bisile-shell border-b bisile-rule py-10 md:py-14">
         <FadeIn>
-          <p className="mb-3 font-inter text-sm font-light text-primary/45">Home / Fragrance</p>
-          <h1 className="font-inter text-4xl font-light leading-tight md:text-5xl">Fragrance</h1>
+          <p className="mb-3 font-inter text-sm font-light text-primary/45">Home / Shop</p>
+          <h1 className="font-inter text-4xl font-light leading-tight md:text-5xl">Shop BISILE.</h1>
+          <p className="mt-4 max-w-2xl font-inter text-sm font-light leading-7 text-primary/58">
+            Discover BISILE fragrance, luxury hair, wigs, bundles, closures, frontals, and wig laundry services.
+          </p>
           <div className="mt-10 flex flex-col gap-5 font-inter text-sm font-light text-primary/55 md:flex-row md:items-center md:justify-between">
-            <p>{products.length} of {FRAGRANCE_PRODUCTS.length} items</p>
+            <p>{products.length} of {shopProducts.length} items</p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <label className="flex h-11 items-center gap-2 border border-[#e5e2dd] bg-white px-3">
-                <SlidersHorizontal size={15} strokeWidth={1.25} />
-                <span className="sr-only">Filter fragrance</span>
-                <select value={filter} onChange={(event) => setFilter(event.target.value as FragranceFilter)} className="h-full min-w-40 bg-transparent text-sm font-light outline-none">
-                  {filterOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-              </label>
-              <label className="flex h-11 items-center border border-[#e5e2dd] bg-white px-3">
-                <span className="sr-only">Sort fragrance</span>
-                <select value={sort} onChange={(event) => setSort(event.target.value as CatalogSort)} className="h-full min-w-44 bg-transparent text-sm font-light outline-none">
-                  {SORT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-                </select>
-              </label>
+              <BisileSelect
+                value={filter}
+                options={filterOptions}
+                onChange={setFilter}
+                ariaLabel="Filter shop products"
+                icon={<SlidersHorizontal size={15} strokeWidth={1.25} />}
+                className="min-w-[13rem]"
+              />
+              <BisileSelect
+                value={sort}
+                options={SORT_OPTIONS}
+                onChange={setSort}
+                ariaLabel="Sort shop products"
+                className="min-w-[13rem]"
+              />
             </div>
           </div>
         </FadeIn>
@@ -70,7 +83,7 @@ export const Shop: React.FC = () => {
           </div>
         ) : (
           <div className="mt-10 border border-[#e5e2dd] p-8 font-inter text-sm font-light text-primary/60">
-            No fragrance products match this filter.
+            No products match this filter.
           </div>
         )}
       </section>

@@ -1,10 +1,37 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Heart, Minus, Plus, ShieldCheck, Truck, X, ZoomIn } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Heart, MessageCircle, Minus, Plus, ShieldCheck, Truck, X, ZoomIn } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useCart } from '../CartContext';
-import { FRAGRANCE_PRODUCTS, HAIR_PRODUCTS, PRODUCTS, SERVICE_PRODUCTS } from '../constants';
+import { ALL_HAIR_PRODUCTS, CONTACT_PHONE, FRAGRANCE_PRODUCTS, HAIR_PRODUCTS, LAYBYE_TERMS, ORDER_EMAIL, PRODUCTS, SERVICE_PRODUCTS, getWhatsAppUrl } from '../constants';
 import { FadeIn } from '../components/UI/FadeIn';
 import { ProductCard } from '../components/UI/ProductCard';
+import {
+  BUNDLE_PRODUCTS,
+  CLOSURE_PRODUCT,
+  CLOSURE_PRICES,
+  ClosureLaceSize,
+  ClosureLength,
+  ClosureTexture,
+  BundleLength,
+  BundlePackageType,
+  BundleTexture,
+  BUNDLE_PRICES,
+  LAUNDRY_FINISHES,
+  LAUNDRY_PARTINGS,
+  LaundryAddon,
+  LaundryFinish,
+  LaundryParting,
+  LaundryServiceType,
+  WIG_LAUNDRY_ADDON_PRICES,
+  WIG_LAUNDRY_PRODUCT,
+  WIG_LAUNDRY_SERVICE_PRICES,
+  formatPrice,
+  getBundlePrice,
+  getClosurePrice,
+  getLaundryPrice,
+  hairGallery,
+} from '../data/hairCatalog';
+import type { Product } from '../types';
 
 const detailCopy = {
   fragrance: {
@@ -24,14 +51,100 @@ const detailCopy = {
   },
 };
 
+const slugifyOption = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const getWigSpecs = (product: Product) => {
+  if (product.specs) return product.specs;
+  const description = product.description;
+  const texture = /waterwave/i.test(description) ? 'Waterwave Curls' : /kinky/i.test(description) ? 'Kinky Jerry Curl' : /jerry/i.test(description) ? 'Jerry Curls' : /bob straight/i.test(description) ? 'Bob Straight' : /straight/i.test(description) ? 'Straight' : undefined;
+  const specs: Record<string, string> = {
+    'Tier/collection': product.subtitle,
+    'Hair type': 'Processed Virgin Hair',
+  };
+  const length = description.match(/\d+\s*inch/i)?.[0];
+  const closure = description.match(/\d+x\d+\s*closure/i)?.[0];
+  const density = description.match(/\d+%\s*density/i)?.[0];
+  const laceType = /HD lace/i.test(description) ? 'HD lace' : /glueless lace/i.test(description) ? 'Glueless lace' : undefined;
+  const colour = description.match(/ombre[^.]+|natural black|natural colour|colour\s*#[0-9]+/i)?.[0];
+  const finish = /blunt cut/i.test(description) ? 'Blunt cut' : /bob straight/i.test(description) ? 'Bob straight' : texture;
+  if (length) specs.Length = length;
+  if (closure) specs['Closure size'] = closure;
+  if (laceType) specs['Lace type'] = laceType;
+  if (texture) specs.Texture = texture;
+  if (density) specs.Density = density;
+  if (colour) specs.Colour = colour;
+  if (finish) specs.Finish = finish;
+  return specs;
+};
+
 export const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const product = PRODUCTS.find((item) => item.id === id);
+  const product = [...PRODUCTS, ...BUNDLE_PRODUCTS, CLOSURE_PRODUCT, WIG_LAUNDRY_PRODUCT].find((item) => item.id === id);
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
-  const lightboxImageCount = product ? 4 : 0;
+  const [bundlePackageType, setBundlePackageType] = useState<BundlePackageType>('Single Bundle');
+  const [bundleTexture, setBundleTexture] = useState<BundleTexture>('Straight');
+  const [bundleLength, setBundleLength] = useState<BundleLength>('10 inch');
+  const [closureLaceSize, setClosureLaceSize] = useState<ClosureLaceSize>('4x4 Closure');
+  const [closureTexture, setClosureTexture] = useState<ClosureTexture>('Straight');
+  const [closureLength, setClosureLength] = useState<ClosureLength>('10 inch');
+  const [laundryServiceType, setLaundryServiceType] = useState<LaundryServiceType>('Basic Wash & Condition');
+  const [laundryParting, setLaundryParting] = useState<LaundryParting>('Middle Part');
+  const [laundryFinish, setLaundryFinish] = useState<LaundryFinish>('Straightened');
+  const [laundryAddOns, setLaundryAddOns] = useState<LaundryAddon[]>([]);
+  const [openDetailSections, setOpenDetailSections] = useState<Record<string, boolean>>({ Description: true });
+  const fallbackGallery = product?.category === 'wig' && product.notes.some((note) => /curl|waterwave|kinky/i.test(note)) ? hairGallery.curly : hairGallery.straight;
+  const galleryImages = product ? Array.from(new Set([product.image, ...(product.galleryImages ?? [product.secondaryImage, product.tertiaryImage, ...fallbackGallery])].filter((image): image is string => Boolean(image)))).slice(0, 4) : [];
+  const lightboxImageCount = galleryImages.length;
+
+  useEffect(() => {
+    if (id === 'three-bundles') setBundlePackageType('Three Bundles');
+    if (id === 'single-bundle') setBundlePackageType('Single Bundle');
+  }, [id]);
+
+  const configuredProduct = useMemo<Product | null>(() => {
+    if (!product) return null;
+    if (product.category === 'bundle') {
+      const price = getBundlePrice(bundlePackageType, bundleTexture, bundleLength);
+      return {
+        ...product,
+        id: `bundle-${slugifyOption(bundlePackageType)}-${slugifyOption(bundleTexture)}-${slugifyOption(bundleLength)}`,
+        name: `${bundlePackageType} - ${bundleTexture} - ${bundleLength}`,
+        price,
+        selectedOptions: { 'Package type': bundlePackageType, Texture: bundleTexture, Length: bundleLength, 'Hair type': 'Processed Virgin Hair' },
+        specs: { 'Package type': bundlePackageType, Texture: bundleTexture, Length: bundleLength, 'Hair type': 'Processed Virgin Hair' },
+      };
+    }
+    if (product.category === 'closure') {
+      const price = getClosurePrice(closureLaceSize, closureTexture, closureLength);
+      return {
+        ...product,
+        id: `closure-${slugifyOption(closureLaceSize)}-${slugifyOption(closureTexture)}-${slugifyOption(closureLength)}`,
+        name: `${closureLaceSize} - ${closureTexture} - ${closureLength}`,
+        price,
+        selectedOptions: { 'Lace size': closureLaceSize, Texture: closureTexture, Length: closureLength, 'Hair type': 'Processed Virgin Hair' },
+        specs: { 'Lace size': closureLaceSize, Texture: closureTexture, Length: closureLength, 'Hair type': 'Processed Virgin Hair' },
+      };
+    }
+    if (product.id === WIG_LAUNDRY_PRODUCT.id) {
+      const price = getLaundryPrice(laundryServiceType, laundryAddOns);
+      const addonSlug = (Object.keys(WIG_LAUNDRY_ADDON_PRICES) as LaundryAddon[])
+        .filter((addOn) => laundryAddOns.includes(addOn))
+        .map(slugifyOption)
+        .join('-') || 'no-addons';
+      return {
+        ...product,
+        id: `wig-laundry-${slugifyOption(laundryServiceType)}-${slugifyOption(laundryParting)}-${slugifyOption(laundryFinish)}-${addonSlug}`,
+        name: `Wig Laundry - ${laundryServiceType}`,
+        price,
+        selectedOptions: { 'Service type': laundryServiceType, Parting: laundryParting, 'Styling finish': laundryFinish, 'Add-ons': laundryAddOns.length ? laundryAddOns.join(', ') : 'None' },
+        specs: { 'Service type': laundryServiceType, Parting: laundryParting, 'Styling finish': laundryFinish, 'Add-ons': laundryAddOns.length ? laundryAddOns.join(', ') : 'None' },
+      };
+    }
+    return product;
+  }, [bundleLength, bundlePackageType, bundleTexture, closureLaceSize, closureLength, closureTexture, laundryAddOns, laundryFinish, laundryParting, laundryServiceType, product]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -46,6 +159,7 @@ export const ProductDetail: React.FC = () => {
 
     const title = `${product.name} | BISILE`;
     const description = `${product.subtitle}. ${product.description}`;
+    const productImages = Array.from(new Set([product.image, ...(product.galleryImages ?? [product.secondaryImage, product.tertiaryImage])].filter((image): image is string => Boolean(image))));
     const imageUrl = new URL(product.image, window.location.origin).toString();
 
     document.title = title;
@@ -78,7 +192,7 @@ export const ProductDetail: React.FC = () => {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.name,
-      image: [imageUrl, new URL(product.secondaryImage, window.location.origin).toString()],
+      image: productImages.map((image) => new URL(image, window.location.origin).toString()),
       description,
       brand: { '@type': 'Brand', name: 'BISILE' },
       category: product.collection,
@@ -130,10 +244,19 @@ export const ProductDetail: React.FC = () => {
   }
 
   const copy = detailCopy[product.collection];
-  const backPath = product.collection === 'hair' || product.collection === 'service' ? '/hair' : '/shop';
-  const galleryImages = [product.image, product.secondaryImage, product.image, product.secondaryImage];
-  const relatedSource = product.collection === 'fragrance' ? FRAGRANCE_PRODUCTS : product.collection === 'hair' ? HAIR_PRODUCTS : SERVICE_PRODUCTS;
+  const backPath = product.category === 'bundle' ? '/hair/bundles' : product.category === 'closure' ? '/hair/closures' : product.category === 'laundry' ? '/hair/laundry' : product.collection === 'hair' ? '/hair/wigs' : '/shop';
+  const relatedSource = product.collection === 'fragrance' ? FRAGRANCE_PRODUCTS : product.collection === 'hair' ? ALL_HAIR_PRODUCTS : SERVICE_PRODUCTS;
   const relatedProducts = relatedSource.filter((item) => item.id !== product.id).slice(0, 4);
+  const detailSections = [
+    { title: 'Description', body: product.description },
+    { title: product.collection === 'fragrance' ? 'Scent and finish' : 'Material and finish', body: copy.material },
+    { title: 'Care', body: copy.care },
+    { title: 'Shipping', body: copy.shipping },
+    { title: 'Bhelekazi Laybye Payments', body: `${LAYBYE_TERMS.join(' ')} Proof of payment is required to confirm and process your order. Without proof of payment, your order will be cancelled. WhatsApp: ${CONTACT_PHONE}. Email: ${ORDER_EMAIL}.` },
+  ];
+  const toggleDetailSection = (title: string) => {
+    setOpenDetailSections((current) => ({ ...current, [title]: !current[title] }));
+  };
 
   return (
     <div className="min-h-screen bg-white pt-16 text-primary">
@@ -151,7 +274,7 @@ export const ProductDetail: React.FC = () => {
                   <img
                     src={image}
                     alt={index === 0 ? product.name : `${product.name} detail ${index + 1}`}
-                    className="editorial-image h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.025]"
+                    className={`h-full w-full transition-transform duration-500 group-hover:scale-[1.025] ${product.imageFit === 'contain' && index === 0 ? 'object-contain p-12 md:p-16 lg:p-20' : 'editorial-image object-cover'}`}
                   />
                   <span className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center bg-white/85 text-primary opacity-0 backdrop-blur transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
                     <ZoomIn size={18} strokeWidth={1.25} />
@@ -172,7 +295,7 @@ export const ProductDetail: React.FC = () => {
             <p className="mb-4 text-sm font-light text-primary/55">{product.eyebrow ?? product.subtitle}</p>
             <h1 className="text-4xl font-light leading-tight md:text-5xl">{product.name}</h1>
             <p className="mt-4 text-sm font-light leading-6 text-primary/60">{product.subtitle}</p>
-            <p className="mt-8 text-2xl font-light">R {product.price.toFixed(2)}</p>
+            <p className="mt-8 text-2xl font-light">{formatPrice(configuredProduct?.price ?? product.price)}</p>
             <p className="mt-8 max-w-xl text-sm font-light leading-7 text-primary/62">{product.description}</p>
 
             <div className="mt-8 flex flex-wrap gap-2">
@@ -180,6 +303,101 @@ export const ProductDetail: React.FC = () => {
                 <span key={note} className="border border-[#e5e2dd] px-3 py-2 text-xs font-light text-primary/55">{note}</span>
               ))}
             </div>
+
+            <div className="mt-8 border-y border-[#e5e2dd] py-6">
+              <h2 className="mb-4 text-sm font-normal text-primary">Hair specifications</h2>
+              <div className="grid gap-3 text-sm font-light text-primary/60">
+                {Object.entries(configuredProduct?.specs ?? getWigSpecs(product)).map(([label, value]) => (
+                  <div key={label} className="flex justify-between gap-5 border-b border-[#e5e2dd] pb-2 last:border-b-0">
+                    <span>{label}</span>
+                    <span className="text-right text-primary">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {product.category === 'bundle' && (
+              <div className="mt-8 grid gap-5 border-b border-[#e5e2dd] pb-8">
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Package type
+                  <select value={bundlePackageType} onChange={(event) => setBundlePackageType(event.target.value as BundlePackageType)} className="field-light px-4 py-4 text-sm text-primary">
+                    {(Object.keys(BUNDLE_PRICES) as BundlePackageType[]).map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Texture
+                  <select value={bundleTexture} onChange={(event) => setBundleTexture(event.target.value as BundleTexture)} className="field-light px-4 py-4 text-sm text-primary">
+                    {(Object.keys(BUNDLE_PRICES['Single Bundle']) as BundleTexture[]).map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Length
+                  <select value={bundleLength} onChange={(event) => setBundleLength(event.target.value as BundleLength)} className="field-light px-4 py-4 text-sm text-primary">
+                    {(Object.keys(BUNDLE_PRICES['Single Bundle'].Straight) as BundleLength[]).map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+              </div>
+            )}
+
+            {product.category === 'closure' && (
+              <div className="mt-8 grid gap-5 border-b border-[#e5e2dd] pb-8">
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Lace size
+                  <select value={closureLaceSize} onChange={(event) => setClosureLaceSize(event.target.value as ClosureLaceSize)} className="field-light px-4 py-4 text-sm text-primary">
+                    {(Object.keys(CLOSURE_PRICES) as ClosureLaceSize[]).map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Texture
+                  <select value={closureTexture} onChange={(event) => setClosureTexture(event.target.value as ClosureTexture)} className="field-light px-4 py-4 text-sm text-primary">
+                    {(Object.keys(CLOSURE_PRICES['4x4 Closure']) as ClosureTexture[]).map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Length
+                  <select value={closureLength} onChange={(event) => setClosureLength(event.target.value as ClosureLength)} className="field-light px-4 py-4 text-sm text-primary">
+                    {(Object.keys(CLOSURE_PRICES['4x4 Closure'].Straight) as ClosureLength[]).map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+              </div>
+            )}
+
+            {product.id === WIG_LAUNDRY_PRODUCT.id && (
+              <div className="mt-8 grid gap-5 border-b border-[#e5e2dd] pb-8">
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Service type
+                  <select value={laundryServiceType} onChange={(event) => setLaundryServiceType(event.target.value as LaundryServiceType)} className="field-light px-4 py-4 text-sm text-primary">
+                    {(Object.keys(WIG_LAUNDRY_SERVICE_PRICES) as LaundryServiceType[]).map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Parting
+                  <select value={laundryParting} onChange={(event) => setLaundryParting(event.target.value as LaundryParting)} className="field-light px-4 py-4 text-sm text-primary">
+                    {LAUNDRY_PARTINGS.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+                <label className="grid gap-2 text-sm font-light text-primary/60">
+                  Styling finish
+                  <select value={laundryFinish} onChange={(event) => setLaundryFinish(event.target.value as LaundryFinish)} className="field-light px-4 py-4 text-sm text-primary">
+                    {LAUNDRY_FINISHES.map((option) => <option key={option}>{option}</option>)}
+                  </select>
+                </label>
+                <div>
+                  <p className="mb-3 text-sm font-light text-primary/60">Add-ons</p>
+                  <div className="grid gap-3">
+                    {(Object.keys(WIG_LAUNDRY_ADDON_PRICES) as LaundryAddon[]).map((addOn) => (
+                      <label key={addOn} className="flex cursor-pointer items-center justify-between gap-4 border border-[#e5e2dd] px-4 py-3 text-sm font-light text-primary/65">
+                        <span>{addOn}</span>
+                        <span className="flex items-center gap-3">
+                          <span>{formatPrice(WIG_LAUNDRY_ADDON_PRICES[addOn])}</span>
+                          <input type="checkbox" checked={laundryAddOns.includes(addOn)} onChange={() => setLaundryAddOns((current) => current.includes(addOn) ? current.filter((item) => item !== addOn) : [...current, addOn])} />
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="mt-10 border-y border-[#e5e2dd] py-6">
               <p className="mb-4 text-sm font-light text-primary/55">Quantity</p>
@@ -201,13 +419,22 @@ export const ProductDetail: React.FC = () => {
 
             <button
               onClick={() => {
-                addItem(product, quantity);
+                addItem(configuredProduct ?? product, quantity);
                 setAdded(true);
               }}
               className="mt-6 flex h-12 w-full items-center justify-center bg-primary px-6 text-sm font-light text-white transition-colors hover:bg-accent"
             >
               {added ? 'Added to bag' : 'Add to bag'}
             </button>
+
+            <a
+              href={getWhatsAppUrl(`Hello BISILE, I would like to enquire about ${configuredProduct?.name ?? product.name}.`)}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-light text-primary/60 transition-colors hover:text-accent"
+            >
+              <MessageCircle size={15} strokeWidth={1.25} /> WhatsApp enquiry
+            </a>
 
             {added && (
               <Link to="/cart" className="mt-5 inline-flex items-center gap-2 text-sm font-light text-accent">
@@ -227,20 +454,35 @@ export const ProductDetail: React.FC = () => {
             </div>
 
             <div className="divide-y divide-[#e5e2dd] text-sm font-light">
-              {[
-                ['Description', product.description],
-                [product.collection === 'fragrance' ? 'Scent and finish' : 'Material and finish', copy.material],
-                ['Care', copy.care],
-                ['Shipping', copy.shipping],
-              ].map(([title, body]) => (
-                <details key={title} className="group py-5" open={title === 'Description'}>
-                  <summary className="flex cursor-pointer list-none items-center justify-between text-primary">
-                    <span>{title}</span>
-                    <span className="text-lg font-light text-primary/45 transition-transform group-open:rotate-45">+</span>
-                  </summary>
-                  <p className="mt-4 max-w-xl leading-7 text-primary/58">{body}</p>
-                </details>
-              ))}
+              {detailSections.map(({ title, body }) => {
+                const isOpen = Boolean(openDetailSections[title]);
+                const contentId = `product-detail-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
+                return (
+                  <div key={title} className="py-5">
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={contentId}
+                      onClick={() => toggleDetailSection(title)}
+                      className="flex w-full items-center justify-between gap-6 text-left text-primary transition-colors duration-300 hover:text-accent"
+                    >
+                      <span>{title}</span>
+                      <span className={`text-lg font-light text-primary/45 transition-transform duration-300 ease-out ${isOpen ? 'rotate-45' : 'rotate-0'}`}>+</span>
+                    </button>
+                    <div
+                      id={contentId}
+                      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+                    >
+                      <div className="overflow-hidden">
+                        <p className={`max-w-xl pt-4 leading-7 text-primary/58 transition-transform duration-300 ease-out ${isOpen ? 'translate-y-0' : '-translate-y-1'}`}>
+                          {body}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </aside>
@@ -290,7 +532,7 @@ export const ProductDetail: React.FC = () => {
                 className={`h-12 w-12 shrink-0 overflow-hidden border ${index === selectedImage ? 'border-primary' : 'border-transparent'}`}
                 aria-label={`View image ${index + 1}`}
               >
-                <img src={image} alt="" className="h-full w-full object-cover" />
+                <img src={image} alt="" className={`h-full w-full ${product.imageFit === 'contain' && index === 0 ? 'object-contain p-1' : 'object-cover'}`} />
               </button>
             ))}
           </div>
