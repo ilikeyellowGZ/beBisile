@@ -1,8 +1,9 @@
-Desktop hero videos in use:
+Homepage hero videos in use:
 
-- hair-hero.mp4
 - fragrance-hero.mp4
 
-The homepage renders these videos only on desktop screens and only plays them on hover. Mobile and tablet keep using static images for performance.
+Available supporting hero videos:
 
-Keep these names stable unless `components/Layout/HeroSplit.tsx` is updated at the same time.
+- hair-hero.mp4
+
+The homepage uses the fragrance video as a muted, looping, full-background hero asset with a warm BISILE overlay and a static poster fallback. Keep these names stable unless `components/Layout/HeroSplit.tsx` is updated at the same time.
