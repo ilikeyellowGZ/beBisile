@@ -34,7 +34,7 @@ const storyChapters = [
 const values = ['Luxury with restraint', 'Beauty with care', 'Hair with confidence', 'Service with intention'];
 
 export const About: React.FC = () => (
-  <div className="overflow-x-hidden bg-white pt-16 text-primary">
+  <div className="overflow-x-hidden bg-off-white pt-16 text-primary">
     <section className="bisile-shell grid gap-8 py-8 md:grid-cols-[0.9fr_1.1fr] md:items-end md:py-14">
       <FadeIn>
         <p className="bisile-kicker mb-4">About BISILE</p>

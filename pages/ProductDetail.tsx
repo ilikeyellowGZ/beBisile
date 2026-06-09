@@ -240,7 +240,7 @@ export const ProductDetail: React.FC = () => {
   }, [selectedImage, lightboxImageCount]);
 
   if (!product) {
-    return <div className="flex min-h-screen items-center justify-center bg-white pt-16 font-inter text-sm">Product not found.</div>;
+    return <div className="flex min-h-screen items-center justify-center bg-off-white pt-16 font-inter text-sm">Product not found.</div>;
   }
 
   const copy = detailCopy[product.collection];
@@ -259,11 +259,11 @@ export const ProductDetail: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-16 text-primary">
+    <div className="min-h-screen bg-off-white pt-16 text-primary">
       <section className="grid w-full gap-0 lg:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)]">
-        <div className="grid gap-px bg-[#e5e2dd] lg:grid-cols-2">
+        <div className="grid gap-px bg-[#D8D0C3] lg:grid-cols-2">
           {galleryImages.map((image, index) => (
-            <div key={`${image}-${index}`} className={`bg-[#f7f5f1] ${index === 0 ? 'lg:col-span-2' : ''}`}>
+            <div key={`${image}-${index}`} className={`bg-[#E9E6DF] ${index === 0 ? 'lg:col-span-2' : ''}`}>
               <div className={index === 0 ? 'aspect-[4/3]' : 'aspect-square'}>
                 <button
                   type="button"
@@ -285,7 +285,7 @@ export const ProductDetail: React.FC = () => {
           ))}
         </div>
 
-        <aside className="bg-white px-6 py-8 md:px-8 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto lg:px-10 lg:py-10">
+        <aside className="bg-[#F7F4EF] px-6 py-8 md:px-8 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto lg:px-10 lg:py-10">
           <Link to={backPath} className="mb-10 inline-flex items-center gap-2 font-inter text-sm font-light text-primary/55 transition-colors hover:text-accent">
             <ArrowLeft size={15} strokeWidth={1.25} /> Back to {product.collection === 'fragrance' ? 'fragrance' : 'hair'}
           </Link>
@@ -489,7 +489,7 @@ export const ProductDetail: React.FC = () => {
       </section>
 
       {selectedImage !== null && (
-        <div className="fixed inset-0 z-[80] bg-white text-primary" role="dialog" aria-modal="true" aria-label={`${product.name} image viewer`}>
+        <div className="fixed inset-0 z-[80] bg-off-white text-primary" role="dialog" aria-modal="true" aria-label={`${product.name} image viewer`}>
           <div className="flex h-16 items-center justify-between px-5 md:px-8">
             <p className="font-inter text-sm font-light text-primary/60">{product.name} / {selectedImage + 1} of {galleryImages.length}</p>
             <button type="button" onClick={() => setSelectedImage(null)} className="flex h-11 w-11 items-center justify-center hover:text-accent" aria-label="Close image viewer">
@@ -497,7 +497,7 @@ export const ProductDetail: React.FC = () => {
             </button>
           </div>
 
-          <div className="relative flex h-[calc(100vh-9rem)] items-center justify-center bg-[#f7f5f1] px-5 md:px-16">
+          <div className="relative flex h-[calc(100vh-9rem)] items-center justify-center bg-[#E9E6DF] px-5 md:px-16">
             <button
               type="button"
               onClick={() => setSelectedImage((current) => current === null ? 0 : (current - 1 + galleryImages.length) % galleryImages.length)}

@@ -60,7 +60,7 @@ export const WigLaundry: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-16 text-primary">
+    <div className="min-h-screen bg-off-white pt-16 text-primary">
       <section className="bisile-shell border-b bisile-rule py-10 md:py-14">
         <FadeIn>
           <p className="mb-3 font-inter text-sm font-light text-primary/45">Hair / Wig Laundry</p>

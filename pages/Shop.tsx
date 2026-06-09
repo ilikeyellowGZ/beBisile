@@ -45,7 +45,7 @@ export const Shop: React.FC = () => {
   const activeFilterLabel = filterOptions.find((option) => option.value === filter)?.label ?? 'Filters';
 
   return (
-    <div className="min-h-screen bg-white pb-24 pt-16 text-primary">
+    <div className="min-h-screen bg-off-white pb-24 pt-16 text-primary">
       <section className="bisile-shell border-b bisile-rule py-10 md:py-14">
         <FadeIn>
           <p className="mb-3 font-inter text-sm font-light text-primary/45">Home / Shop</p>

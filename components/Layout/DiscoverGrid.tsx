@@ -59,7 +59,7 @@ export const DiscoverGrid: React.FC<DiscoverGridProps> = ({ onNavigate }) => {
   const previews = getPreviewItems(activeIndex);
 
   return (
-    <div className="bisile-shell grid gap-12 border-t border-[#efede9] pb-14 pt-8 md:grid-cols-[0.65fr_1.35fr]">
+    <div className="bisile-shell grid gap-12 border-t border-[#A3915D]/22 bg-[#F7F4EF] pb-14 pt-8 md:grid-cols-[0.65fr_1.35fr]">
       <div className="space-y-7">
         {discoverItems.map((item, index) => (
           <button
@@ -69,8 +69,8 @@ export const DiscoverGrid: React.FC<DiscoverGridProps> = ({ onNavigate }) => {
             onFocus={() => setActiveIndex(index)}
             onMouseEnter={() => setActiveIndex(index)}
           >
-            <span className="block font-inter text-sm font-light text-primary transition-colors hover:text-accent">{item.label}</span>
-            <span className="mt-1 block max-w-xs font-inter text-xs font-light leading-5 text-primary/45">{item.description}</span>
+            <span className="block font-inter text-sm font-light text-[#2A2114] transition-colors hover:text-[#8A6F35]">{item.label}</span>
+            <span className="mt-1 block max-w-xs font-inter text-xs font-light leading-5 text-[#5B3A24]/62">{item.description}</span>
           </button>
         ))}
       </div>
@@ -81,7 +81,7 @@ export const DiscoverGrid: React.FC<DiscoverGridProps> = ({ onNavigate }) => {
             <div className="bisile-image-frame aspect-[4/3]">
               <img alt={item.label} className="editorial-image h-full w-full object-cover" src={item.image} />
             </div>
-            <p className="mt-3 inline-flex items-center gap-2 font-inter text-sm font-light text-primary transition-colors group-hover:text-accent">
+            <p className="mt-3 inline-flex items-center gap-2 font-inter text-sm font-light text-[#2A2114] transition-colors group-hover:text-[#8A6F35]">
               {item.label}
               <ArrowRight size={15} strokeWidth={1.2} className="transition-transform duration-300 group-hover:translate-x-1" />
             </p>

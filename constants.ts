@@ -574,6 +574,13 @@ export const DELIVERY_OPTIONS = [
   { name: 'International Delivery', price: `Enquire about international delivery at ${CONTACT_EMAIL}` },
 ];
 
+export const SHIPPING_PARTNERS = [
+  { id: 'pudo', name: 'Pudo', price: 89, mark: 'P', tone: '#8A6F35' },
+  { id: 'courier-guy', name: 'The Courier Guy', price: 119, mark: 'CG', tone: '#5B3A24' },
+  { id: 'fastway', name: 'Fastway', price: 99, mark: 'FW', tone: '#A3915D' },
+  { id: 'postnet', name: 'PostNet', price: 129, mark: 'PN', tone: '#2A2114' },
+];
+
 export const LAYBYE_TERMS = [
   'Laybye is available for a maximum period of 3 months only.',
   'A minimum deposit of 50% is required to secure your order.',

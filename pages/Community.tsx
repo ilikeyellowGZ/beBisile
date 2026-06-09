@@ -49,7 +49,7 @@ export const Community: React.FC = () => {
           </div>
 
           {submitted ? (
-            <div className="border border-black/10 bg-white p-8">
+            <div className="bisile-card-surface p-8">
               <CheckCircle2 className="mb-4 text-accent" />
               <h3 className="font-subhead text-3xl">Your application is with us.</h3>
             </div>
@@ -98,7 +98,7 @@ export const Community: React.FC = () => {
                 <div
                   id="platform-options"
                   role="listbox"
-                  className={`absolute left-0 right-0 top-[calc(100%+4px)] z-30 overflow-hidden border border-[#e5e2dd] bg-white shadow-[0_18px_45px_rgba(23,23,23,0.08)] transition-[max-height,opacity,transform] duration-300 ease-out ${platformOpen ? 'max-h-48 translate-y-0 opacity-100' : 'pointer-events-none max-h-0 -translate-y-2 opacity-0'}`}
+                  className={`absolute left-0 right-0 top-[calc(100%+4px)] z-30 overflow-hidden border border-[#B9AA8B]/46 bg-[#F7F4EF] shadow-[0_18px_45px_rgba(42,33,20,0.08)] transition-[max-height,opacity,transform] duration-300 ease-out ${platformOpen ? 'max-h-48 translate-y-0 opacity-100' : 'pointer-events-none max-h-0 -translate-y-2 opacity-0'}`}
                 >
                   {platformOptions.map((option, index) => (
                     <button
@@ -112,7 +112,7 @@ export const Community: React.FC = () => {
                         setPlatformError(false);
                         setPlatformOpen(false);
                       }}
-                      className={`block w-full px-4 py-3 text-left text-xs transition-all duration-300 hover:bg-[#f7f5f1] hover:text-accent ${platformOpen ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'} ${platform === option ? 'text-accent' : 'text-primary/70'}`}
+                      className={`block w-full px-4 py-3 text-left text-xs transition-all duration-300 hover:bg-[#E9E6DF] hover:text-accent ${platformOpen ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'} ${platform === option ? 'text-accent' : 'text-primary/70'}`}
                     >
                       {option}
                     </button>
@@ -123,7 +123,7 @@ export const Community: React.FC = () => {
               </div>
 
               <textarea required rows={5} placeholder="Tell us about your content and community" className="field-light px-4 py-4 text-xs sm:col-span-2" />
-              <button className="flex items-center justify-between bg-primary px-5 py-4 text-[10px] uppercase tracking-[0.18em] text-white transition-colors duration-300 hover:bg-accent sm:col-span-2">
+              <button className="flex items-center justify-between bg-[#5B3A24] px-5 py-4 text-[10px] uppercase tracking-[0.18em] text-[#F7F4EF] transition-colors duration-300 hover:bg-accent sm:col-span-2">
                 Submit application <ArrowRight size={14} />
               </button>
             </form>

@@ -7,6 +7,15 @@ export const checkoutItemSchema = z.object({
   selectedVariant: z.unknown().optional()
 }).strict();
 
+const shippingPartners = [
+  { id: 'pudo', name: 'Pudo', price: 89 },
+  { id: 'courier-guy', name: 'The Courier Guy', price: 119 },
+  { id: 'fastway', name: 'Fastway', price: 99 },
+  { id: 'postnet', name: 'PostNet', price: 129 }
+];
+
+const getShippingPartner = (id?: string) => shippingPartners.find((option) => option.id === id) || shippingPartners[0];
+
 export const checkoutSchema = z.object({
   items: z.array(checkoutItemSchema).min(1),
   customerInfo: z.object({
@@ -15,6 +24,9 @@ export const checkoutSchema = z.object({
     phone: z.string().optional()
   }).strict(),
   shippingAddress: z.record(z.unknown()).optional(),
+  shippingPartner: z.object({
+    id: z.string().min(1)
+  }).strict().optional(),
   discountCode: z.string().optional()
 }).strict();
 
@@ -60,7 +72,8 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
   }
 
   const settings = await StoreSettings.findOne();
-  const deliveryFee = settings?.freeDeliveryThreshold && subtotal >= settings.freeDeliveryThreshold ? 0 : settings?.deliveryFee || 0;
+  const shippingPartner = getShippingPartner(input.shippingPartner?.id);
+  const deliveryFee = shippingPartner.price;
   const taxAmount = settings?.taxRate ? (subtotal - discountAmount) * (settings.taxRate / 100) : 0;
   const totalAmount = subtotal - discountAmount + deliveryFee + taxAmount;
 
@@ -69,6 +82,7 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
     subtotal,
     discountCode,
     discountAmount,
+    shippingPartner,
     deliveryFee,
     taxAmount,
     totalAmount,
@@ -81,6 +95,7 @@ export const createPendingOrder = async (input: z.infer<typeof checkoutSchema>, 
     orderNumber: createOrderNumber(),
     customerInfo: input.customerInfo,
     shippingAddress: input.shippingAddress || {},
+    shippingPartner: calculated.shippingPartner,
     items: calculated.trustedItems.map((item) => ({
       productId: item.productId,
       productName: item.productName,

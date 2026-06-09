@@ -5,7 +5,7 @@ import { FadeIn } from '../components/UI/FadeIn';
 import { HeroSplit } from '../components/Layout/HeroSplit';
 import { ProductCard } from '../components/UI/ProductCard';
 import { FRAGRANCE_PRODUCTS, HAIR_PRODUCTS } from '../constants';
-import { backgroundImages, hairImages, heroImages, packageImages } from '../src/assets/images';
+import { backgroundImages, fragranceImages, hairImages, heroImages, packageImages } from '../src/assets/images';
 
 const editorialCards = [
   {
@@ -37,6 +37,27 @@ const googleReviews = [
   },
 ];
 
+const luxuryCategories = [
+  {
+    label: 'Discovery Set',
+    image: packageImages.product01,
+    path: '/shop',
+    fit: 'cover',
+  },
+  {
+    label: 'Premium Hair',
+    image: hairImages.straightWig01,
+    path: '/hair',
+    fit: 'cover',
+  },
+  {
+    label: 'Fragrances',
+    image: fragranceImages.indoniyamanzi,
+    path: '/shop',
+    fit: 'contain',
+  },
+];
+
 export const Home: React.FC = () => {
   const location = useLocation();
   const state = location.state as { scrollTo?: string } | null;
@@ -46,21 +67,30 @@ export const Home: React.FC = () => {
   }, [state?.scrollTo]);
 
   return (
-    <div className="overflow-x-hidden bg-white pt-16 text-primary">
+    <div className="overflow-x-hidden bg-[#F7F4EF] text-primary">
       <h1 className="sr-only">BISILE Be Luxury</h1>
 
       <HeroSplit />
 
-      <section className="bisile-shell bisile-section">
-        <div className="mb-8 flex items-end justify-between gap-6">
-          <FadeIn>
-            <p className="bisile-kicker mb-3">BISILE fragrance</p>
-            <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">A quiet scent wardrobe.</h2>
-          </FadeIn>
-          <Link to="/shop" className="bisile-link hidden md:inline-flex">Shop fragrance <ArrowRight size={15} strokeWidth={1.3} /></Link>
-        </div>
-        <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-          {FRAGRANCE_PRODUCTS.slice(0, 4).map((product, index) => <FadeIn key={product.id} delay={index * 60}><ProductCard product={product} /></FadeIn>)}
+      <section id="bisile-discovery" className="bg-[#E9E6DF] py-14 text-[#2A2114] md:py-20" data-navbar-theme="discovery">
+        <div className="bisile-shell">
+          <h2 className="font-sans text-2xl font-light uppercase tracking-[0.28em] text-[#5B3A24] md:text-3xl">Our Luxury Categories:</h2>
+          <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-10">
+            {luxuryCategories.map((item, index) => (
+              <Link key={item.label} to={item.path} className="group block">
+                <div className="relative aspect-[4/5] overflow-hidden border border-[#B9AA8B]/42 bg-[#D8D0C3]">
+                  <img loading="lazy" src={item.image} alt={item.label} className={`h-full w-full transition-transform duration-500 group-hover:scale-[1.035] ${item.fit === 'contain' ? 'object-contain p-10 sm:p-12' : 'object-cover'}`} />
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(42,33,20,0.03),rgba(42,33,20,0.16))]" />
+                  <span
+                    className="absolute bottom-[11%] left-1/2 w-[72%] -translate-x-1/2 border border-[#E9E6DF]/22 px-5 py-3 text-center font-sans text-base font-medium text-[#F7F4EF] backdrop-blur-md transition-colors md:text-lg"
+                    style={{ backgroundColor: index === 1 ? 'rgba(42, 33, 20, 0.90)' : 'rgba(138, 111, 53, 0.90)' }}
+                  >
+                    {item.label}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -81,6 +111,19 @@ export const Home: React.FC = () => {
             </div>
           </Link>
         </FadeIn>
+      </section>
+
+      <section className="bisile-shell bisile-section">
+        <div className="mb-8 flex items-end justify-between gap-6">
+          <FadeIn>
+            <p className="bisile-kicker mb-3">BISILE fragrance</p>
+            <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">A quiet scent wardrobe.</h2>
+          </FadeIn>
+          <Link to="/shop" className="bisile-link hidden md:inline-flex">Shop fragrance <ArrowRight size={15} strokeWidth={1.3} /></Link>
+        </div>
+        <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+          {FRAGRANCE_PRODUCTS.slice(0, 4).map((product, index) => <FadeIn key={product.id} delay={index * 60}><ProductCard product={product} /></FadeIn>)}
+        </div>
       </section>
 
       <section className="bisile-shell bisile-section grid gap-6 md:grid-cols-[1fr_2fr]">

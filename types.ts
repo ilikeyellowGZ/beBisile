@@ -34,10 +34,16 @@ export interface CheckoutDetails {
   fullName: string;
   email: string;
   phone: string;
+  alternativePhone: string;
+  instagramHandle: string;
   address: string;
   city: string;
+  province: string;
   postalCode: string;
+  country: string;
+  deliveryInstructions: string;
   notes: string;
+  shippingPartner: string;
 }
 
 export interface DashboardOrder {

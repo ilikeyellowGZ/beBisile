@@ -26,7 +26,7 @@ export const Wigs: React.FC = () => {
   const products = useMemo(() => getTierProducts(tier), [tier]);
 
   return (
-    <div className="min-h-screen bg-white pt-16 text-primary">
+    <div className="min-h-screen bg-off-white pt-16 text-primary">
       <section className="bisile-shell border-b bisile-rule py-10 md:py-14">
         <FadeIn>
           <p className="mb-3 font-inter text-sm font-light text-primary/45">Hair / Wigs</p>
@@ -44,10 +44,10 @@ export const Wigs: React.FC = () => {
             <p className="bisile-kicker mb-3">BISILE Hair Collection</p>
             <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">Bhelekazi Wigs.</h2>
           </FadeIn>
-          <label className="flex h-11 items-center gap-2 border border-[#e5e2dd] bg-white px-3">
-            <SlidersHorizontal size={15} strokeWidth={1.25} />
+          <label className="field-light flex h-11 items-center gap-2 px-3">
+            <SlidersHorizontal size={15} strokeWidth={1.25} className="text-[#8A6F35]" />
             <span className="sr-only">Filter wigs</span>
-            <select value={tier} onChange={(event) => setTier(event.target.value as WigTier)} className="h-full min-w-52 bg-transparent font-inter text-sm font-light outline-none">
+            <select value={tier} onChange={(event) => setTier(event.target.value as WigTier)} className="h-full min-w-52 bg-transparent font-inter text-sm font-light text-[#2A2114] outline-none">
               {tierOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </label>

@@ -4,6 +4,15 @@ import { calculateTrustedCheckout, createOrderNumber, mapOrderItems, parseJsonBo
 
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
+const shippingPartners = [
+  { id: 'pudo', name: 'Pudo', price: 89 },
+  { id: 'courier-guy', name: 'The Courier Guy', price: 119 },
+  { id: 'fastway', name: 'Fastway', price: 99 },
+  { id: 'postnet', name: 'PostNet', price: 129 },
+];
+
+const getShippingPartner = (id) => shippingPartners.find((option) => option.id === id) || shippingPartners[0];
+
 export const handler = async (event) => {
   if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
   if (!stripe) return json(500, { error: 'Stripe is not configured' });
@@ -28,6 +37,9 @@ export const handler = async (event) => {
       items: body.items,
       discountCode: body.discountCode,
     });
+    const shippingPartner = getShippingPartner(body.shippingPartner?.id || body.shippingPartnerId);
+    const deliveryFee = shippingPartner.price;
+    const totalAmount = trusted.subtotal - trusted.discountAmount + deliveryFee + trusted.taxAmount;
 
     const orderNumber = createOrderNumber();
     const orderDoc = {
@@ -39,13 +51,14 @@ export const handler = async (event) => {
         phone: customerInfo.phone || '',
       },
       shippingAddress,
+      shippingPartner,
       items: mapOrderItems(trusted.checkoutItems),
       subtotal: trusted.subtotal,
       discountCode: trusted.discountCode,
       discountAmount: trusted.discountAmount,
-      deliveryFee: trusted.deliveryFee,
+      deliveryFee,
       taxAmount: trusted.taxAmount,
-      totalAmount: trusted.totalAmount,
+      totalAmount,
       currency: trusted.currency,
       paymentStatus: 'pending',
       orderStatus: 'pending',
@@ -74,13 +87,13 @@ export const handler = async (event) => {
       };
     });
 
-    if (trusted.deliveryFee > 0) {
+    if (deliveryFee > 0) {
       lineItems.push({
         quantity: 1,
         price_data: {
           currency: trusted.currency.toLowerCase(),
-          unit_amount: Math.round(trusted.deliveryFee * 100),
-          product_data: { name: 'Delivery' },
+          unit_amount: Math.round(deliveryFee * 100),
+          product_data: { name: `Delivery - ${shippingPartner.name}` },
         },
       });
     }

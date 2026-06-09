@@ -330,9 +330,9 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-16 text-primary">
+    <div className="min-h-screen bg-off-white pt-16 text-primary">
       <div className="grid lg:grid-cols-[280px_1fr]">
-        <aside className="border-r border-[#e5e2dd] bg-white lg:min-h-[calc(100vh-4rem)]">
+        <aside className="border-r border-[#D8D0C3] bg-[#F7F4EF] lg:min-h-[calc(100vh-4rem)]">
           <div className="sticky top-16 p-5">
             <p className="bisile-kicker mb-4">Admin</p>
             <div className="grid gap-1">

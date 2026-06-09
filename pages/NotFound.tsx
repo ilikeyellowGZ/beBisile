@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const NotFound: React.FC = () => (
-  <div className="flex min-h-screen items-center justify-center bg-white px-6 py-28 text-center text-primary">
+  <div className="flex min-h-screen items-center justify-center bg-off-white px-6 py-28 text-center text-primary">
     <div className="max-w-xl">
       <p className="bisile-kicker mb-4">Page not found</p>
       <h1 className="font-inter text-4xl font-light leading-tight md:text-6xl">This page is not in the BISILE collection.</h1>
