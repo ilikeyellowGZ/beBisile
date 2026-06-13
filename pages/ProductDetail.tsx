@@ -90,7 +90,7 @@ export const ProductDetail: React.FC = () => {
   const [closureLaceSize, setClosureLaceSize] = useState<ClosureLaceSize>('4x4 Closure');
   const [closureTexture, setClosureTexture] = useState<ClosureTexture>('Straight');
   const [closureLength, setClosureLength] = useState<ClosureLength>('10 inch');
-  const [laundryServiceType, setLaundryServiceType] = useState<LaundryServiceType>('Basic Wash & Condition');
+  const [laundryServiceType, setLaundryServiceType] = useState<LaundryServiceType>('Wig Wash Only');
   const [laundryParting, setLaundryParting] = useState<LaundryParting>('Middle Part');
   const [laundryFinish, setLaundryFinish] = useState<LaundryFinish>('Straightened');
   const [laundryAddOns, setLaundryAddOns] = useState<LaundryAddon[]>([]);
@@ -294,6 +294,7 @@ export const ProductDetail: React.FC = () => {
             <p className="mb-3 text-sm font-light text-primary/45">Home / {product.collection} / {product.name}</p>
             <p className="mb-4 text-sm font-light text-primary/55">{product.eyebrow ?? product.subtitle}</p>
             <h1 className="text-4xl font-light leading-tight md:text-5xl">{product.name}</h1>
+            {product.tagline && <p className="mt-4 max-w-xl font-serif text-base font-light italic leading-7 text-primary/70">{product.tagline}</p>}
             <p className="mt-4 text-sm font-light leading-6 text-primary/60">{product.subtitle}</p>
             <p className="mt-8 text-2xl font-light">{formatPrice(configuredProduct?.price ?? product.price)}</p>
             <p className="mt-8 max-w-xl text-sm font-light leading-7 text-primary/62">{product.description}</p>
@@ -305,7 +306,7 @@ export const ProductDetail: React.FC = () => {
             </div>
 
             <div className="mt-8 border-y border-[#e5e2dd] py-6">
-              <h2 className="mb-4 text-sm font-normal text-primary">Hair specifications</h2>
+              <h2 className="mb-4 text-sm font-normal text-primary">{product.collection === 'fragrance' ? 'Scent notes & details' : product.collection === 'service' ? 'Service details' : 'Hair specifications'}</h2>
               <div className="grid gap-3 text-sm font-light text-primary/60">
                 {Object.entries(configuredProduct?.specs ?? getWigSpecs(product)).map(([label, value]) => (
                   <div key={label} className="flex justify-between gap-5 border-b border-[#e5e2dd] pb-2 last:border-b-0">

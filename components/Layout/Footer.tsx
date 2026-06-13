@@ -7,11 +7,11 @@ import { brandImages } from '../../src/assets/images';
 export const Footer: React.FC = () => (
   <footer className="relative z-10 border-t border-[#A3915D]/24 bg-[#2A2114] px-6 pb-8 pt-14 text-[#F7F4EF]">
     <div className="w-full">
-      <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[1.4fr_2fr]">
-        <div>
-          <Link to="/" className="mb-6 inline-block"><img src={brandImages.logo} alt="BISILE - Be Luxury" className="h-10 w-auto object-contain brightness-0 invert" /></Link>
+      <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[1.1fr_2.6fr]">
+          <div>
+            <Link to="/" className="mb-6 inline-block"><img src={brandImages.logo} alt="BISILE - Be Luxury" className="h-10 w-auto object-contain brightness-0 invert" /></Link>
           <p className="max-w-xs font-inter text-sm font-light leading-6 text-[#E9E6DF]/70">
-            Processed virgin hair.<br />BISILE fragrances.<br />Laundry services.<br />Be Luxury.
+            Bhelekazi Hair Collection<br />IMVELO Collection<br />Luxury Hair Laundry service
           </p>
         </div>
         <div className="grid gap-10 sm:grid-cols-3">
@@ -21,7 +21,7 @@ export const Footer: React.FC = () => (
               <li><Link to="/shop" className="hover:text-[#A3915D]">Fragrances</Link></li>
               <li><Link to="/hair/wigs" className="hover:text-[#A3915D]">Wigs</Link></li>
               <li><Link to="/hair/bundles" className="hover:text-[#A3915D]">Bundles</Link></li>
-              <li><Link to="/hair/closures" className="hover:text-[#A3915D]">Closures & Frontals</Link></li>
+              <li><Link to="/hair/closures" className="hover:text-[#A3915D]">Closures &amp; Frontals</Link></li>
               <li><Link to="/hair/laundry" className="hover:text-[#A3915D]">Wig Laundry</Link></li>
               <li><Link to="/pamper" className="hover:text-[#A3915D]">Pamper Packages</Link></li>
               <li><Link to="/cart" className="hover:text-[#A3915D]">Cart</Link></li>

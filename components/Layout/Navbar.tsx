@@ -30,7 +30,7 @@ type SearchItem = {
 };
 
 const shopPreviews: MenuPreview[] = [
-  { label: 'Fragrance', path: '/shop', image: carouselImages.perfumeDisplay04 },
+  { label: 'Fragrances', path: '/fragrances', image: carouselImages.perfumeDisplay04 },
   { label: 'Bhelekazi wigs', path: '/hair/wigs', image: hairImages.straightWig01 },
   { label: 'Pamper packages', path: '/pamper', image: packageImages.product04 },
   { label: 'Wig laundry', path: '/hair/laundry', image: hairImages.straightWig07 },
@@ -42,11 +42,11 @@ const leftLinks: MenuLink[] = [
     path: '/shop',
     preview: shopPreviews,
     links: [
-      { label: 'Fragrance', path: '/shop', description: 'BISILE eau de parfum and scent rituals' },
-      { label: 'Wigs', path: '/hair/wigs', description: 'Bhelekazi wigs with refined lace finishes' },
+      { label: 'Fragrances', path: '/fragrances', description: 'Imvelo Collection eau de parfum and scent rituals' },
+      { label: 'Premium Hair', path: '/hair', description: 'Bhelekazi wigs, closures, bundles, and wig laundry' },
+      { label: 'Bhelekazi wigs', path: '/hair/wigs', description: 'Luxury wigs with refined lace finishes' },
       { label: 'Bundles', path: '/hair/bundles', description: 'Single and three-bundle processed virgin hair' },
       { label: 'Closures & frontals', path: '/hair/closures', description: 'Premium lace closures and frontals' },
-      { label: 'Pamper packages', path: '/pamper', description: 'Curated gifting and care moments' },
       { label: 'Wig laundry', path: '/hair/laundry', description: 'Wash, treatment, styling, and customisation' },
     ],
   },
@@ -95,7 +95,8 @@ const rightLinks: MenuLink[] = [
 
 const pageSearchItems: SearchItem[] = [
   { label: 'Shop BISILE', path: '/shop', type: 'Page', description: 'Fragrance, hair, services, and BISILE products' },
-  { label: 'Hair Collection', path: '/hair', type: 'Page', description: 'Wigs, bundles, closures, frontals, and wig laundry' },
+  { label: 'Fragrances', path: '/fragrances', type: 'Page', description: 'Imvelo Collection and best-selling BISILE eau de parfum' },
+  { label: 'Premium Hair', path: '/hair', type: 'Page', description: 'Bhelekazi wigs, closures, bundles, and wig laundry' },
   { label: 'Bhelekazi Wigs', path: '/hair/wigs', type: 'Hair', description: 'Luxury processed virgin hair wigs' },
   { label: 'Bundles', path: '/hair/bundles', type: 'Hair', description: 'Single and three-bundle processed virgin hair' },
   { label: 'Closures & Frontals', path: '/hair/closures', type: 'Hair', description: 'Premium lace closures and frontals' },
@@ -219,11 +220,13 @@ export const Navbar: React.FC = () => {
   const navIconClass = isHeroNav ? 'text-[#F7F4EF]/88 hover:text-[#F7F4EF]' : 'text-[#2A2114]/82 hover:text-[#8A6F35]';
   const navBorderClass = isHeroNav ? 'border-[#F7F4EF]/24' : 'border-[#A3915D]/28';
   const logoClass = isHeroNav ? 'brightness-0 invert' : '';
-  const navSurfaceClass = isHeroNav
-    ? 'border-[#F7F4EF]/24 bg-[#2A2114]/20 text-[#F7F4EF] shadow-[0_12px_48px_rgba(17,17,17,0.16)] backdrop-blur-2xl'
-    : isDiscoveryNav
-      ? 'border-[#A3915D]/24 bg-[#E9E6DF]/92 text-[#2A2114] shadow-[0_10px_35px_rgba(42,33,20,0.04)] backdrop-blur-xl'
-      : 'border-[#A3915D]/24 bg-[#F7F4EF]/94 text-[#2A2114] shadow-[0_10px_35px_rgba(42,33,20,0.05)] backdrop-blur-xl';
+  const navSurfaceClass = (activeMenu || isMobileMenuOpen)
+    ? 'border-[#A3915D]/24 bg-[#F7F4EF] text-[#2A2114] shadow-[0_10px_35px_rgba(42,33,20,0.05)]'
+    : isHeroNav
+      ? 'border-transparent bg-transparent text-[#F7F4EF] shadow-none'
+      : isDiscoveryNav
+        ? 'border-[#A3915D]/24 bg-[#E9E6DF] text-[#2A2114] shadow-[0_10px_35px_rgba(42,33,20,0.04)]'
+        : 'border-[#A3915D]/24 bg-[#F7F4EF] text-[#2A2114] shadow-[0_10px_35px_rgba(42,33,20,0.05)]';
 
   const renderNavLink = (item: MenuLink) => (
     <button
@@ -231,7 +234,7 @@ export const Navbar: React.FC = () => {
       onMouseEnter={() => setActiveMenu(item)}
       onFocus={() => setActiveMenu(item)}
       onClick={() => goTo(item)}
-      className={`font-inter text-sm font-light transition-colors ${navTextClass}`}
+      className={`font-inter text-sm font-light transition-colors duration-500 ease-out ${navTextClass}`}
     >
       {item.label}
     </button>
@@ -239,26 +242,26 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <nav onMouseLeave={() => setActiveMenu(null)} className={`fixed top-0 z-50 w-full border-b transition-colors duration-300 ${navSurfaceClass}`}>
+      <nav onMouseLeave={() => setActiveMenu(null)} className={`fixed top-0 z-50 w-full border-b transition-[background-color,border-color,box-shadow,color,backdrop-filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${navSurfaceClass}`}>
         <div className="bisile-shell relative flex h-16 items-center justify-between">
           <div className="hidden items-center gap-7 md:flex">
             {leftLinks.map(renderNavLink)}
           </div>
 
           <Link to="/" className="absolute left-1/2 z-20 flex -translate-x-1/2 items-center justify-center transition-opacity hover:opacity-75">
-            <img src={brandImages.logo} alt="BISILE - Be Luxury" className={`h-9 w-auto object-contain transition duration-300 md:h-10 ${logoClass}`} />
+            <img src={brandImages.logo} alt="BISILE - Be Luxury" className={`h-9 w-auto object-contain transition-all duration-500 ease-out md:h-10 ${logoClass}`} />
           </Link>
 
           <div className="hidden items-center justify-end gap-7 md:flex">
             {rightLinks.map(renderNavLink)}
-            <div className={`ml-1 flex items-center gap-5 border-l pl-6 transition-colors ${navBorderClass}`}>
-              <button onClick={openSearch} className={`transition-colors ${navIconClass}`} aria-label="Search">
+            <div className={`ml-1 flex items-center gap-5 border-l pl-6 transition-all duration-500 ease-out ${navBorderClass}`}>
+              <button onClick={openSearch} className={`transition-colors duration-500 ease-out ${navIconClass}`} aria-label="Search">
                 <Search size={19} strokeWidth={1.25} />
               </button>
-              <Link to="/dashboard" className={`transition-colors ${navIconClass}`} aria-label="Account">
+              <Link to="/dashboard" className={`transition-colors duration-500 ease-out ${navIconClass}`} aria-label="Account">
                 <UserRound size={19} strokeWidth={1.25} />
               </Link>
-              <Link to="/cart" className={`relative transition-colors ${navIconClass}`} aria-label="Shopping bag">
+              <Link to="/cart" className={`relative transition-colors duration-500 ease-out ${navIconClass}`} aria-label="Shopping bag">
                 <ShoppingBag size={19} strokeWidth={1.25} />
                 {totalItems > 0 && <span className="absolute -right-3 -top-2 rounded-full bg-[#8A6F35] px-1.5 py-0.5 text-[10px] leading-none text-[#F7F4EF]">{totalItems}</span>}
               </Link>
@@ -266,14 +269,14 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="ml-auto flex items-center justify-end gap-4 md:hidden">
-            <button onClick={openSearch} className={isHeroNav ? 'text-[#F7F4EF]' : 'text-[#2A2114]'} aria-label="Search">
+            <button onClick={openSearch} className={`transition-colors duration-500 ease-out ${isHeroNav ? 'text-[#F7F4EF]' : 'text-[#2A2114]'}`} aria-label="Search">
               <Search size={20} strokeWidth={1.25} />
             </button>
-            <Link to="/cart" className={`relative ${isHeroNav ? 'text-[#F7F4EF]' : 'text-[#2A2114]'}`} aria-label="Shopping bag">
+            <Link to="/cart" className={`relative transition-colors duration-500 ease-out ${isHeroNav ? 'text-[#F7F4EF]' : 'text-[#2A2114]'}`} aria-label="Shopping bag">
               <ShoppingBag size={20} strokeWidth={1.25} />
               {totalItems > 0 && <span className="absolute -right-2 -top-1 rounded-full bg-[#8A6F35] px-1.5 py-0.5 text-[10px] leading-none text-[#F7F4EF]">{totalItems}</span>}
             </Link>
-            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={isHeroNav ? 'text-[#F7F4EF]' : 'text-[#2A2114]'} aria-label="Toggle menu">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className={`transition-colors duration-500 ease-out ${isHeroNav ? 'text-[#F7F4EF]' : 'text-[#2A2114]'}`} aria-label="Toggle menu">
               {isMobileMenuOpen ? <X size={24} strokeWidth={1.25} /> : <Menu size={24} strokeWidth={1.25} />}
             </button>
           </div>

@@ -4,10 +4,11 @@ import { Navbar } from './components/Layout/Navbar';
 import { Footer } from './components/Layout/Footer';
 import { Home } from './pages/Home';
 import { Shop } from './pages/Shop';
+import { Fragrances } from './pages/Fragrances';
 import { ProductDetail } from './pages/ProductDetail';
 import { Contact } from './pages/Contact';
 import { About } from './pages/About';
-import { CarePackages } from './pages/CarePackages';
+import { ComingSoon } from './pages/ComingSoon';
 import { Hair } from './pages/Hair';
 import { Wigs } from './pages/Wigs';
 import { Bundles } from './pages/Bundles';
@@ -21,6 +22,7 @@ import { Payment } from './pages/Payment';
 import { PaymentSuccess } from './pages/PaymentSuccess';
 import { Dashboard } from './pages/Dashboard';
 import { NotFound } from './pages/NotFound';
+import { fragranceImages, packageImages } from './src/assets/images';
 
 // Scroll to top on route change wrapper, but allow section scrolling via state
 const ScrollToTop = () => {
@@ -47,11 +49,14 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/shop" element={<Shop />} />
+              <Route path="/fragrances" element={<Fragrances />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
-              <Route path="/care-packages" element={<CarePackages />} />
-              <Route path="/pamper" element={<CarePackages />} />
+              <Route path="/care-packages" element={<ComingSoon title="Care Packages" eyebrow="Gifting rituals" body="Care packages and pamper edits are being prepared for curated gifting, scent pairings, and thoughtful BISILE moments." image={packageImages.product04} />} />
+              <Route path="/pamper" element={<ComingSoon title="Pamper Packages" eyebrow="Gifting rituals" body="Pamper packages are coming soon, with curated beauty rituals made for celebration, restoration, and thoughtful care." image={packageImages.product06} />} />
+              <Route path="/diffusers" element={<ComingSoon title="Diffusers" eyebrow="Home fragrance" body="BISILE diffusers are coming soon for a softer atmosphere and a more considered room ritual." image={fragranceImages.product06} />} />
+              <Route path="/candles" element={<ComingSoon title="Candles" eyebrow="Home fragrance" body="BISILE candles are coming soon as warm ritual pieces for gifting, care packages, and everyday luxury." image={packageImages.product07} />} />
               <Route path="/hair" element={<Hair />} />
               <Route path="/hair/wigs" element={<Wigs />} />
               <Route path="/hair/bundles" element={<Bundles />} />

@@ -12,11 +12,20 @@ export const hairGallery = {
 
 export const HAIR_CATEGORY_LINKS = [
   {
-    label: 'Wigs',
+    label: 'BhelekWigs',
     path: '/hair/wigs',
-    description: 'Luxury wigs crafted with premium processed virgin hair, lace closures and refined finishes.',
+    description: 'Everyday luxury, soft luxurious quality and premium luxury wigs crafted with refined BISILE finishes.',
     image: hairImages.straightWig01,
     cta: 'Shop Wigs',
+    options: ['Everyday Luxury', 'Soft Luxurious Quality', 'Premium Luxury'],
+  },
+  {
+    label: 'Closures',
+    path: '/hair/closures',
+    description: 'Complete your install with premium lace closures and frontals.',
+    image: hairImages.straightWig11,
+    cta: 'Shop Closures',
+    options: ['Waterwave Curl', 'Kinky Curl', 'Straight'],
   },
   {
     label: 'Bundles',
@@ -24,13 +33,7 @@ export const HAIR_CATEGORY_LINKS = [
     description: 'Choose your texture, length and bundle package.',
     image: hairImages.curlyBundle01,
     cta: 'Shop Bundles',
-  },
-  {
-    label: 'Closures & Frontals',
-    path: '/hair/closures',
-    description: 'Complete your install with premium lace closures and frontals.',
-    image: hairImages.straightWig11,
-    cta: 'Shop Closures',
+    options: ['Single Bundle', 'Three Bundles'],
   },
   {
     label: 'Wig Laundry',
@@ -38,6 +41,7 @@ export const HAIR_CATEGORY_LINKS = [
     description: "Refresh, revive and restyle your wig with BISILE's premium hair care service.",
     image: hairImages.straightWig07,
     cta: 'Book Wig Laundry',
+    options: [] as string[],
   },
 ] as const;
 
@@ -94,19 +98,19 @@ export const BUNDLE_PRODUCTS: Product[] = [
 ];
 
 export type ClosureLaceSize = '4x4 Closure' | '13x4 Closure';
-export type ClosureTexture = 'Straight' | 'Kinky Curl' | 'Waterwave Curl';
+export type ClosureTexture = 'Kinky Curly' | 'Waterwave' | 'Straight';
 export type ClosureLength = '10 inch' | '12 inch';
 
 export const CLOSURE_PRICES: Record<ClosureLaceSize, Record<ClosureTexture, Record<ClosureLength, number>>> = {
   '4x4 Closure': {
+    'Kinky Curly': { '10 inch': 549.99, '12 inch': 649.99 },
+    Waterwave: { '10 inch': 549.99, '12 inch': 649.99 },
     Straight: { '10 inch': 449.99, '12 inch': 549.99 },
-    'Kinky Curl': { '10 inch': 549.99, '12 inch': 649.99 },
-    'Waterwave Curl': { '10 inch': 549.99, '12 inch': 649.99 },
   },
   '13x4 Closure': {
+    'Kinky Curly': { '10 inch': 699.99, '12 inch': 749.99 },
+    Waterwave: { '10 inch': 699.99, '12 inch': 749.99 },
     Straight: { '10 inch': 599.99, '12 inch': 649.99 },
-    'Kinky Curl': { '10 inch': 699.99, '12 inch': 749.99 },
-    'Waterwave Curl': { '10 inch': 699.99, '12 inch': 749.99 },
   },
 };
 
@@ -127,18 +131,40 @@ export const CLOSURE_PRODUCT: Product = {
   specs: { 'Hair type': 'Processed Virgin Hair', 'Lace options': '4x4 Closure or 13x4 Closure' },
 };
 
-export type LaundryServiceType = 'Basic Wash & Condition' | 'Deep Wash & Detangle' | 'Full Wig Revamp' | 'Lace Refresh & Clean' | 'Wash, Style & Finish';
+export type LaundryServiceType =
+  | 'Wig Wash Only'
+  | 'Wig Treatment - Straighten'
+  | 'Wig Treatment - Curls'
+  | 'Straightening Only'
+  | 'Curls Activation Only'
+  | 'Frontal Plucking Only'
+  | 'Plucking and Straightening'
+  | 'Plucking and Curl Activation'
+  | 'Custom Parting'
+  | 'Straight to Custom Curls'
+  | 'Wig / Bundles Dye'
+  | 'Full Laundry Package - Straight'
+  | 'Full Laundry Package - Curls'
+  | 'Full Laundry Package - Custom Part';
 export type LaundryParting = 'Middle Part' | 'Side Part' | 'Free Part' | 'No Part / Natural Fall';
 export type LaundryFinish = 'Straightened' | 'Body Curls' | 'Waterwave Refresh' | 'Jerry Curl Refresh' | 'Blunt Bob Finish' | 'Leave Natural';
 export type LaundryAddon = 'Extra Detangling' | 'Lace Glue Removal' | 'Lace Tint' | 'Knot Touch-Up' | 'Curl Restoration' | 'Trim Ends' | 'Custom Styling Request';
 
-// TODO: Confirm final wig laundry prices with BISILE. These are editable placeholder prices.
 export const WIG_LAUNDRY_SERVICE_PRICES: Record<LaundryServiceType, number> = {
-  'Basic Wash & Condition': 190,
-  'Deep Wash & Detangle': 250,
-  'Full Wig Revamp': 420,
-  'Lace Refresh & Clean': 200,
-  'Wash, Style & Finish': 390,
+  'Wig Wash Only': 190,
+  'Wig Treatment - Straighten': 200,
+  'Wig Treatment - Curls': 250,
+  'Straightening Only': 100,
+  'Curls Activation Only': 180,
+  'Frontal Plucking Only': 100,
+  'Plucking and Straightening': 200,
+  'Plucking and Curl Activation': 270,
+  'Custom Parting': 100,
+  'Straight to Custom Curls': 320,
+  'Wig / Bundles Dye': 300,
+  'Full Laundry Package - Straight': 390,
+  'Full Laundry Package - Curls': 420,
+  'Full Laundry Package - Custom Part': 590,
 };
 
 // TODO: Confirm final add-on prices with BISILE.
@@ -161,7 +187,7 @@ export const WIG_LAUNDRY_PRODUCT: Product = {
   subtitle: 'Premium wig care service',
   eyebrow: 'Wig Laundry',
   pricePrefix: 'From',
-  price: WIG_LAUNDRY_SERVICE_PRICES['Basic Wash & Condition'],
+  price: WIG_LAUNDRY_SERVICE_PRICES['Wig Wash Only'],
   description: 'Premium wig washing, conditioning and styling service for BISILE hair units and customer-owned wigs.',
   notes: ['Wash', 'Condition', 'Style'],
   image: hairImages.straightWig07,

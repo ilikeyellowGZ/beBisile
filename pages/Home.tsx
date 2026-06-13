@@ -24,36 +24,51 @@ const editorialCards = [
 
 const googleReviews = [
   {
-    name: 'BISILE client',
-    body: 'Beautiful service, elegant packaging, and the products feel intentional from start to finish.',
+    name: 'Mandisa Pearl Mzizi',
+    body: 'I love the BISILE perfumes. My favorite is Indoniyamanzi, and their curly hair is stunning. Service, packaging and delivery are top tier.',
   },
   {
-    name: 'Hair client',
-    body: 'The hair quality and styling support made the whole process feel easy and premium.',
+    name: 'Phindile Mndau',
+    body: 'The best service ever. From placing my order to delivery, everything was professional. Indoniyamanzi smells divine.',
   },
   {
-    name: 'Fragrance client',
-    body: 'Soft, memorable, and luxury without being loud. BISILE is now part of my daily routine.',
+    name: 'Nokukhanya Hlanguza',
+    body: 'The fragrance smells amazing and BISILE packaging screams luxury. I highly recommend the product.',
+  },
+  {
+    name: 'Noxolo Nxele',
+    body: 'The hair is top notch quality. It comes in impressive boxing with everything you need for the installation.',
+  },
+  {
+    name: 'Mumsy Zungu',
+    body: 'Indoniyamanzi smells really classy and exquisite. It gave me confidence in public and in the workplace.',
+  },
+  {
+    name: 'Widadh Klein',
+    body: 'Stunning packaging, excellent service, and the perfume smells absolutely amazing.',
   },
 ];
 
 const luxuryCategories = [
   {
     label: 'Discovery Set',
+    body: 'A curated fragrance wardrobe for sampling the full BISILE scent ritual.',
     image: packageImages.product01,
     path: '/shop',
     fit: 'cover',
   },
   {
     label: 'Premium Hair',
+    body: 'BhelekWigs, bundles, closures and wig care shaped around polished everyday beauty.',
     image: hairImages.straightWig01,
     path: '/hair',
     fit: 'cover',
   },
   {
     label: 'Fragrances',
+    body: 'The Imvelo Collection, made for quiet presence and memorable finishing rituals.',
     image: fragranceImages.indoniyamanzi,
-    path: '/shop',
+    path: '/fragrances',
     fit: 'contain',
   },
 ];
@@ -72,25 +87,33 @@ export const Home: React.FC = () => {
 
       <HeroSplit />
 
-      <section id="bisile-discovery" className="bg-[#E9E6DF] py-14 text-[#2A2114] md:py-20" data-navbar-theme="discovery">
-        <div className="bisile-shell">
-          <h2 className="font-sans text-2xl font-light uppercase tracking-[0.28em] text-[#5B3A24] md:text-3xl">Our Luxury Categories:</h2>
-          <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-10">
-            {luxuryCategories.map((item, index) => (
-              <Link key={item.label} to={item.path} className="group block">
-                <div className="relative aspect-[4/5] overflow-hidden border border-[#B9AA8B]/42 bg-[#D8D0C3]">
-                  <img loading="lazy" src={item.image} alt={item.label} className={`h-full w-full transition-transform duration-500 group-hover:scale-[1.035] ${item.fit === 'contain' ? 'object-contain p-10 sm:p-12' : 'object-cover'}`} />
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(42,33,20,0.03),rgba(42,33,20,0.16))]" />
-                  <span
-                    className="absolute bottom-[11%] left-1/2 w-[72%] -translate-x-1/2 border border-[#E9E6DF]/22 px-5 py-3 text-center font-sans text-base font-medium text-[#F7F4EF] backdrop-blur-md transition-colors md:text-lg"
-                    style={{ backgroundColor: index === 1 ? 'rgba(42, 33, 20, 0.90)' : 'rgba(138, 111, 53, 0.90)' }}
-                  >
-                    {item.label}
-                  </span>
+      <section id="bisile-discovery" className="bisile-shell bisile-section border-b bisile-rule" data-navbar-theme="discovery">
+        <div className="mb-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <FadeIn>
+            <p className="bisile-kicker mb-3">BISILE worlds</p>
+            <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">Our luxury categories.</h2>
+          </FadeIn>
+          <Link to="/shop" className="bisile-link md:mb-1">Shop all <ArrowRight size={15} strokeWidth={1.3} /></Link>
+        </div>
+
+        <div className="grid gap-x-6 gap-y-12 md:grid-cols-3">
+          {luxuryCategories.map((item, index) => (
+            <FadeIn key={item.label} delay={index * 70}>
+              <Link to={item.path} className="group block">
+                <div className="bisile-image-frame aspect-[4/5]">
+                  <img loading="lazy" src={item.image} alt={item.label} className={item.fit === 'contain' ? 'h-full w-full object-contain p-10 transition-transform duration-500 group-hover:scale-[1.035] sm:p-12' : 'editorial-image'} />
+                </div>
+                <div className="mt-4 flex items-start justify-between gap-6">
+                  <div>
+                    <p className="mb-2 font-inter text-xs font-light text-primary/35">{String(index + 1).padStart(2, '0')}</p>
+                    <h3 className="font-inter text-sm font-normal text-primary">{item.label}</h3>
+                    <p className="mt-1 max-w-sm font-inter text-sm font-light leading-6 text-primary/60">{item.body}</p>
+                  </div>
+                  <ArrowRight size={18} strokeWidth={1.2} className="mt-7 shrink-0 text-primary/45 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-accent" />
                 </div>
               </Link>
-            ))}
-          </div>
+            </FadeIn>
+          ))}
         </div>
       </section>
 
@@ -119,7 +142,7 @@ export const Home: React.FC = () => {
             <p className="bisile-kicker mb-3">BISILE fragrance</p>
             <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">A quiet scent wardrobe.</h2>
           </FadeIn>
-          <Link to="/shop" className="bisile-link hidden md:inline-flex">Shop fragrance <ArrowRight size={15} strokeWidth={1.3} /></Link>
+          <Link to="/fragrances" className="bisile-link hidden md:inline-flex">Shop fragrance <ArrowRight size={15} strokeWidth={1.3} /></Link>
         </div>
         <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
           {FRAGRANCE_PRODUCTS.slice(0, 4).map((product, index) => <FadeIn key={product.id} delay={index * 60}><ProductCard product={product} /></FadeIn>)}
@@ -177,7 +200,7 @@ export const Home: React.FC = () => {
                 <p className="bisile-kicker mb-3">Google reviews</p>
                 <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">Loved by the BISILE circle.</h2>
                 <p className="mt-4 max-w-2xl font-inter text-sm font-light leading-7 text-primary/58">
-                  Real client feedback will connect here once the Google review API is enabled. For now, this section is ready for your Google Business Profile reviews.
+                  Customer notes from BISILE fragrance and hair clients, with owner replies kept out of the testimonial cards.
                 </p>
               </div>
               <a href="https://www.google.com/search?q=bisile.+be+luxury&sxsrf=ANbL-n54GGzsThlIBxU3FBgj-ZNKYaaNeA%3A1780783836635&oq=" target="_blank" rel="noreferrer" className="bisile-link">
@@ -189,13 +212,13 @@ export const Home: React.FC = () => {
             <FadeIn>
               <div className="flex h-full flex-col justify-between bg-[#f7f5f1] p-6">
                 <div>
-                  <p className="font-inter text-5xl font-light leading-none">5.0</p>
+                  <p className="font-inter text-5xl font-light leading-none">4.9</p>
                   <div className="mt-4 flex gap-1 text-accent" aria-label="Five star rating">
                     {Array.from({ length: 5 }).map((_, index) => <Star key={index} size={15} fill="currentColor" strokeWidth={1.1} />)}
                   </div>
                 </div>
                 <p className="mt-8 font-inter text-sm font-light leading-6 text-primary/55">
-                  Connect live Google rating, review count, and review excerpts through the Places API.
+                  Based on 14 Google reviews, highlighting fragrance, packaging, service, delivery, and premium hair quality.
                 </p>
               </div>
             </FadeIn>

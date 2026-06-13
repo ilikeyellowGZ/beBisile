@@ -28,6 +28,10 @@ export const BisileSelect = <T extends string>({
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const selectedOption = options.find((option) => option.value === value);
+  const isLongMenu = options.length > 5;
+  const openMenuClass = isLongMenu
+    ? 'h-48 translate-y-0 overflow-y-auto opacity-100 md:h-56'
+    : 'max-h-72 translate-y-0 overflow-y-auto opacity-100';
 
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
@@ -39,7 +43,7 @@ export const BisileSelect = <T extends string>({
   }, []);
 
   return (
-    <div ref={wrapperRef} className={`relative ${className}`}>
+    <div ref={wrapperRef} className={`relative ${isOpen ? 'z-[120]' : 'z-10'} ${className}`}>
       <button
         type="button"
         aria-label={ariaLabel}
@@ -66,7 +70,7 @@ export const BisileSelect = <T extends string>({
 
       <div
         role="listbox"
-        className={`absolute left-0 right-0 top-[calc(100%+4px)] z-30 overflow-hidden border border-[#A3915D]/24 bg-[#F7F4EF] shadow-[0_18px_45px_rgba(42,33,20,0.10)] transition-[max-height,opacity,transform] duration-300 ease-out ${isOpen ? 'max-h-72 translate-y-0 opacity-100' : 'pointer-events-none max-h-0 -translate-y-2 opacity-0'}`}
+        className={`absolute left-0 right-0 top-[calc(100%+4px)] z-[120] overscroll-contain border border-[#A3915D]/24 bg-[#F7F4EF] shadow-[0_18px_45px_rgba(42,33,20,0.10)] transition-[height,max-height,opacity,transform] duration-300 ease-out ${isOpen ? openMenuClass : 'pointer-events-none h-0 max-h-0 -translate-y-2 overflow-hidden opacity-0'}`}
       >
         {options.map((option, index) => (
           <button

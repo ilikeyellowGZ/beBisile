@@ -16,15 +16,15 @@ type DiscoverGridProps = {
 
 const discoverItems: DiscoverItem[] = [
   {
-    label: 'Fragrance',
-    path: '/shop',
-    description: 'Signature scents for quiet everyday luxury',
+    label: 'Fragrances',
+    path: '/fragrances',
+    description: 'Imvelo Collection and best-selling signature scents',
     image: carouselImages.perfumeDisplay04,
   },
   {
-    label: 'Hair',
+    label: 'Premium Hair',
     path: '/hair',
-    description: 'Luxury wigs, bundles, closures, frontals, and wig laundry',
+    description: 'Bhelekazi wigs, closures, bundles, and wig laundry',
     image: hairImages.straightWig01,
   },
   {

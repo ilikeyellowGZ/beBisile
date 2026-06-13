@@ -33,7 +33,7 @@ const steps = [
 
 export const WigLaundry: React.FC = () => {
   const { addItem } = useCart();
-  const [serviceType, setServiceType] = useState<LaundryServiceType>('Basic Wash & Condition');
+  const [serviceType, setServiceType] = useState<LaundryServiceType>('Wig Wash Only');
   const [parting, setParting] = useState<LaundryParting>('Middle Part');
   const [finish, setFinish] = useState<LaundryFinish>('Straightened');
   const [addOns, setAddOns] = useState<LaundryAddon[]>([]);
@@ -145,6 +145,40 @@ export const WigLaundry: React.FC = () => {
             </div>
           </div>
         </FadeIn>
+      </section>
+
+      <section className="bisile-shell bisile-section border-t bisile-rule">
+        <FadeIn>
+          <p className="bisile-kicker mb-3">Service menu</p>
+          <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">All services and prices.</h2>
+          <p className="mt-5 max-w-2xl font-inter text-sm font-light leading-7 text-primary/60">
+            Every wig laundry service and optional add-on, with transparent pricing. Build your booking above.
+          </p>
+        </FadeIn>
+        <div className="mt-10 grid gap-10 md:grid-cols-2">
+          <FadeIn>
+            <p className="bisile-kicker mb-4">Wash &amp; styling services</p>
+            <ul className="border-t bisile-rule">
+              {serviceTypes.map((service) => (
+                <li key={service} className="flex items-center justify-between gap-4 border-b bisile-rule py-3 font-inter text-sm font-light text-primary/70">
+                  <span>{service}</span>
+                  <span className="text-primary/55">{formatPrice(WIG_LAUNDRY_SERVICE_PRICES[service])}</span>
+                </li>
+              ))}
+            </ul>
+          </FadeIn>
+          <FadeIn delay={60}>
+            <p className="bisile-kicker mb-4">Add-ons</p>
+            <ul className="border-t bisile-rule">
+              {addOnOptions.map((addOn) => (
+                <li key={addOn} className="flex items-center justify-between gap-4 border-b bisile-rule py-3 font-inter text-sm font-light text-primary/70">
+                  <span>{addOn}</span>
+                  <span className="text-primary/55">{formatPrice(WIG_LAUNDRY_ADDON_PRICES[addOn])}</span>
+                </li>
+              ))}
+            </ul>
+          </FadeIn>
+        </div>
       </section>
 
       <section className="bisile-shell bisile-section border-t bisile-rule">
