@@ -13,13 +13,13 @@ const storyChapters = [
   },
   {
     label: '02',
-    title: 'The ritual expands',
+    title: 'The BISILE essence expands',
     body: 'From beauty and makeup, the brand grew into fragrance and gifting. Scent became part of the BISILE language: soft, memorable, and made for everyday luxury.',
     image: heroImages.fragrance03,
   },
   {
     label: '03',
-    title: 'Hair becomes central',
+    title: 'Crowned in elegance',
     body: 'BISILE then shaped a focused hair world: Bhelekazi wigs, processed virgin hair bundles, closures, frontals, and services that help every unit stay beautiful for longer.',
     image: hairImages.straightWig01,
   },
@@ -54,7 +54,7 @@ export const About: React.FC = () => (
       <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
         <FadeIn>
           <p className="bisile-kicker mb-3">From start to finish</p>
-          <h2 className="max-w-sm font-inter text-3xl font-light leading-tight md:text-5xl">A brand built through ritual.</h2>
+          <h2 className="max-w-sm font-inter text-3xl font-light leading-tight md:text-5xl">A brand built with elegance & intention.</h2>
         </FadeIn>
         <div className="grid gap-10">
           {storyChapters.map((chapter, index) => (
@@ -101,7 +101,7 @@ export const About: React.FC = () => (
       <div className="grid gap-8 md:grid-cols-[0.85fr_1.15fr] md:items-end">
         <FadeIn>
           <p className="bisile-kicker mb-3">What guides us</p>
-          <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">Beauty that feels considered.</h2>
+          <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">Beauty that elevates your presence.</h2>
         </FadeIn>
         <div className="grid gap-3 sm:grid-cols-2">
           {values.map((value, index) => (

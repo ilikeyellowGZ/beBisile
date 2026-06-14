@@ -25,12 +25,12 @@ const filterOptions: Array<{ value: ShopFilter; label: string }> = [
 const shopCategories = [
   {
     number: '01',
-    title: 'Imvelo Collection',
-    image: fragranceImages.indoniyamanzi,
-    href: '/fragrances',
-    description: 'The BISILE fragrance drop, refined into individual 50ml Eau de Parfum rituals.',
-    items: ['Indoniyamanzi', 'Inkanyezi', 'Ndalwenhle', 'Langelihle', 'Sithelo', 'Luyanda'],
-    cta: 'Shop Fragrances',
+    title: 'Discovery Set',
+    image: packageImages.product01,
+    href: '/product/discovery-set',
+    description: 'Discover fragrances that capture the essence of women - subtle, earthly, and effortlessly powerful.',
+    items: ['IMVELO Collection', 'Six signature scents', '6 x 10ml Eau de Parfum'],
+    cta: 'Explore Discovery Set',
   },
   {
     number: '02',
@@ -121,7 +121,7 @@ export const Shop: React.FC = () => {
           <p className="mb-3 font-inter text-sm font-light text-primary/45">Home / Shop</p>
           <h1 className="font-inter text-4xl font-light leading-tight md:text-5xl">Shop BISILE.</h1>
           <p className="mt-4 max-w-2xl font-inter text-sm font-light leading-7 text-primary/58">
-            Discover BISILE fragrance, luxury hair, wigs, bundles, closures, frontals, wig laundry services, and gifting rituals.
+            Discover BISILE fragrances.
           </p>
         </FadeIn>
 

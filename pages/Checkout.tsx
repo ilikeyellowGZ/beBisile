@@ -23,16 +23,19 @@ const initial: CheckoutDetails = {
   shippingPartner: SHIPPING_PARTNERS[0].id,
 };
 
-const shippingLogo = (mark: string, tone: string) => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="64" viewBox="0 0 120 64"><rect width="120" height="64" rx="0" fill="%23F7F4EF"/><rect x="7" y="7" width="106" height="50" rx="0" fill="${tone.replace('#', '%23')}" fill-opacity=".12" stroke="${tone.replace('#', '%23')}" stroke-opacity=".45"/><text x="60" y="39" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="${tone.replace('#', '%23')}" letter-spacing="2">${mark}</text></svg>`;
-  return `data:image/svg+xml;utf8,${svg}`;
+const shippingLogo = (mark: string, name: string, tone: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="152" height="84" viewBox="0 0 152 84"><rect width="152" height="84" fill="#F7F4EF"/><rect x="8" y="8" width="136" height="68" fill="${tone}" fill-opacity=".10" stroke="${tone}" stroke-opacity=".45"/><text x="76" y="43" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="${tone}" letter-spacing="2">${mark}</text><text x="76" y="60" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="400" fill="#5B3A24" opacity=".72" letter-spacing="1.4">${name.toUpperCase()}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
 export const Checkout: React.FC = () => {
   const { items, subtotal } = useCart();
   const navigate = useNavigate();
   const [form, setForm] = useState<CheckoutDetails>(() => {
-    try { return { ...initial, ...JSON.parse(sessionStorage.getItem(CHECKOUT_STORAGE_KEY) ?? '') } as CheckoutDetails; } catch { return initial; }
+    try {
+      const saved = { ...initial, ...JSON.parse(sessionStorage.getItem(CHECKOUT_STORAGE_KEY) ?? '') } as CheckoutDetails;
+      return SHIPPING_PARTNERS.some((partner) => partner.id === saved.shippingPartner) ? saved : initial;
+    } catch { return initial; }
   });
   const [errors, setErrors] = useState<Partial<Record<keyof CheckoutDetails, string>>>({});
 
@@ -94,15 +97,19 @@ export const Checkout: React.FC = () => {
           return (
             <label key={option.id} className={`flex items-center gap-4 border p-4 transition-colors ${selected ? 'border-[#8A6F35] bg-[#E9E6DF]' : 'border-[#B9AA8B]/46 bg-[#F7F4EF]/62 hover:border-[#A3915D]'}`}>
               <input type="radio" name="shippingPartner" value={option.id} checked={selected} onChange={(event) => updateField('shippingPartner', event.target.value)} className="h-4 w-4 shrink-0" />
-              <img src={shippingLogo(option.mark, option.tone)} alt={`${option.name} logo`} className="h-12 w-20 border border-[#B9AA8B]/30 object-cover" />
+              <img src={shippingLogo(option.mark, option.name, option.tone)} alt={`${option.name} delivery partner badge`} className="h-14 w-24 border border-[#B9AA8B]/30 object-cover sm:h-16 sm:w-28" />
               <span className="min-w-0 flex-1">
                 <span className="block text-sm text-[#2A2114]">{option.name}</span>
                 <span className="mt-1 block text-xs text-[#5B3A24]/66">R {option.price.toFixed(2)}</span>
+                <span className="mt-1 block text-[11px] leading-4 text-[#5B3A24]/52">{option.description}</span>
               </span>
             </label>
           );
         })}
       </div>
+      <p className="mt-3 text-[11px] leading-5 text-[#5B3A24]/52">
+        Uber Courier can be arranged manually on WhatsApp for suitable local deliveries, but it is not listed as a standard checkout option until pricing and handover can be confirmed safely.
+      </p>
     </section>
 
     <label className="sm:col-span-2"><span className="mb-2 block text-[10px] uppercase tracking-[0.14em] text-[#5B3A24]/68">Delivery instructions</span><textarea rows={3} value={form.deliveryInstructions} onChange={(event) => updateField('deliveryInstructions', event.target.value)} className="field-light w-full px-4 py-4 text-xs" /></label>

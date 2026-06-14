@@ -52,7 +52,7 @@ const googleReviews = [
 const luxuryCategories = [
   {
     label: 'Discovery Set',
-    body: 'A curated fragrance wardrobe for sampling the full BISILE scent ritual.',
+    body: 'Discover fragrances that capture the essence of women - subtle, earthly, and effortlessly powerful.',
     image: packageImages.product01,
     path: '/shop',
     fit: 'cover',
@@ -166,9 +166,9 @@ export const Home: React.FC = () => {
       <section id="our-story" className="bisile-shell bisile-section grid gap-10 border-y bisile-rule md:grid-cols-[0.88fr_1.12fr] md:items-center">
         <FadeIn>
           <p className="bisile-kicker mb-4">About BISILE</p>
-          <h2 className="max-w-md font-inter text-3xl font-light leading-tight md:text-5xl">Beauty that feels considered.</h2>
+          <h2 className="max-w-md font-inter text-3xl font-light leading-tight md:text-5xl">Beauty that elevates your presence.</h2>
           <p className="mt-6 max-w-xl font-inter text-sm font-light leading-7 text-primary/62">
-            BISILE is a luxury beauty destination built around fragrance, processed virgin hair, wig care, and gifting rituals. Every product is selected to make self-care feel polished, personal, and easy to love.
+            BISILE is a luxury beauty house built around the moments that make a woman feel finished: fragrance, hair, gifting, and care. The brand has grown from personal beauty service into a fuller world of refined products and rituals.
           </p>
           <p className="mt-6 font-inter text-sm text-primary">Be Luxury.</p>
         </FadeIn>

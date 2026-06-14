@@ -9,9 +9,6 @@ import { SORT_OPTIONS, type CatalogSort, sortProducts } from '../utils/catalog';
 type FragranceFilter =
   | 'all'
   | 'women'
-  | 'men'
-  | 'kids-teens'
-  | 'unisex'
   | 'best-seller'
   | 'daily'
   | 'evening'
@@ -25,9 +22,6 @@ const imveloProducts = FRAGRANCE_PRODUCTS.filter((product) => product.id !== 'di
 const filterOptions: Array<{ value: FragranceFilter; label: string }> = [
   { value: 'all', label: 'All fragrances' },
   { value: 'women', label: 'For women' },
-  { value: 'men', label: 'For men' },
-  { value: 'kids-teens', label: 'Kids & teens' },
-  { value: 'unisex', label: 'Unisex scents' },
   { value: 'best-seller', label: 'Best sellers' },
   { value: 'daily', label: 'Daily wear' },
   { value: 'evening', label: 'Evening scents' },
@@ -38,10 +32,7 @@ const filterOptions: Array<{ value: FragranceFilter; label: string }> = [
 ];
 
 const applyFilter = (filter: FragranceFilter) => {
-  if (filter === 'women') return imveloProducts.filter((product) => ['indoniyamanzi', 'langelihle', 'ndalwenhle'].includes(product.id));
-  if (filter === 'men') return imveloProducts.filter((product) => ['inkanyezi', 'sithelo', 'luyanda'].includes(product.id));
-  if (filter === 'kids-teens') return imveloProducts.filter((product) => ['indoniyamanzi', 'ndalwenhle'].includes(product.id));
-  if (filter === 'unisex') return imveloProducts.filter((product) => ['inkanyezi', 'sithelo', 'luyanda'].includes(product.id));
+  if (filter === 'women') return imveloProducts;
   if (filter === 'best-seller') return imveloProducts.filter((product) => product.isBestSeller);
   if (filter === 'daily') return imveloProducts.filter((product) => ['indoniyamanzi', 'inkanyezi', 'ndalwenhle'].includes(product.id));
   if (filter === 'evening') return imveloProducts.filter((product) => ['sithelo', 'langelihle', 'luyanda'].includes(product.id));
@@ -68,7 +59,7 @@ export const Fragrances: React.FC = () => {
           <p className="bisile-kicker mb-3">Fragrances</p>
           <h1 className="font-inter text-4xl font-light leading-tight md:text-5xl">Imvelo Collection.</h1>
           <p className="mt-4 max-w-2xl font-inter text-sm font-light leading-7 text-primary/58">
-            Discover the BISILE Imvelo Collection fragrance drop, including the full eau de parfum range and best-selling scents.
+            A fragrance journey inspired by nature's ability to nurture, restore, and breathe life into everything it touches. Each scent is crafted to ground your spirit, elevate your mood, and remind you of the beauty found in simplicity.
           </p>
           <div className="mt-10 flex flex-col gap-5 font-inter text-sm font-light text-primary/55 md:flex-row md:items-center md:justify-between">
             <p>{products.length} of {imveloProducts.length} items</p>

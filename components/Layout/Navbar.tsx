@@ -54,7 +54,7 @@ const leftLinks: MenuLink[] = [
     label: 'Our Story',
     path: '/about',
     preview: [
-      { label: 'Beauty that feels considered', path: '/about', image: packageImages.product06 },
+      { label: 'Beauty that elevates your presence', path: '/about', image: packageImages.product06 },
       { label: 'Create with intention', path: '/community', image: heroImages.fragrance11 },
     ],
     links: [

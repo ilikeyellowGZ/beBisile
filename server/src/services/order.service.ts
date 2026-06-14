@@ -10,8 +10,8 @@ export const checkoutItemSchema = z.object({
 const shippingPartners = [
   { id: 'pudo', name: 'Pudo', price: 89 },
   { id: 'courier-guy', name: 'The Courier Guy', price: 119 },
-  { id: 'fastway', name: 'Fastway', price: 99 },
-  { id: 'postnet', name: 'PostNet', price: 129 }
+  { id: 'paxi', name: 'PAXI', price: 110 },
+  { id: 'postnet', name: 'PostNet to PostNet', price: 120 }
 ];
 
 const getShippingPartner = (id?: string) => shippingPartners.find((option) => option.id === id) || shippingPartners[0];

@@ -7,8 +7,8 @@ const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SEC
 const shippingPartners = [
   { id: 'pudo', name: 'Pudo', price: 89 },
   { id: 'courier-guy', name: 'The Courier Guy', price: 119 },
-  { id: 'fastway', name: 'Fastway', price: 99 },
-  { id: 'postnet', name: 'PostNet', price: 129 },
+  { id: 'paxi', name: 'PAXI', price: 110 },
+  { id: 'postnet', name: 'PostNet to PostNet', price: 120 },
 ];
 
 const getShippingPartner = (id) => shippingPartners.find((option) => option.id === id) || shippingPartners[0];
