@@ -22,8 +22,6 @@ export const Product = mongoose.model('Product', new Schema({
   price: { type: Number, required: true, min: 0 },
   compareAtPrice: Number,
   currency: { type: String, default: 'ZAR' },
-  stripeProductId: String,
-  stripePriceId: { type: String, required: true },
   sku: { type: String, index: true },
   stock: { type: Number, default: 0, min: 0 },
   lowStockThreshold: { type: Number, default: 3 },
@@ -77,8 +75,7 @@ export const Order = mongoose.model('Order', new Schema({
     quantity: Number,
     unitPrice: Number,
     totalPrice: Number,
-    selectedVariant: Schema.Types.Mixed,
-    stripePriceId: String
+    selectedVariant: Schema.Types.Mixed
   }],
   subtotal: Number,
   discountCode: String,
@@ -91,8 +88,11 @@ export const Order = mongoose.model('Order', new Schema({
   orderStatus: { type: String, default: 'pending' },
   shippingStatus: { type: String, default: 'not_shipped' },
   trackingNumber: String,
-  stripeCheckoutSessionId: String,
-  stripePaymentIntentId: String,
+  paystackReference: { type: String, index: true },
+  paystackAccessCode: String,
+  paystackAuthorizationUrl: String,
+  paystackTransactionId: String,
+  paystackPaidAt: Date,
   paidAt: Date,
   deliveredAt: Date,
   cancelledAt: Date,
@@ -102,8 +102,8 @@ export const Order = mongoose.model('Order', new Schema({
 export const Payment = mongoose.model('Payment', new Schema({
   orderId: { type: Schema.Types.ObjectId, ref: 'Order' },
   customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
-  stripeCheckoutSessionId: String,
-  stripePaymentIntentId: String,
+  paystackReference: { type: String, index: true },
+  paystackTransactionId: String,
   amount: Number,
   currency: String,
   status: String,
@@ -119,7 +119,7 @@ export const Refund = mongoose.model('Refund', new Schema({
   amount: Number,
   reason: String,
   status: String,
-  stripeRefundId: String,
+  paystackRefundId: String,
   approvedBy: { type: Schema.Types.ObjectId, ref: 'Admin' }
 }, timestamps));
 

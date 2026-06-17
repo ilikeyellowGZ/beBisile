@@ -2,7 +2,7 @@ import { collectionNames, getDb, json, now, toObjectId } from '../lib/secure-db.
 import { canChangePrices, requireAdmin, writeAuditLog } from '../lib/admin-auth.mjs';
 import { parseJsonBody, rejectFrontendPrices } from '../lib/commerce-service.mjs';
 
-const publicFields = ['name', 'slug', 'description', 'shortDescription', 'categoryId', 'images', 'compareAtPrice', 'currency', 'stripeProductId', 'stripePriceId', 'sku', 'stock', 'lowStockThreshold', 'sizes', 'variants', 'scentNotes', 'productDetails', 'ingredients', 'materials', 'tags', 'isFeatured', 'isActive', 'isArchived'];
+const publicFields = ['name', 'slug', 'description', 'shortDescription', 'categoryId', 'images', 'compareAtPrice', 'currency', 'sku', 'stock', 'lowStockThreshold', 'sizes', 'variants', 'scentNotes', 'productDetails', 'ingredients', 'materials', 'tags', 'isFeatured', 'isActive', 'isArchived'];
 
 const pick = (body, fields) => Object.fromEntries(fields.filter((key) => body[key] !== undefined).map((key) => [key, body[key]]));
 
@@ -42,7 +42,7 @@ export const handler = async (event) => {
       }
 
       const update = isPriceRoute
-        ? { price: Number(body.price), compareAtPrice: body.compareAtPrice, stripePriceId: body.stripePriceId }
+        ? { price: Number(body.price), compareAtPrice: body.compareAtPrice }
         : pick(body, publicFields);
 
       await db.collection(collectionNames.products).updateOne({ _id: id }, { $set: { ...update, updatedAt: now() } });

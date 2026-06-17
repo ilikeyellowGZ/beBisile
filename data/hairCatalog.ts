@@ -12,7 +12,7 @@ export const hairGallery = {
 
 export const HAIR_CATEGORY_LINKS = [
   {
-    label: 'BhelekWigs',
+    label: 'Bhelekazi Wigs',
     path: '/hair/wigs',
     description: 'Everyday luxury, soft luxurious quality and premium luxury wigs crafted with refined BISILE finishes.',
     image: hairImages.straightWig01,

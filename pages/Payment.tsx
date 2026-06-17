@@ -7,8 +7,9 @@ import { SHIPPING_PARTNERS } from '../constants';
 import type { CheckoutDetails } from '../types';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
-const API_URL = import.meta.env.VITE_CHECKOUT_API_URL
-  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/create-session` : '/.netlify/functions/create-checkout-session');
+const API_URL = import.meta.env.VITE_PAYSTACK_CHECKOUT_API_URL
+  || import.meta.env.VITE_CHECKOUT_API_URL
+  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/create-paystack-transaction` : '/.netlify/functions/create-paystack-transaction');
 
 export const Payment: React.FC = () => {
   const { items, subtotal } = useCart();
@@ -45,7 +46,7 @@ export const Payment: React.FC = () => {
     );
   }
 
-  const startStripeCheckout = async () => {
+  const startPaystackCheckout = async () => {
     setLoading(true);
     setError('');
     try {
@@ -74,10 +75,10 @@ export const Payment: React.FC = () => {
         }),
       });
       const payload = await response.json() as { url?: string; error?: string };
-      if (!response.ok || !payload.url) throw new Error(payload.error || 'Unable to start secure checkout.');
+      if (!response.ok || !payload.url) throw new Error(payload.error || 'Unable to start Paystack checkout.');
       window.location.assign(payload.url);
     } catch (checkoutError) {
-      setError(checkoutError instanceof Error ? checkoutError.message : 'Unable to start secure checkout.');
+      setError(checkoutError instanceof Error ? checkoutError.message : 'Unable to start Paystack checkout.');
       setLoading(false);
     }
   };
@@ -93,9 +94,9 @@ export const Payment: React.FC = () => {
             <div className="flex items-start gap-4 border-b border-[#B9AA8B]/36 pb-7">
               <div className="bg-[#E9E6DF] p-3 text-[#8A6F35]"><CreditCard strokeWidth={1.2} /></div>
               <div>
-                <h2 className="font-subhead text-2xl text-[#2A2114]">Stripe secure checkout</h2>
+                <h2 className="font-subhead text-2xl text-[#2A2114]">Paystack secure checkout</h2>
                 <p className="mt-2 max-w-xl text-xs leading-6 text-[#5B3A24]/62">
-                  Select "Continue to Stripe" to enter your card or available payment method on Stripe's hosted checkout page. BISILE does not store your card details.
+                  Select "Continue to Paystack" to enter your card or available payment method on Paystack's hosted checkout page. BISILE does not store your card details.
                 </p>
               </div>
             </div>
@@ -133,8 +134,8 @@ export const Payment: React.FC = () => {
               <Link to="/checkout" className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#5B3A24]/62 hover:text-accent">
                 <ArrowLeft size={14} /> Edit details
               </Link>
-              <button disabled={loading} onClick={startStripeCheckout} className="flex items-center justify-between gap-8 bg-[#5B3A24] px-6 py-4 text-[10px] uppercase tracking-[0.18em] text-[#F7F4EF] hover:bg-[#8A6F35] disabled:opacity-50">
-                {loading ? 'Opening Stripe...' : 'Continue to Stripe'} <ArrowRight size={14} />
+              <button disabled={loading} onClick={startPaystackCheckout} className="flex items-center justify-between gap-8 bg-[#5B3A24] px-6 py-4 text-[10px] uppercase tracking-[0.18em] text-[#F7F4EF] hover:bg-[#8A6F35] disabled:opacity-50">
+                {loading ? 'Opening Paystack...' : 'Continue to Paystack'} <ArrowRight size={14} />
               </button>
             </div>
           </section>
@@ -153,7 +154,7 @@ export const Payment: React.FC = () => {
               <span className="font-subhead text-2xl text-[#2A2114]">R {estimatedTotal.toFixed(2)}</span>
             </div>
             <p className="flex gap-3 border-t border-[#B9AA8B]/36 pt-5 text-[11px] leading-5 text-[#5B3A24]/62">
-              <ShieldCheck size={16} className="shrink-0 text-accent" /> Stripe handles payment entry and confirmation. Amounts are recalculated securely by the server.
+              <ShieldCheck size={16} className="shrink-0 text-accent" /> Paystack handles payment entry and confirmation. Amounts are recalculated securely by the server.
             </p>
           </aside>
         </div>

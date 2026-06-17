@@ -26,12 +26,13 @@ Create the real local environment file at the project root:
 .env
 ```
 
-Use `.env.example` as the template. The real `.env` file should not be committed to GitHub; it can contain private values for Stripe, MongoDB, dashboard auth, and optional services.
+Use `.env.example` as the template. The real `.env` file should not be committed to GitHub; it can contain private values for Paystack, MongoDB, dashboard auth, and optional services.
 
 Public browser variables must start with `VITE_` because this project uses Vite:
 
 - `VITE_WHATSAPP_NUMBER`: public WhatsApp number used by enquiry and contact buttons.
-- `VITE_CHECKOUT_API_URL`: optional public checkout endpoint override. Leave blank on Netlify.
+- `VITE_PAYSTACK_CHECKOUT_API_URL`: optional public checkout endpoint override. Leave blank on Netlify.
+- `VITE_PAYSTACK_VERIFY_API_URL`: optional public payment verification endpoint override. Leave blank on Netlify.
 - `VITE_ENABLE_VIDEO_HERO`: public toggle for the desktop split-screen video hero.
 
 Server-only variables must not use the `VITE_` prefix:
@@ -39,24 +40,25 @@ Server-only variables must not use the `VITE_` prefix:
 - `CLIENT_URL`: public production URL used by backend checkout redirects and origin checks.
 - `MONGODB_URI`, `MONGODB_DB`, `MONGODB_DATABASE`: MongoDB connection and database names.
 - `JWT_SECRET`, `ADMIN_JWT_SECRET`, `ADMIN_PASSWORD_SECRET`: dashboard/auth secrets.
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`: Stripe backend and webhook secrets.
+- `PAYSTACK_SECRET_KEY`: Paystack backend secret used to initialize, verify, and validate payment webhooks.
 - `NODE_ENV`, `PORT`, `SERVER_URL`, `CORS_ORIGINS`: optional server configuration.
 - `RESEND_API_KEY`, `SENDGRID_API_KEY`, `FROM_EMAIL`: optional email settings.
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: optional image upload settings.
 
 After editing `.env`, restart the dev server so Vite and any backend process can read the new values.
 
-## Stripe, MongoDB, and Dashboard
+## Paystack, MongoDB, and Dashboard
 
 The production flow uses Netlify Functions:
 
-- `create-checkout-session`: recalculates product prices on the server, creates a MongoDB order, and opens Stripe Checkout.
-- `stripe-webhook`: verifies Stripe signatures and marks successful orders as paid.
+- `create-paystack-transaction`: recalculates product prices on the server, creates a MongoDB order, and opens Paystack Checkout.
+- `verify-paystack-transaction`: verifies returned Paystack references from the success page.
+- `paystack-webhook`: verifies Paystack signatures and marks successful orders as paid.
 - `admin-setup`: creates the first dashboard owner admin user in MongoDB.
 - `admin-login`: checks the MongoDB admin email/password and returns a temporary dashboard session.
 - `orders`: returns recent orders only when a valid dashboard session is supplied.
 
-Configure the server-only values from `.env.example` in Netlify. Never expose `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `MONGODB_URI`, `JWT_SECRET`, `ADMIN_JWT_SECRET`, or `ADMIN_PASSWORD_SECRET` as `VITE_` variables.
+Configure the server-only values from `.env.example` in Netlify. Never expose `PAYSTACK_SECRET_KEY`, `MONGODB_URI`, `JWT_SECRET`, `ADMIN_JWT_SECRET`, or `ADMIN_PASSWORD_SECRET` as `VITE_` variables.
 
 Create the first dashboard user by sending a POST request to:
 
@@ -169,23 +171,23 @@ Frontend root variables:
 - `VITE_SITE_NAME`: public website name.
 - `VITE_SITE_URL`: final frontend URL, temporarily Netlify if needed.
 - `VITE_API_BASE_URL`: Render backend URL.
-- `VITE_CHECKOUT_API_URL`: optional checkout endpoint override.
+- `VITE_PAYSTACK_CHECKOUT_API_URL`: optional Paystack checkout endpoint override.
+- `VITE_PAYSTACK_VERIFY_API_URL`: optional Paystack verification endpoint override.
 - `VITE_WHATSAPP_NUMBER`: WhatsApp number for CTAs.
 - `VITE_CONTACT_EMAIL`: public contact email.
 - `VITE_INSTAGRAM_URL`: Instagram URL.
 - `VITE_PINTEREST_URL`: Pinterest URL.
 - `VITE_ENABLE_VIDEO_HERO`: enables desktop hover videos.
-- `VITE_STRIPE_PUBLISHABLE_KEY`: optional public Stripe publishable key only.
 
 Backend/server-only variables:
 
 - `NODE_ENV`, `PORT`: backend runtime settings.
 - `FRONTEND_URL`: frontend URL allowed by CORS.
 - `TEMP_NETLIFY_URL`: temporary Netlify preview URL allowed by CORS.
-- `CLIENT_URL`: optional legacy checkout redirect URL.
+- `CLIENT_URL`: optional checkout redirect URL.
 - `MONGODB_URI`, `MONGODB_DB`: MongoDB connection.
 - `JWT_SECRET`: backend auth secret.
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`: Stripe server secrets.
+- `PAYSTACK_SECRET_KEY`: Paystack server secret.
 - `RESEND_API_KEY`, `SENDGRID_API_KEY`, `FROM_EMAIL`: optional email settings.
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: optional upload settings.
 
@@ -194,6 +196,6 @@ Backend/server-only variables:
 - Missing Vite env updates: restart `npm run dev`.
 - DirectAdmin route refresh 404: confirm `.htaccess` is present in `public_html`.
 - Render CORS error: set `FRONTEND_URL` to the exact frontend origin and add `TEMP_NETLIFY_URL` for preview.
-- Checkout still calls Netlify: set `VITE_API_BASE_URL` or `VITE_CHECKOUT_API_URL`, then rebuild.
-- Stripe webhook failing: use the webhook signing secret from the exact deployed endpoint.
-- Backend fails on Render startup: confirm MongoDB, Stripe, and JWT env values are present.
+- Checkout still calls Netlify: set `VITE_API_BASE_URL` or `VITE_PAYSTACK_CHECKOUT_API_URL`, then rebuild.
+- Paystack webhook failing: confirm the webhook URL is `/api/paystack-webhook` on Netlify or `/api/webhooks/paystack` on Render, and that `PAYSTACK_SECRET_KEY` matches the Paystack integration.
+- Backend fails on Render startup: confirm MongoDB, Paystack, and JWT env values are present.

@@ -1,14 +1,13 @@
 import { Router } from 'express';
-import { env } from '../config/env.js';
-import { stripe } from '../config/stripe.js';
-import { handleStripeEvent } from '../services/stripe.service.js';
+import { markPaystackOrderPaid, verifyPaystackSignature } from '../services/paystack.service.js';
 
 export const webhookRoutes = Router();
 
-webhookRoutes.post('/stripe', async (req, res) => {
-  const signature = req.headers['stripe-signature'];
-  if (!signature || Array.isArray(signature)) return res.status(400).send('Missing Stripe signature');
-  const event = stripe.webhooks.constructEvent(req.body, signature, env.STRIPE_WEBHOOK_SECRET);
-  await handleStripeEvent(event);
+webhookRoutes.post('/paystack', async (req, res) => {
+  const body = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body || {}));
+  if (!verifyPaystackSignature(body, req.headers['x-paystack-signature'])) return res.status(401).send('Invalid Paystack signature');
+
+  const event = JSON.parse(body.toString('utf8') || '{}');
+  if (event.event === 'charge.success') await markPaystackOrderPaid(event.data);
   res.json({ received: true });
 });

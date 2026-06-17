@@ -38,8 +38,6 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
   for (const item of input.items) {
     const product = await Product.findById(item.productId);
     if (!product || product.isActive === false || product.isArchived === true) throw Object.assign(new Error('Product is not available'), { statusCode: 400 });
-    const stripePriceId = product.stripePriceId;
-    if (!stripePriceId) throw Object.assign(new Error('Product is missing Stripe Price ID'), { statusCode: 400 });
     const productStock = Number(product.stock ?? 0);
     if (productStock <= 0 || item.quantity > productStock) throw Object.assign(new Error(`${product.name} does not have enough stock`), { statusCode: 400 });
     const unitPrice = Number(product.price ?? 0);
@@ -51,8 +49,7 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
       quantity: item.quantity,
       selectedVariant: item.selectedVariant,
       unitPrice,
-      totalPrice: unitPrice * item.quantity,
-      stripePriceId
+      totalPrice: unitPrice * item.quantity
     });
   }
 
@@ -102,8 +99,7 @@ export const createPendingOrder = async (input: z.infer<typeof checkoutSchema>, 
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       totalPrice: item.totalPrice,
-      selectedVariant: item.selectedVariant,
-      stripePriceId: item.stripePriceId
+      selectedVariant: item.selectedVariant
     })),
     subtotal: calculated.subtotal,
     discountCode: calculated.discountCode,

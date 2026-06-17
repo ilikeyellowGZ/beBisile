@@ -36,7 +36,7 @@ export const Hair: React.FC = () => {
   }, [filter]);
 
   const getCategoryCartProduct = (label: string) => {
-    if (label === 'BhelekWigs') return WIG_PRODUCTS[0];
+    if (label === 'Bhelekazi Wigs') return WIG_PRODUCTS[0];
     if (label === 'Bundles') return BUNDLE_PRODUCTS[0];
     if (label === 'Closures') return CLOSURE_PRODUCT;
     if (label === 'Wig Laundry') return WIG_LAUNDRY_PRODUCT;
@@ -44,7 +44,7 @@ export const Hair: React.FC = () => {
   };
 
   const getCategoryCartLabel = (label: string) => {
-    if (label === 'BhelekWigs') return 'Add featured wig';
+    if (label === 'Bhelekazi Wigs') return 'Add featured wig';
     if (label === 'Bundles') return 'Add single bundle';
     if (label === 'Closures') return 'Add closure';
     if (label === 'Wig Laundry') return 'Add wash service';

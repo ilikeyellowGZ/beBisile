@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { ArrowRight, Star } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { FadeIn } from '../components/UI/FadeIn';
 import { HeroSplit } from '../components/Layout/HeroSplit';
@@ -49,6 +49,183 @@ const googleReviews = [
   },
 ];
 
+const GOOGLE_REVIEWS_URL = 'https://www.google.com/search?q=bisile.+be+luxury&sxsrf=ANbL-n54GGzsThlIBxU3FBgj-ZNKYaaNeA%3A1780783836635&oq=';
+
+const positiveModulo = (value: number, total: number) => ((value % total) + total) % total;
+
+const ReviewCarousel: React.FC = () => {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const startXRef = useRef(0);
+  const startScrollLeftRef = useRef(0);
+  const dragMovedRef = useRef(false);
+  const isDraggingRef = useRef(false);
+  const [activeReview, setActiveReview] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const loopedReviews = useMemo(() => [...googleReviews, ...googleReviews, ...googleReviews], []);
+
+  const getSlideStep = () => {
+    const track = trackRef.current;
+    const slide = track?.querySelector<HTMLElement>('[data-review-slide]');
+    if (!track || !slide) return 0;
+
+    const styles = window.getComputedStyle(track);
+    const gap = Number.parseFloat(styles.columnGap || styles.gap || '0') || 0;
+    return slide.getBoundingClientRect().width + gap;
+  };
+
+  const getReviewSetWidth = () => getSlideStep() * googleReviews.length;
+
+  const normalizeLoop = () => {
+    const track = trackRef.current;
+    const setWidth = getReviewSetWidth();
+    if (!track || !setWidth) return;
+
+    if (track.scrollLeft < setWidth * 0.5) track.scrollLeft += setWidth;
+    if (track.scrollLeft >= setWidth * 1.5) track.scrollLeft -= setWidth;
+  };
+
+  const updateActiveReview = () => {
+    const track = trackRef.current;
+    const step = getSlideStep();
+    const setWidth = getReviewSetWidth();
+    if (!track || !step || !setWidth) return;
+
+    normalizeLoop();
+    const index = Math.round((track.scrollLeft - setWidth) / step);
+    setActiveReview(positiveModulo(index, googleReviews.length));
+  };
+
+  const snapToNearestReview = () => {
+    const track = trackRef.current;
+    const step = getSlideStep();
+    if (!track || !step) return;
+
+    track.scrollTo({ left: Math.round(track.scrollLeft / step) * step, behavior: 'smooth' });
+  };
+
+  const scrollReviews = (direction: -1 | 1) => {
+    const track = trackRef.current;
+    const step = getSlideStep();
+    if (!track || !step) return;
+
+    track.scrollBy({ left: step * direction, behavior: 'smooth' });
+  };
+
+  const goToReview = (index: number) => {
+    const track = trackRef.current;
+    const step = getSlideStep();
+    const setWidth = getReviewSetWidth();
+    if (!track || !step || !setWidth) return;
+
+    track.scrollTo({ left: setWidth + step * index, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return undefined;
+
+    const centerLoop = () => {
+      const setWidth = getReviewSetWidth();
+      if (setWidth) track.scrollLeft = setWidth;
+    };
+
+    const timeout = window.setTimeout(centerLoop, 0);
+    window.addEventListener('resize', centerLoop);
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener('resize', centerLoop);
+    };
+  }, []);
+
+  return (
+    <div className="min-w-0">
+      <div className="mb-4 flex justify-end gap-2">
+        <button type="button" onClick={() => scrollReviews(-1)} className="inline-flex h-10 w-10 items-center justify-center border border-[#B9AA8B]/50 text-primary transition-colors hover:border-accent hover:text-accent" aria-label="Previous review">
+          <ArrowLeft size={16} strokeWidth={1.2} />
+        </button>
+        <button type="button" onClick={() => scrollReviews(1)} className="inline-flex h-10 w-10 items-center justify-center border border-[#B9AA8B]/50 text-primary transition-colors hover:border-accent hover:text-accent" aria-label="Next review">
+          <ArrowRight size={16} strokeWidth={1.2} />
+        </button>
+      </div>
+
+      <div
+        ref={trackRef}
+        className={`review-carousel__track hide-scrollbar flex gap-4 overflow-x-auto pb-1 ${isDragging ? 'is-dragging' : ''}`}
+        onScroll={updateActiveReview}
+        onPointerDown={(event) => {
+          const track = trackRef.current;
+          if (!track) return;
+
+          startXRef.current = event.clientX;
+          startScrollLeftRef.current = track.scrollLeft;
+          dragMovedRef.current = false;
+          isDraggingRef.current = true;
+          setIsDragging(true);
+          track.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          const track = trackRef.current;
+          if (!track || !isDraggingRef.current) return;
+
+          const distance = event.clientX - startXRef.current;
+          if (Math.abs(distance) > 5) dragMovedRef.current = true;
+          track.scrollLeft = startScrollLeftRef.current - distance;
+        }}
+        onPointerUp={(event) => {
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+          isDraggingRef.current = false;
+          setIsDragging(false);
+          snapToNearestReview();
+        }}
+        onPointerCancel={() => {
+          isDraggingRef.current = false;
+          setIsDragging(false);
+          snapToNearestReview();
+        }}
+        aria-label="Google review carousel"
+      >
+        {loopedReviews.map((review, index) => (
+          <a
+            key={`${review.name}-${index}`}
+            data-review-slide
+            href={GOOGLE_REVIEWS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="review-carousel__slide flex min-h-[280px] flex-col justify-between border border-[#e5e2dd] bg-[#F7F4EF] p-6 text-left transition-colors hover:border-[#A3915D]/70"
+            onClick={(event) => {
+              if (!dragMovedRef.current) return;
+              event.preventDefault();
+              event.stopPropagation();
+              window.setTimeout(() => {
+                dragMovedRef.current = false;
+              }, 0);
+            }}
+          >
+            <div className="flex gap-1 text-accent" aria-hidden="true">
+              {Array.from({ length: 5 }).map((_, starIndex) => <Star key={starIndex} size={13} fill="currentColor" strokeWidth={1.1} />)}
+            </div>
+            <p className="mt-8 font-inter text-sm font-light leading-7 text-primary/62">"{review.body}"</p>
+            <p className="mt-8 font-inter text-xs font-light uppercase tracking-[0.16em] text-primary/45">{review.name}</p>
+          </a>
+        ))}
+      </div>
+
+      <div className="mt-5 flex justify-center gap-2" aria-label="Choose review">
+        {googleReviews.map((review, index) => (
+          <button
+            key={review.name}
+            type="button"
+            onClick={() => goToReview(index)}
+            className={`h-1.5 rounded-full transition-all ${activeReview === index ? 'w-7 bg-accent' : 'w-1.5 bg-[#B9AA8B]/58 hover:bg-[#8A6F35]/70'}`}
+            aria-label={`Show review from ${review.name}`}
+            aria-current={activeReview === index}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const luxuryCategories = [
   {
     label: 'Discovery Set',
@@ -59,7 +236,7 @@ const luxuryCategories = [
   },
   {
     label: 'Premium Hair',
-    body: 'BhelekWigs, bundles, closures and wig care shaped around polished everyday beauty.',
+    body: 'Bhelekazi Wigs, bundles, closures and wig care shaped around polished everyday beauty.',
     image: hairImages.straightWig01,
     path: '/hair',
     fit: 'cover',
@@ -203,12 +380,12 @@ export const Home: React.FC = () => {
                   Customer notes from BISILE fragrance and hair clients, with owner replies kept out of the testimonial cards.
                 </p>
               </div>
-              <a href="https://www.google.com/search?q=bisile.+be+luxury&sxsrf=ANbL-n54GGzsThlIBxU3FBgj-ZNKYaaNeA%3A1780783836635&oq=" target="_blank" rel="noreferrer" className="bisile-link">
+              <a href={GOOGLE_REVIEWS_URL} target="_blank" rel="noreferrer" className="bisile-link">
                 View on Google <ArrowRight size={15} strokeWidth={1.3} />
               </a>
             </div>
           </FadeIn>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-[0.8fr_1fr_1fr_1fr]">
+          <div className="mt-10 grid gap-4 lg:grid-cols-[0.8fr_minmax(0,3fr)]">
             <FadeIn>
               <div className="flex h-full flex-col justify-between bg-[#f7f5f1] p-6">
                 <div>
@@ -222,17 +399,9 @@ export const Home: React.FC = () => {
                 </p>
               </div>
             </FadeIn>
-            {googleReviews.map((review, index) => (
-              <FadeIn key={review.name} delay={(index + 1) * 70}>
-                <article className="flex h-full flex-col justify-between border border-[#e5e2dd] p-6">
-                  <div className="flex gap-1 text-accent" aria-hidden="true">
-                    {Array.from({ length: 5 }).map((_, starIndex) => <Star key={starIndex} size={13} fill="currentColor" strokeWidth={1.1} />)}
-                  </div>
-                  <p className="mt-8 font-inter text-sm font-light leading-7 text-primary/62">"{review.body}"</p>
-                  <p className="mt-8 font-inter text-xs font-light uppercase tracking-[0.16em] text-primary/45">{review.name}</p>
-                </article>
-              </FadeIn>
-            ))}
+            <FadeIn delay={90}>
+              <ReviewCarousel />
+            </FadeIn>
           </div>
         </div>
       </section>

@@ -123,7 +123,6 @@ export const calculateTrustedCheckout = async ({ items, discountCode }) => {
       productName: product.name,
       quantity,
       selectedVariant: rawItem.selectedVariant || rawItem.variant || null,
-      stripePriceId: product.stripePriceId || null,
       unitPrice,
       totalPrice: normalizeMoney(unitPrice * quantity),
     });
@@ -161,7 +160,6 @@ export const mapOrderItems = (checkoutItems) => checkoutItems.map((item) => ({
   unitPrice: item.unitPrice,
   totalPrice: item.totalPrice,
   selectedVariant: item.selectedVariant,
-  stripePriceId: item.stripePriceId,
 }));
 
 export const reduceStockForOrder = async (db, order, adminId = null) => {

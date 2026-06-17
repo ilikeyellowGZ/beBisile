@@ -259,8 +259,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'khwezilokusa',
-    // TODO: Confirm spelling. Extracted text says "Khwezilikusa".
-    name: 'Khwezilikusa',
+    name: 'Khwezilokusa',
     subtitle: 'Soft Luxurious Quality Wig',
     eyebrow: '8 inch / Glueless lace',
     price: 2799.99,

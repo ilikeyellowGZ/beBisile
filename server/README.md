@@ -1,6 +1,6 @@
 # BISILE Secure API
 
-Express/Mongoose backend for BISILE admin, catalog, orders, checkout, Stripe webhooks, and dashboard management.
+Express/Mongoose backend for BISILE admin, catalog, orders, checkout, Paystack webhooks, and dashboard management.
 
 ## Local Development
 
@@ -54,12 +54,11 @@ Use that Render URL as `VITE_API_BASE_URL` in the frontend.
 - `PORT`: local port only; Render sets it automatically.
 - `FRONTEND_URL`: final frontend URL allowed by CORS, later the DirectAdmin domain.
 - `TEMP_NETLIFY_URL`: optional temporary Netlify preview URL allowed by CORS while testing.
-- `CLIENT_URL`: optional legacy redirect URL. Leave blank to use `FRONTEND_URL`.
+- `CLIENT_URL`: optional checkout redirect URL. Leave blank to use `FRONTEND_URL`.
 - `MONGODB_URI`: MongoDB connection string.
 - `MONGODB_DB`: MongoDB database name.
 - `JWT_SECRET`: 32+ character auth secret.
-- `STRIPE_SECRET_KEY`: secret backend Stripe key.
-- `STRIPE_WEBHOOK_SECRET`: Stripe webhook signing secret.
+- `PAYSTACK_SECRET_KEY`: secret backend Paystack key used to initialize, verify, and validate payment webhooks.
 - `SERVER_URL`, `CORS_ORIGINS`, email, and Cloudinary variables are optional.
 
 ## Security Invariant
@@ -72,7 +71,7 @@ Frontend requests must never send trusted price fields. Checkout/cart requests m
 - customer/shipping details
 - optional discount code
 
-The backend fetches products from MongoDB, validates active status and stock, uses backend-controlled `price` and `stripePriceId`, creates a pending order, and only Stripe webhooks can mark an order as paid.
+The backend fetches products from MongoDB, validates active status and stock, uses backend-controlled `price`, creates a pending order, and only verified Paystack transactions can mark an order as paid.
 
 ## Routes
 
@@ -95,8 +94,9 @@ The backend fetches products from MongoDB, validates active status and stock, us
 - `GET/POST/PATCH/DELETE /api/admin/inventory`
 - `GET/POST/PATCH/DELETE /api/admin/audit-logs`
 - `GET/POST/PATCH/DELETE /api/admin/settings`
-- `POST /api/checkout/create-session`
-- `POST /api/webhooks/stripe`
+- `POST /api/checkout/create-paystack-transaction`
+- `POST /api/checkout/verify-paystack-transaction`
+- `POST /api/webhooks/paystack`
 - `GET /api/products`
 - `GET /api/products/:slug`
 - `GET /api/categories`

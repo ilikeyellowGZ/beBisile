@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { collectionNames, getDb, getRequestMeta, now } from './secure-db.mjs';
 
-const tokenSecret = () => process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || process.env.STRIPE_WEBHOOK_SECRET || 'development-only-change-me';
+const tokenSecret = () => process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || process.env.PAYSTACK_SECRET_KEY || 'development-only-change-me';
 const passwordSecret = () => process.env.ADMIN_PASSWORD_SECRET || tokenSecret();
 
 const base64url = (input) => Buffer.from(input).toString('base64url');

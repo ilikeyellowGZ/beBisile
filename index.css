@@ -174,6 +174,27 @@ input[type="radio"] {
   border-color: var(--bisile-line);
 }
 
+.review-carousel__track {
+  cursor: grab;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.review-carousel__track.is-dragging {
+  cursor: grabbing;
+  scroll-behavior: auto;
+  scroll-snap-type: none;
+}
+
+.review-carousel__slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
 @keyframes reveal-up {
   from {
     opacity: 0;
@@ -215,6 +236,19 @@ input[type="radio"] {
     padding-block: 48px;
   }
 }
+
+@media (min-width: 640px) {
+  .review-carousel__slide {
+    flex-basis: calc((100% - 1rem) / 2);
+  }
+}
+
+@media (min-width: 1024px) {
+  .review-carousel__slide {
+    flex-basis: calc((100% - 2rem) / 3);
+  }
+}
+
 @keyframes bisile-sale-marquee {
   from {
     transform: translate3d(0, 0, 0);
