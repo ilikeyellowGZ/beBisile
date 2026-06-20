@@ -1,6 +1,6 @@
 # BISILE Secure API
 
-Express/Mongoose backend for BISILE admin, catalog, orders, checkout, Paystack webhooks, and dashboard management.
+Express/Mongoose backend for BISILE admin, catalog, orders, checkout, Paystack webhooks, dashboard management, and serving the built Vite app in production.
 
 ## Local Development
 
@@ -35,9 +35,9 @@ Web Service
 Suggested Render settings:
 
 - Runtime: Node
-- Root directory: `server`
-- Build command: `npm install && npm run build`
-- Start command: `npm start`
+- Root directory: leave blank
+- Build command: `npm install && npm --prefix server install && npm run build && npm --prefix server run build`
+- Start command: `npm --prefix server start`
 - Environment: Node
 
 Render provides the `PORT` environment variable automatically. The backend URL will look like:
@@ -46,7 +46,7 @@ Render provides the `PORT` environment variable automatically. The backend URL w
 https://your-service-name.onrender.com
 ```
 
-Use that Render URL as `VITE_API_BASE_URL` in the frontend.
+When the frontend is served by the same Render service, leave `VITE_API_BASE_URL` blank so requests use `/api/*` on the same origin. If the frontend is hosted separately, use that Render URL as `VITE_API_BASE_URL`.
 
 ## Required Environment Variables
 

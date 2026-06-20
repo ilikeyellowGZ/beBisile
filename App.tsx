@@ -1,7 +1,8 @@
 import React from 'react';
-import { HashRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Layout/Navbar';
 import { Footer } from './components/Layout/Footer';
+import { SeoManager } from './components/SEO/SeoManager';
 import { Home } from './pages/Home';
 import { Shop } from './pages/Shop';
 import { Fragrances } from './pages/Fragrances';
@@ -40,7 +41,8 @@ const ScrollToTop = () => {
 
 const App: React.FC = () => {
   return (
-    <HashRouter>
+    <BrowserRouter>
+      <SeoManager />
       <ScrollToTop />
       <CartProvider>
         <div className="flex flex-col min-h-screen bg-off-white text-primary font-sans antialiased selection:bg-accent selection:text-white">
@@ -77,7 +79,7 @@ const App: React.FC = () => {
           <Footer />
         </div>
       </CartProvider>
-    </HashRouter>
+    </BrowserRouter>
   );
 };
 

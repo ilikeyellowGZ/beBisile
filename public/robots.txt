@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /payment
+Disallow: /payment/success
+Disallow: /order-complete
+Disallow: /dashboard
+
+Sitemap: https://bisile.co.za/sitemap.xml

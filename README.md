@@ -182,9 +182,9 @@ Upload the contents inside `dist` to the DirectAdmin public folder, usually `pub
 
 See `DIRECTADMIN_DEPLOYMENT.md` for the full DirectAdmin checklist.
 
-## Backend Hosting Plan
+## Render Hosting Plan
 
-The final backend host is Render.
+Render can host the API and the built Vite site from the same Web Service.
 
 Render service type:
 
@@ -195,9 +195,9 @@ Web Service
 Suggested Render settings:
 
 - Runtime: Node
-- Root directory: `server`
-- Build command: `npm install && npm run build`
-- Start command: `npm start`
+- Root directory: leave blank
+- Build command: `npm install && npm --prefix server install && npm run build && npm --prefix server run build`
+- Start command: `npm --prefix server start`
 
 Render provides `PORT` automatically. The backend also has:
 
@@ -211,7 +211,7 @@ The response should be:
 { "status": "ok" }
 ```
 
-Use the Render URL as `VITE_API_BASE_URL` in the frontend.
+When the frontend is served by the same Render service, leave `VITE_API_BASE_URL` blank so browser requests use `/api/*` on the same origin. If the frontend is hosted separately on DirectAdmin or Netlify, use the Render URL as `VITE_API_BASE_URL`.
 
 ## Temporary Netlify Preview
 
@@ -238,13 +238,14 @@ Do not make Netlify-only behavior required for the final DirectAdmin production 
 ## Render Deployment
 
 1. Create a Render Web Service.
-2. Set root directory to `server`.
-3. Set build command to `npm install && npm run build`.
-4. Set start command to `npm start`.
+2. Leave root directory blank.
+3. Set build command to `npm install && npm --prefix server install && npm run build && npm --prefix server run build`.
+4. Set start command to `npm --prefix server start`.
 5. Add backend env values from `server/.env.example`.
-6. Set `FRONTEND_URL` to the final DirectAdmin frontend URL when known.
+6. Set `FRONTEND_URL` to the Render service URL if the frontend is served by Render, or to the separate frontend URL when using DirectAdmin/Netlify.
 7. Set `TEMP_NETLIFY_URL` while Netlify preview is still being used.
 8. Visit `/api/health` after deployment.
+9. Visit `/` and a nested route such as `/shop` to confirm the React app fallback is serving correctly.
 
 `render.yaml` is included as an editable blueprint.
 

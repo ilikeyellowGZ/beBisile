@@ -34,6 +34,8 @@ import {
 } from '../data/hairCatalog';
 import type { Product } from '../types';
 
+const SITE_URL = (import.meta.env.VITE_SITE_URL || 'https://bisile.co.za').replace(/\/$/, '');
+
 const detailCopy = {
   fragrance: {
     material: 'BISILE Eau de Parfum selected for a polished everyday scent ritual.',
@@ -149,14 +151,22 @@ export const ProductDetail: React.FC = () => {
 
   useEffect(() => {
     if (!product) {
-      document.title = 'BISILE | Be Luxury';
+      document.title = 'Product Not Found | BISILE';
+      let robots = document.head.querySelector<HTMLMetaElement>('meta[name="robots"]');
+      if (!robots) {
+        robots = document.createElement('meta');
+        robots.name = 'robots';
+        document.head.appendChild(robots);
+      }
+      robots.content = 'noindex, nofollow';
       return;
     }
 
     const title = `${product.name} | BISILE`;
     const description = `${product.subtitle}. ${product.description}`;
     const productImages = Array.from(new Set([product.image, ...(product.galleryImages ?? [product.secondaryImage, product.tertiaryImage])].filter((image): image is string => Boolean(image))));
-    const imageUrl = new URL(getImageUrl(product.image), window.location.origin).toString();
+    const canonicalUrl = `${SITE_URL}${window.location.pathname}`;
+    const imageUrl = new URL(getImageUrl(product.image), SITE_URL).toString();
 
     document.title = title;
 
@@ -171,15 +181,18 @@ export const ProductDetail: React.FC = () => {
     };
 
     setMeta('meta[name="description"]', 'name', 'description', description);
+    setMeta('meta[name="robots"]', 'name', 'robots', 'index, follow, max-image-preview:large');
     setMeta('meta[property="og:title"]', 'property', 'og:title', title);
     setMeta('meta[property="og:description"]', 'property', 'og:description', description);
     setMeta('meta[property="og:image"]', 'property', 'og:image', imageUrl);
+    setMeta('meta[property="og:image:alt"]', 'property', 'og:image:alt', product.name);
     setMeta('meta[property="og:type"]', 'property', 'og:type', 'product');
-    setMeta('meta[property="og:url"]', 'property', 'og:url', window.location.href);
+    setMeta('meta[property="og:url"]', 'property', 'og:url', canonicalUrl);
     setMeta('meta[name="twitter:card"]', 'name', 'twitter:card', 'summary_large_image');
     setMeta('meta[name="twitter:title"]', 'name', 'twitter:title', title);
     setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', description);
     setMeta('meta[name="twitter:image"]', 'name', 'twitter:image', imageUrl);
+    setMeta('meta[name="twitter:image:alt"]', 'name', 'twitter:image:alt', product.name);
 
     const structuredData = document.createElement('script');
     structuredData.type = 'application/ld+json';
@@ -188,7 +201,7 @@ export const ProductDetail: React.FC = () => {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.name,
-      image: productImages.map((image) => new URL(getImageUrl(image), window.location.origin).toString()),
+      image: productImages.map((image) => new URL(getImageUrl(image), SITE_URL).toString()),
       description,
       brand: { '@type': 'Brand', name: 'BISILE' },
       category: product.collection,
@@ -197,7 +210,7 @@ export const ProductDetail: React.FC = () => {
         price: product.price.toFixed(2),
         priceCurrency: 'ZAR',
         availability: 'https://schema.org/InStock',
-        url: window.location.href,
+        url: canonicalUrl,
       },
     });
     document.head.querySelectorAll('script[data-bisile-product-seo]').forEach((script) => script.remove());
@@ -209,7 +222,7 @@ export const ProductDetail: React.FC = () => {
       canonical.rel = 'canonical';
       document.head.appendChild(canonical);
     }
-    canonical.href = window.location.href;
+    canonical.href = canonicalUrl;
 
     return () => {
       structuredData.remove();
