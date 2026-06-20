@@ -2,18 +2,25 @@ services:
   - type: web
     name: bisile-api
     runtime: node
-    buildCommand: npm install && npm --prefix server install && npm run build && npm --prefix server run build
-    startCommand: npm --prefix server start
+    rootDir: server
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: FRONTEND_URL
         sync: false
+      - key: CLIENT_URL
+        sync: false
       - key: TEMP_NETLIFY_URL
+        sync: false
+      - key: CORS_ORIGINS
         sync: false
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_DB
+        value: bisile
+      - key: MONGODB_DB_NAME
         value: bisile
       - key: JWT_SECRET
         sync: false
