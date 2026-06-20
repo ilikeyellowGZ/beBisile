@@ -7,7 +7,7 @@ export const formatPrice = (price: number) =>
 export const hairGallery = {
   straight: [hairImages.wigShowcase],
   curly: [hairImages.wigShowcase],
-  laundry: [hairImages.wigCleansing],
+  laundry: [hairImages.wigLaundryWash, hairImages.wigLaundryTowel, hairImages.wigLaundryLace, hairImages.wigLaundryBasin],
 };
 
 export const HAIR_CATEGORY_LINKS = [
@@ -15,7 +15,7 @@ export const HAIR_CATEGORY_LINKS = [
     label: 'Bhelekazi Wigs',
     path: '/hair/wigs',
     description: 'Everyday luxury, soft luxurious quality and premium luxury wigs crafted with refined BISILE finishes.',
-    image: hairImages.wigShowcase,
+    image: hairImages.mvelwenhle,
     cta: 'Shop Wigs',
     options: ['Everyday Luxury', 'Soft Luxurious Quality', 'Premium Luxury'],
   },
@@ -39,7 +39,7 @@ export const HAIR_CATEGORY_LINKS = [
     label: 'Wig Laundry',
     path: '/hair/laundry',
     description: "Refresh, revive and restyle your wig with BISILE's premium hair care service.",
-    image: hairImages.wigCleansing,
+    image: hairImages.wigLaundryWash,
     cta: 'Book Wig Laundry',
     options: [] as string[],
   },
@@ -133,50 +133,87 @@ export const CLOSURE_PRODUCT: Product = {
 
 export type LaundryServiceType =
   | 'Wig Wash Only'
-  | 'Wig Treatment - Straighten'
-  | 'Wig Treatment - Curls'
+  | 'Wig Treatment (Straighten)'
+  | 'Wig Treatment (Curls)'
   | 'Straightening Only'
   | 'Curls Activation Only'
   | 'Frontal Plucking Only'
-  | 'Plucking and Straightening'
-  | 'Plucking and Curl Activation'
+  | 'Plucking & Straightening'
+  | 'Plucking & Curl Activation'
   | 'Custom Parting'
   | 'Straight to Custom Curls'
-  | 'Wig / Bundles Dye'
-  | 'Full Laundry Package - Straight'
-  | 'Full Laundry Package - Curls'
-  | 'Full Laundry Package - Custom Part';
+  | 'Wig / Bundles dye'
+  | 'Wig Wash, Plucking, & Straightening'
+  | 'Wig Wash, Plucking, & Curls Activation'
+  | 'Wig Wash, Plucking, Custom Parting, & Straighten / Curl Activation';
 export type LaundryParting = 'Middle Part' | 'Side Part' | 'Free Part' | 'No Part / Natural Fall';
 export type LaundryFinish = 'Straightened' | 'Body Curls' | 'Waterwave Refresh' | 'Jerry Curl Refresh' | 'Blunt Bob Finish' | 'Leave Natural';
-export type LaundryAddon = 'Extra Detangling' | 'Lace Glue Removal' | 'Lace Tint' | 'Knot Touch-Up' | 'Curl Restoration' | 'Trim Ends' | 'Custom Styling Request';
 
 export const WIG_LAUNDRY_SERVICE_PRICES: Record<LaundryServiceType, number> = {
   'Wig Wash Only': 190,
-  'Wig Treatment - Straighten': 200,
-  'Wig Treatment - Curls': 250,
+  'Wig Treatment (Straighten)': 200,
+  'Wig Treatment (Curls)': 250,
   'Straightening Only': 100,
   'Curls Activation Only': 180,
   'Frontal Plucking Only': 100,
-  'Plucking and Straightening': 200,
-  'Plucking and Curl Activation': 270,
+  'Plucking & Straightening': 200,
+  'Plucking & Curl Activation': 270,
   'Custom Parting': 100,
   'Straight to Custom Curls': 320,
-  'Wig / Bundles Dye': 300,
-  'Full Laundry Package - Straight': 390,
-  'Full Laundry Package - Curls': 420,
-  'Full Laundry Package - Custom Part': 590,
+  'Wig / Bundles dye': 300,
+  'Wig Wash, Plucking, & Straightening': 390,
+  'Wig Wash, Plucking, & Curls Activation': 420,
+  'Wig Wash, Plucking, Custom Parting, & Straighten / Curl Activation': 590,
 };
 
-// TODO: Confirm final add-on prices with BISILE.
-export const WIG_LAUNDRY_ADDON_PRICES: Record<LaundryAddon, number> = {
-  'Extra Detangling': 80,
-  'Lace Glue Removal': 70,
-  'Lace Tint': 100,
-  'Knot Touch-Up': 120,
-  'Curl Restoration': 150,
-  'Trim Ends': 80,
-  'Custom Styling Request': 180,
+export const WIG_LAUNDRY_SERVICE_IDS: Record<LaundryServiceType, string> = {
+  'Wig Wash Only': 'wig-wash-only',
+  'Wig Treatment (Straighten)': 'wig-treatment-straighten',
+  'Wig Treatment (Curls)': 'wig-treatment-curls',
+  'Straightening Only': 'straightening-only',
+  'Curls Activation Only': 'curls-activation-only',
+  'Frontal Plucking Only': 'frontal-plucking-only',
+  'Plucking & Straightening': 'plucking-straightening',
+  'Plucking & Curl Activation': 'plucking-curl-activation',
+  'Custom Parting': 'custom-parting',
+  'Straight to Custom Curls': 'straight-to-custom-curls',
+  'Wig / Bundles dye': 'wig-bundles-dye',
+  'Wig Wash, Plucking, & Straightening': 'full-laundry-straight',
+  'Wig Wash, Plucking, & Curls Activation': 'full-laundry-curls',
+  'Wig Wash, Plucking, Custom Parting, & Straighten / Curl Activation': 'full-laundry-custom-part',
 };
+
+export const WIG_LAUNDRY_SERVICE_GROUPS: Array<{ title: string; services: LaundryServiceType[] }> = [
+  {
+    title: 'Wash Services',
+    services: [
+      'Wig Wash Only',
+      'Wig Treatment (Straighten)',
+      'Wig Treatment (Curls)',
+      'Straightening Only',
+      'Curls Activation Only',
+      'Frontal Plucking Only',
+    ],
+  },
+  {
+    title: 'Customisation',
+    services: [
+      'Plucking & Straightening',
+      'Plucking & Curl Activation',
+      'Custom Parting',
+      'Straight to Custom Curls',
+      'Wig / Bundles dye',
+    ],
+  },
+  {
+    title: 'Full Laundry Package',
+    services: [
+      'Wig Wash, Plucking, & Straightening',
+      'Wig Wash, Plucking, & Curls Activation',
+      'Wig Wash, Plucking, Custom Parting, & Straighten / Curl Activation',
+    ],
+  },
+];
 
 export const LAUNDRY_PARTINGS: LaundryParting[] = ['Middle Part', 'Side Part', 'Free Part', 'No Part / Natural Fall'];
 export const LAUNDRY_FINISHES: LaundryFinish[] = ['Straightened', 'Body Curls', 'Waterwave Refresh', 'Jerry Curl Refresh', 'Blunt Bob Finish', 'Leave Natural'];
@@ -190,8 +227,9 @@ export const WIG_LAUNDRY_PRODUCT: Product = {
   price: WIG_LAUNDRY_SERVICE_PRICES['Wig Wash Only'],
   description: 'Premium wig washing, conditioning and styling service for BISILE hair units and customer-owned wigs.',
   notes: ['Wash', 'Condition', 'Style'],
-  image: hairImages.wigCleansing,
-  secondaryImage: hairImages.wigCleansing,
+  image: hairImages.wigLaundryWash,
+  secondaryImage: hairImages.wigLaundryTowel,
+  tertiaryImage: hairImages.wigLaundryLace,
   galleryImages: hairGallery.laundry,
   category: 'laundry',
   collection: 'service',
@@ -204,5 +242,5 @@ export const getBundlePrice = (packageType: BundlePackageType, texture: BundleTe
 export const getClosurePrice = (laceSize: ClosureLaceSize, texture: ClosureTexture, length: ClosureLength) =>
   CLOSURE_PRICES[laceSize][texture][length];
 
-export const getLaundryPrice = (serviceType: LaundryServiceType, addOns: LaundryAddon[]) =>
-  WIG_LAUNDRY_SERVICE_PRICES[serviceType] + addOns.reduce((total, addOn) => total + WIG_LAUNDRY_ADDON_PRICES[addOn], 0);
+export const getLaundryPrice = (serviceType: LaundryServiceType) =>
+  WIG_LAUNDRY_SERVICE_PRICES[serviceType];

@@ -1,6 +1,5 @@
 import backgroundGifting01 from './images/backgrounds/background-gifting-01.jpg';
 import bisileBhelekaziWigShowcase from './images/brand/bisile-bhelekazi-wig-showcase.jpg';
-import bhelekaziWigRequested from './images/brand/WhatsApp Image 2026-06-17 at 23.31.14.jpeg';
 import bisileCustomerCareInkanyezi from './images/brand/bisile-customer-care-inkanyezi.jpg';
 import bisileDeliveryPackaging from './images/brand/bisile-delivery-packaging.jpg';
 import bisileLuxuryPouches from './images/brand/bisile-luxury-pouches.jpg';
@@ -51,7 +50,7 @@ const publicAsset = (localPath: string) => getImageUrl(localPath);
 
 const backgroundGifting01Url = asset('images/backgrounds/background-gifting-01.jpg', backgroundGifting01);
 const bisileBhelekaziWigShowcaseUrl = asset('images/brand/bisile-bhelekazi-wig-showcase.jpg', bisileBhelekaziWigShowcase);
-const bhelekaziWigRequestedUrl = asset('images/brand/WhatsApp Image 2026-06-17 at 23.31.14.jpeg', bhelekaziWigRequested);
+const bhelekaziWigRequestedUrl = asset('images/brand/bisile-bhelekazi-wig-showcase.jpg', bisileBhelekaziWigShowcase);
 const bisileCustomerCareInkanyeziUrl = asset('images/brand/bisile-customer-care-inkanyezi.jpg', bisileCustomerCareInkanyezi);
 const bisileDeliveryPackagingUrl = asset('images/brand/bisile-delivery-packaging.jpg', bisileDeliveryPackaging);
 const bisileLuxuryPouchesUrl = asset('images/brand/bisile-luxury-pouches.jpg', bisileLuxuryPouches);
@@ -96,9 +95,15 @@ const perfumeProduct06Url = asset('images/products/perfume-product-06.jpg', perf
 const perfumeSitheloUrl = asset('images/products/perfume-sithelo.png', perfumeSithelo);
 const fragranceXdozUrl = getImageUrl('folder/bisileimages/XDOZ5737.JPG', fragranceXdoz);
 const discoverySetRequestedUrl = publicAsset('/media/WhatsApp Image 2026-06-17 at 01.44.33.jpeg');
+const carePackagePouchesUrl = publicAsset('/media/ChatGPT Image Jun 20, 2026, 03_05_17 PM (2).png');
+const wigLaundryWashUrl = publicAsset('/media/ChatGPT Image Jun 20, 2026, 03_05_17 PM (1).png');
+const wigLaundryTowelUrl = publicAsset('/media/WhatsApp Image 2026-06-15 at 21.57.58.jpeg');
+const wigLaundryLaceUrl = publicAsset('/media/WhatsApp Image 2026-06-15 at 21.57.59.jpeg');
+const wigLaundryBasinUrl = publicAsset('/media/WhatsApp Image 2026-06-15 at 21.55.49.jpeg');
 
 export const backgroundImages = {
   gifting: bisileLuxuryPouchesUrl,
+  carePackages: carePackagePouchesUrl,
   presence: backgroundGifting01Url,
 };
 
@@ -140,6 +145,10 @@ export const hairImages = {
   wigShowcaseLegacy: bisileBhelekaziWigShowcaseUrl,
   mvelwenhle: mvelwenhleHairUrl,
   wigCleansing: bisileWigCleansingUrl,
+  wigLaundryWash: wigLaundryWashUrl,
+  wigLaundryTowel: wigLaundryTowelUrl,
+  wigLaundryLace: wigLaundryLaceUrl,
+  wigLaundryBasin: wigLaundryBasinUrl,
   curlyBundle01: hairCurlyBundle01Url,
   curlyBundle02: hairCurlyBundle02Url,
   kinkyWig01: hairKinkyWig01Url,
@@ -163,6 +172,7 @@ export const heroImages = {
 };
 
 export const packageImages = {
+  carePouches: carePackagePouchesUrl,
   product01: packageProduct01Url,
   product06: packageProduct06Url,
   product07: packageProduct07Url,

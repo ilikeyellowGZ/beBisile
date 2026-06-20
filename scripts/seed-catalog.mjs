@@ -53,6 +53,10 @@ try {
       { upsert: true }
     );
   }
+  await db.collection('shippingOptions').updateMany(
+    { id: { $nin: shippingOptions.map((option) => option.id) } },
+    { $set: { isActive: false, updatedAt: now() } }
+  );
 
   await db.collection('storeSettings').updateOne(
     { key: 'default' },

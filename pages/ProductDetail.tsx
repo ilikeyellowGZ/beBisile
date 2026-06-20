@@ -20,12 +20,11 @@ import {
   BUNDLE_PRICES,
   LAUNDRY_FINISHES,
   LAUNDRY_PARTINGS,
-  LaundryAddon,
   LaundryFinish,
   LaundryParting,
   LaundryServiceType,
-  WIG_LAUNDRY_ADDON_PRICES,
   WIG_LAUNDRY_PRODUCT,
+  WIG_LAUNDRY_SERVICE_IDS,
   WIG_LAUNDRY_SERVICE_PRICES,
   formatPrice,
   getBundlePrice,
@@ -95,7 +94,6 @@ export const ProductDetail: React.FC = () => {
   const [laundryServiceType, setLaundryServiceType] = useState<LaundryServiceType>('Wig Wash Only');
   const [laundryParting, setLaundryParting] = useState<LaundryParting>('Middle Part');
   const [laundryFinish, setLaundryFinish] = useState<LaundryFinish>('Straightened');
-  const [laundryAddOns, setLaundryAddOns] = useState<LaundryAddon[]>([]);
   const [openDetailSections, setOpenDetailSections] = useState<Record<string, boolean>>({ Description: true });
   const fallbackGallery = product?.category === 'wig' && product.notes.some((note) => /curl|waterwave|kinky/i.test(note)) ? hairGallery.curly : hairGallery.straight;
   const galleryImages = product ? Array.from(new Set([product.image, ...(product.galleryImages ?? [product.secondaryImage, product.tertiaryImage, ...fallbackGallery])].filter((image): image is string => Boolean(image)).map((image) => getImageUrl(image)))).slice(0, 4) : [];
@@ -131,22 +129,18 @@ export const ProductDetail: React.FC = () => {
       };
     }
     if (product.id === WIG_LAUNDRY_PRODUCT.id) {
-      const price = getLaundryPrice(laundryServiceType, laundryAddOns);
-      const addonSlug = (Object.keys(WIG_LAUNDRY_ADDON_PRICES) as LaundryAddon[])
-        .filter((addOn) => laundryAddOns.includes(addOn))
-        .map(slugifyOption)
-        .join('-') || 'no-addons';
+      const price = getLaundryPrice(laundryServiceType);
       return {
         ...product,
-        id: `wig-laundry-${slugifyOption(laundryServiceType)}-${slugifyOption(laundryParting)}-${slugifyOption(laundryFinish)}-${addonSlug}`,
+        id: WIG_LAUNDRY_SERVICE_IDS[laundryServiceType],
         name: `Wig Laundry - ${laundryServiceType}`,
         price,
-        selectedOptions: { 'Service type': laundryServiceType, Parting: laundryParting, 'Styling finish': laundryFinish, 'Add-ons': laundryAddOns.length ? laundryAddOns.join(', ') : 'None' },
-        specs: { 'Service type': laundryServiceType, Parting: laundryParting, 'Styling finish': laundryFinish, 'Add-ons': laundryAddOns.length ? laundryAddOns.join(', ') : 'None' },
+        selectedOptions: { 'Service type': laundryServiceType, Parting: laundryParting, 'Styling finish': laundryFinish },
+        specs: { 'Service type': laundryServiceType, Parting: laundryParting, 'Styling finish': laundryFinish },
       };
     }
     return product;
-  }, [bundleLength, bundlePackageType, bundleTexture, closureLaceSize, closureLength, closureTexture, laundryAddOns, laundryFinish, laundryParting, laundryServiceType, product]);
+  }, [bundleLength, bundlePackageType, bundleTexture, closureLaceSize, closureLength, closureTexture, laundryFinish, laundryParting, laundryServiceType, product]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -388,20 +382,6 @@ export const ProductDetail: React.FC = () => {
                     {LAUNDRY_FINISHES.map((option) => <option key={option}>{option}</option>)}
                   </select>
                 </label>
-                <div>
-                  <p className="mb-3 text-sm font-light text-primary/60">Add-ons</p>
-                  <div className="grid gap-3">
-                    {(Object.keys(WIG_LAUNDRY_ADDON_PRICES) as LaundryAddon[]).map((addOn) => (
-                      <label key={addOn} className="flex cursor-pointer items-center justify-between gap-4 border border-[#e5e2dd] px-4 py-3 text-sm font-light text-primary/65">
-                        <span>{addOn}</span>
-                        <span className="flex items-center gap-3">
-                          <span>{formatPrice(WIG_LAUNDRY_ADDON_PRICES[addOn])}</span>
-                          <input type="checkbox" checked={laundryAddOns.includes(addOn)} onChange={() => setLaundryAddOns((current) => current.includes(addOn) ? current.filter((item) => item !== addOn) : [...current, addOn])} />
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
 

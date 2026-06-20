@@ -33,8 +33,8 @@ type SearchItem = {
 const shopPreviews: MenuPreview[] = [
   { label: 'Fragrances', path: '/fragrances', image: carouselImages.perfumeDisplay04 },
   { label: 'Bhelekazi wigs', path: '/hair/wigs', image: hairImages.wigShowcase },
-  { label: 'Pamper packages', path: '/pamper', image: brandImages.giftPouches },
-  { label: 'Wig laundry', path: '/hair/laundry', image: hairImages.wigCleansing },
+  { label: 'Pamper packages', path: '/pamper', image: packageImages.carePouches },
+  { label: 'Wig laundry', path: '/hair/laundry', image: hairImages.wigLaundryWash },
 ];
 
 const leftLinks: MenuLink[] = [
@@ -106,6 +106,12 @@ const pageSearchItems: SearchItem[] = [
   { label: 'About BISILE', path: '/about', type: 'Page', description: 'The story of Be Luxury' },
   { label: 'Contact', path: '/contact', type: 'Page', description: 'WhatsApp, email, and customer care' },
 ];
+
+const getNavPreviewImageClass = (item: MenuPreview) => {
+  if (item.image === brandImages.customerCareInkanyezi) return 'editorial-image !object-center';
+  if (['Create with intention', 'Creator circle'].includes(item.label)) return 'editorial-image !object-top';
+  return 'editorial-image';
+};
 
 export const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -307,7 +313,14 @@ export const Navbar: React.FC = () => {
                 {(activeMenu.preview ?? []).slice(activePreview, activePreview + 2).concat((activeMenu.preview ?? []).slice(0, Math.max(0, activePreview + 2 - (activeMenu.preview?.length ?? 0)))).slice(0, 2).map((item) => (
                   <Link key={`${activeMenu.label}-${item.label}-${activePreview}`} to={item.path} onClick={() => setActiveMenu(null)} className="group animate-fade-in block">
                     <div className="bisile-image-frame aspect-[4/3]">
-                      <OptimizedImage src={item.image} width={540} widths={[240, 360, 540, 720]} sizes="280px" alt={item.label} className="editorial-image" />
+                      <OptimizedImage
+                        src={item.image}
+                        width={540}
+                        widths={[240, 360, 540, 720]}
+                        sizes="280px"
+                        alt={item.label}
+                        className={getNavPreviewImageClass(item)}
+                      />
                     </div>
                     <p className="mt-3 inline-flex items-center gap-2 font-inter text-sm font-light text-primary transition-colors group-hover:text-accent">
                       {item.label}

@@ -13,7 +13,7 @@ type PaystackTransaction = {
   channel?: string;
   paid_at?: string;
   receipt_url?: string;
-  metadata?: { orderNumber?: string; orderId?: string };
+  metadata?: { orderNumber?: string; orderId?: string; customerName?: string; shippingPartner?: string };
 };
 
 type PaystackResponse<T> = {
@@ -57,7 +57,8 @@ export const createPaystackTransaction = async (order: InstanceType<typeof Order
       metadata: {
         orderId: String(order._id),
         orderNumber: order.orderNumber,
-        customerName: order.customerInfo?.fullName
+        customerName: order.customerInfo?.fullName,
+        shippingPartner: order.shippingPartner?.name || order.shippingPartner?.id
       }
     })
   });

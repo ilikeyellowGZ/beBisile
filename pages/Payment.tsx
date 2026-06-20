@@ -24,6 +24,8 @@ type PaystackCheckoutResponse = {
   error?: string;
 };
 
+const formatDeliveryPrice = (price: number) => `R${price.toFixed(2).replace('.', ',')}`;
+
 export const Payment: React.FC = () => {
   const { items, subtotal } = useCart();
   const navigate = useNavigate();
@@ -137,7 +139,7 @@ export const Payment: React.FC = () => {
                 ))}
                 <p className="mt-4 flex justify-between gap-4 border-t border-[#B9AA8B]/36 pt-4 text-sm text-[#5B3A24]">
                   <span>{selectedShipping.name}</span>
-                  <span>R {selectedShipping.price.toFixed(2)}</span>
+                  <span>{formatDeliveryPrice(selectedShipping.price)}</span>
                 </p>
               </div>
             </div>
@@ -161,7 +163,7 @@ export const Payment: React.FC = () => {
             </div>
             <div className="space-y-3 border-b border-[#B9AA8B]/36 pb-5 text-xs text-[#5B3A24]/66">
               <div className="flex justify-between"><span>Subtotal</span><span>R {subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span>{selectedShipping.name}</span><span>R {selectedShipping.price.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span>{selectedShipping.name}</span><span>{formatDeliveryPrice(selectedShipping.price)}</span></div>
             </div>
             <div className="flex justify-between py-5">
               <span className="text-[10px] uppercase tracking-[0.16em] text-[#5B3A24]/62">Estimated total</span>

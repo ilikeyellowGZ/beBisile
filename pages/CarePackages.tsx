@@ -6,7 +6,7 @@ import { getWhatsAppUrl } from '../constants';
 import { backgroundImages, packageImages } from '../src/assets/images';
 
 const packages = [
-  { name: 'The Essential', subtitle: 'A thoughtful gesture', price: 'By consultation', image: backgroundImages.gifting, includes: ['BISILE fragrance option', 'Beauty ritual add-on', 'Gift-ready presentation'] },
+  { name: 'The Essential', subtitle: 'A thoughtful gesture', price: 'By consultation', image: backgroundImages.carePackages, includes: ['BISILE fragrance option', 'Beauty ritual add-on', 'Gift-ready presentation'] },
   { name: 'The Indulgence', subtitle: 'A full pause from the noise', price: 'By consultation', image: packageImages.product06, includes: ['Full-size BISILE fragrance', 'Hair or beauty care add-on', 'Curated luxury finish'], featured: true },
   { name: 'The Bespoke', subtitle: 'Made personally', price: 'By consultation', image: packageImages.product07, includes: ['Private consultation', 'Custom product selection', 'Personal gift note', 'Concierge service'] },
 ];
@@ -14,7 +14,7 @@ const packages = [
 export const CarePackages: React.FC = () => (
   <div className="min-h-screen bg-secondary pt-20">
     <section className="mx-auto grid max-w-[1480px] gap-5 px-6 py-8 md:grid-cols-[1.2fr_0.8fr] md:px-12">
-      <div className="relative min-h-[560px] overflow-hidden"><OptimizedImage src={backgroundImages.gifting} width={1600} widths={[640, 960, 1280, 1600, 1920]} sizes="100vw" alt="BISILE pamper packages" className="editorial-image absolute inset-0 h-full w-full object-cover" priority /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-8 pt-28 text-white"><p className="text-[10px] uppercase tracking-[0.22em]">The gifting edit</p><h1 className="mt-3 max-w-2xl font-serif text-6xl leading-[0.9] md:text-8xl">Curated care.</h1></div></div>
+      <div className="relative min-h-[560px] overflow-hidden"><OptimizedImage src={backgroundImages.carePackages} width={1600} widths={[640, 960, 1280, 1600, 1920]} sizes="100vw" alt="BISILE pamper packages" className="editorial-image absolute inset-0 h-full w-full object-cover" priority /><div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/55 to-transparent p-8 pt-28 text-white"><p className="text-[10px] uppercase tracking-[0.22em]">The gifting edit</p><h1 className="mt-3 max-w-2xl font-serif text-6xl leading-[0.9] md:text-8xl">Curated care.</h1></div></div>
       <div className="flex items-end bg-secondary p-8"><div><p className="text-[10px] uppercase tracking-[0.2em] text-accent">Three ways to show care</p><p className="mt-4 text-sm leading-7 text-primary/60">For celebration, restoration, and the gentle reminder that somebody is thinking of you.</p></div></div>
     </section>
     <section className="mx-auto max-w-[1480px] px-6 py-16 md:px-12 md:py-20">

@@ -77,6 +77,11 @@ export const Order = mongoose.model('Order', new Schema({
   customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
   customerInfo: { fullName: String, email: String, phone: String },
   shippingAddress: Schema.Types.Mixed,
+  shippingPartner: {
+    id: String,
+    name: String,
+    price: Number
+  },
   items: [{
     productId: { type: Schema.Types.ObjectId, ref: 'Product' },
     productName: String,

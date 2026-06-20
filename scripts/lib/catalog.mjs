@@ -1,8 +1,8 @@
 export const shippingOptions = [
-  { id: 'pudo', name: 'Pudo', price: 89, description: 'Locker-to-locker delivery', isActive: true },
-  { id: 'courier-guy', name: 'The Courier Guy', price: 119, description: 'Address courier, final quote may depend on delivery area', isActive: true },
-  { id: 'fastway', name: 'Fastway', price: 99, description: 'Fastway courier delivery', isActive: true },
-  { id: 'postnet', name: 'PostNet', price: 129, description: 'PostNet delivery service', isActive: true },
+  { id: 'postnet-to-postnet', name: 'PostNet to PostNet', price: 109.99, description: 'Branch-to-branch delivery', isActive: true },
+  { id: 'paxi-to-paxi', name: 'PAXI to PAXI', price: 109.99, description: 'Counter-to-counter parcel delivery', isActive: true },
+  { id: 'courier-guy-pudo', name: 'Courier GUY (PUDO)', price: 149.99, description: 'Price may vary depending on your address', isActive: true },
+  { id: 'postnet-to-address', name: 'PostNet to Address', price: 349.99, description: 'Price may vary depending on your address', isActive: true },
 ];
 
 export const categories = [
@@ -44,4 +44,18 @@ export const products = [
   { id: 'three-bundles', name: 'Three Bundles', slug: 'three-bundles', price: 1799.99, stock: 10, category: 'bundle', collection: 'hair' },
   { id: 'closures-frontals', name: 'Closures & Frontals', slug: 'closures-frontals', price: 449.99, stock: 10, category: 'closure', collection: 'hair' },
   { id: 'wig-laundry', name: 'Wig Laundry', slug: 'wig-laundry', price: 190, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'wig-wash-only', name: 'Wig Wash Only', slug: 'wig-wash-only', price: 190, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'wig-treatment-straighten', name: 'Wig Treatment (Straighten)', slug: 'wig-treatment-straighten', price: 200, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'wig-treatment-curls', name: 'Wig Treatment (Curls)', slug: 'wig-treatment-curls', price: 250, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'straightening-only', name: 'Straightening Only', slug: 'straightening-only', price: 100, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'curls-activation-only', name: 'Curls Activation Only', slug: 'curls-activation-only', price: 180, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'frontal-plucking-only', name: 'Frontal Plucking Only', slug: 'frontal-plucking-only', price: 100, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'plucking-straightening', name: 'Plucking & Straightening', slug: 'plucking-straightening', price: 200, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'plucking-curl-activation', name: 'Plucking & Curl Activation', slug: 'plucking-curl-activation', price: 270, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'custom-parting', name: 'Custom Parting', slug: 'custom-parting', price: 100, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'straight-to-custom-curls', name: 'Straight to Custom Curls', slug: 'straight-to-custom-curls', price: 320, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'wig-bundles-dye', name: 'Wig / Bundles dye', slug: 'wig-bundles-dye', price: 300, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'full-laundry-straight', name: 'Wig Wash, Plucking, & Straightening', slug: 'full-laundry-straight', price: 390, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'full-laundry-curls', name: 'Wig Wash, Plucking, & Curls Activation', slug: 'full-laundry-curls', price: 420, stock: 99, category: 'laundry', collection: 'service' },
+  { id: 'full-laundry-custom-part', name: 'Wig Wash, Plucking, Custom Parting, & Straighten / Curl Activation', slug: 'full-laundry-custom-part', price: 590, stock: 99, category: 'laundry', collection: 'service' },
 ];

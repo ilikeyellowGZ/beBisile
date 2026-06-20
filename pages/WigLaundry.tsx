@@ -7,12 +7,12 @@ import { OptimizedImage } from '../components/UI/OptimizedImage';
 import {
   LAUNDRY_FINISHES,
   LAUNDRY_PARTINGS,
-  LaundryAddon,
   LaundryFinish,
   LaundryParting,
   LaundryServiceType,
-  WIG_LAUNDRY_ADDON_PRICES,
   WIG_LAUNDRY_PRODUCT,
+  WIG_LAUNDRY_SERVICE_IDS,
+  WIG_LAUNDRY_SERVICE_GROUPS,
   WIG_LAUNDRY_SERVICE_PRICES,
   formatPrice,
   getLaundryPrice,
@@ -21,12 +21,11 @@ import { getWhatsAppUrl } from '../constants';
 import type { Product } from '../types';
 
 const serviceTypes = Object.keys(WIG_LAUNDRY_SERVICE_PRICES) as LaundryServiceType[];
-const addOnOptions = Object.keys(WIG_LAUNDRY_ADDON_PRICES) as LaundryAddon[];
 
 const steps = [
   'Choose your wig laundry service.',
   'Select your parting and styling preferences.',
-  'Add any extra treatments if needed.',
+  'Review your selected service price.',
   'Submit your order or checkout.',
   'BISILE confirms collection/drop-off and turnaround time.',
   'Your wig is washed, conditioned, dried and styled according to your choices.',
@@ -37,27 +36,21 @@ export const WigLaundry: React.FC = () => {
   const [serviceType, setServiceType] = useState<LaundryServiceType>('Wig Wash Only');
   const [parting, setParting] = useState<LaundryParting>('Middle Part');
   const [finish, setFinish] = useState<LaundryFinish>('Straightened');
-  const [addOns, setAddOns] = useState<LaundryAddon[]>([]);
   const [added, setAdded] = useState(false);
-  const price = getLaundryPrice(serviceType, addOns);
+  const price = getLaundryPrice(serviceType);
 
   const summary = useMemo(() => {
-    const addOnText = addOns.length ? addOns.join(', ') : 'No add-ons';
-    return `${serviceType}; ${parting}; ${finish}; ${addOnText}.`;
-  }, [addOns, finish, parting, serviceType]);
+    return `${serviceType}; ${parting}; ${finish}.`;
+  }, [finish, parting, serviceType]);
 
   const configuredProduct: Product = {
     ...WIG_LAUNDRY_PRODUCT,
-    id: `wig-laundry-${serviceType.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${finish.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${addOns.join('-').toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'no-addons'}`,
+    id: WIG_LAUNDRY_SERVICE_IDS[serviceType],
     name: `Wig Laundry - ${serviceType}`,
     price,
     description: `Wig laundry booking: ${summary}`,
-    selectedOptions: { 'Service type': serviceType, Parting: parting, 'Styling finish': finish, 'Add-ons': addOns.length ? addOns.join(', ') : 'None' },
-    specs: { 'Service type': serviceType, Parting: parting, 'Styling finish': finish, 'Add-ons': addOns.length ? addOns.join(', ') : 'None' },
-  };
-
-  const toggleAddOn = (addOn: LaundryAddon) => {
-    setAddOns((current) => current.includes(addOn) ? current.filter((item) => item !== addOn) : [...current, addOn]);
+    selectedOptions: { 'Service type': serviceType, Parting: parting, 'Styling finish': finish },
+    specs: { 'Service type': serviceType, Parting: parting, 'Styling finish': finish },
   };
 
   return (
@@ -115,20 +108,6 @@ export const WigLaundry: React.FC = () => {
                   {LAUNDRY_FINISHES.map((option) => <option key={option}>{option}</option>)}
                 </select>
               </label>
-              <div>
-                <p className="mb-3 text-sm font-light text-primary/60">Add-ons</p>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {addOnOptions.map((addOn) => (
-                    <label key={addOn} className="flex cursor-pointer items-center justify-between gap-4 border border-[#e5e2dd] px-4 py-3 text-sm font-light text-primary/65">
-                      <span>{addOn}</span>
-                      <span className="flex items-center gap-3">
-                        <span>{formatPrice(WIG_LAUNDRY_ADDON_PRICES[addOn])}</span>
-                        <input type="checkbox" checked={addOns.includes(addOn)} onChange={() => toggleAddOn(addOn)} />
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
 
             <div className="mt-8 border-y border-[#e5e2dd] py-5 text-sm font-light leading-7 text-primary/60">
@@ -153,32 +132,23 @@ export const WigLaundry: React.FC = () => {
           <p className="bisile-kicker mb-3">Service menu</p>
           <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">All services and prices.</h2>
           <p className="mt-5 max-w-2xl font-inter text-sm font-light leading-7 text-primary/60">
-            Every wig laundry service and optional add-on, with transparent pricing. Build your booking above.
+            Every wig laundry service, grouped exactly by service category with transparent pricing. Build your booking above.
           </p>
         </FadeIn>
-        <div className="mt-10 grid gap-10 md:grid-cols-2">
-          <FadeIn>
-            <p className="bisile-kicker mb-4">Wash &amp; styling services</p>
-            <ul className="border-t bisile-rule">
-              {serviceTypes.map((service) => (
-                <li key={service} className="flex items-center justify-between gap-4 border-b bisile-rule py-3 font-inter text-sm font-light text-primary/70">
-                  <span>{service}</span>
-                  <span className="text-primary/55">{formatPrice(WIG_LAUNDRY_SERVICE_PRICES[service])}</span>
-                </li>
-              ))}
-            </ul>
-          </FadeIn>
-          <FadeIn delay={60}>
-            <p className="bisile-kicker mb-4">Add-ons</p>
-            <ul className="border-t bisile-rule">
-              {addOnOptions.map((addOn) => (
-                <li key={addOn} className="flex items-center justify-between gap-4 border-b bisile-rule py-3 font-inter text-sm font-light text-primary/70">
-                  <span>{addOn}</span>
-                  <span className="text-primary/55">{formatPrice(WIG_LAUNDRY_ADDON_PRICES[addOn])}</span>
-                </li>
-              ))}
-            </ul>
-          </FadeIn>
+        <div className="mt-10 grid gap-10 md:grid-cols-3">
+          {WIG_LAUNDRY_SERVICE_GROUPS.map((group, index) => (
+            <FadeIn key={group.title} delay={index * 60}>
+              <p className="bisile-kicker mb-4">{group.title}</p>
+              <ul className="border-t bisile-rule">
+                {group.services.map((service) => (
+                  <li key={service} className="flex items-center justify-between gap-4 border-b bisile-rule py-3 font-inter text-sm font-light text-primary/70">
+                    <span>{service}</span>
+                    <span className="text-primary/55">{formatPrice(WIG_LAUNDRY_SERVICE_PRICES[service])}</span>
+                  </li>
+                ))}
+              </ul>
+            </FadeIn>
+          ))}
         </div>
       </section>
 

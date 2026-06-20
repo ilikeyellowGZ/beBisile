@@ -8,10 +8,7 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const isMvelwenhle = product.id === 'mvelwenhle';
-  const imageClass = isMvelwenhle
-    ? 'object-contain p-7 rotate-[-90deg] scale-[1.18] group-hover:rotate-[-90deg] group-hover:scale-[1.24] sm:p-10'
-    : product.imageFit === 'contain'
+  const imageClass = product.imageFit === 'contain'
       ? 'object-contain p-10 group-hover:scale-105 sm:p-14'
       : 'object-cover group-hover:scale-105';
 

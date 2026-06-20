@@ -6,19 +6,19 @@ import { HeroSplit } from '../components/Layout/HeroSplit';
 import { OptimizedImage } from '../components/UI/OptimizedImage';
 import { ProductCard } from '../components/UI/ProductCard';
 import { FRAGRANCE_PRODUCTS, HAIR_PRODUCTS } from '../constants';
-import { backgroundImages, fragranceImages, hairImages, heroImages } from '../src/assets/images';
+import { backgroundImages, brandImages, fragranceImages, hairImages } from '../src/assets/images';
 
 const editorialCards = [
   {
     title: 'Gift-ready rituals',
     body: 'Pamper packages and scent pairings prepared for intimate celebrations and thoughtful care.',
-    image: backgroundImages.gifting,
+    image: backgroundImages.carePackages,
     path: '/pamper',
   },
   {
     title: 'Beauty maintenance',
     body: 'Wig wash, treatments, curl activation, plucking, dye, and complete laundry packages.',
-    image: hairImages.wigCleansing,
+    image: hairImages.wigLaundryBasin,
     path: '/hair/laundry',
   },
 ];
@@ -203,7 +203,7 @@ const luxuryCategories = [
   {
     label: 'Premium Hair',
     body: 'Bhelekazi Wigs, bundles, closures and wig care shaped around polished everyday beauty.',
-    image: hairImages.wigShowcase,
+    image: hairImages.mvelwenhle,
     path: '/hair',
     fit: 'cover',
   },
@@ -244,7 +244,18 @@ export const Home: React.FC = () => {
             <FadeIn key={item.label} delay={index * 70}>
               <Link to={item.path} className="group block">
                 <div className="bisile-image-frame aspect-[4/5]">
-                  <OptimizedImage src={item.image} width={900} widths={[360, 540, 720, 900, 1200]} sizes="(min-width: 768px) 33vw, 100vw" alt={item.label} className={item.fit === 'contain' ? 'h-full w-full object-contain p-10 transition-transform duration-500 group-hover:scale-[1.035] sm:p-12' : 'editorial-image'} />
+                  <OptimizedImage
+                    src={item.image}
+                    width={900}
+                    widths={[360, 540, 720, 900, 1200]}
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    alt={item.label}
+                    className={item.label === 'Premium Hair'
+                      ? 'editorial-image !object-center'
+                      : item.fit === 'contain'
+                        ? 'h-full w-full object-contain p-10 transition-transform duration-500 group-hover:scale-[1.035] sm:p-12'
+                        : 'editorial-image'}
+                  />
                 </div>
                 <div className="mt-4 flex items-start justify-between gap-6">
                   <div>
@@ -264,7 +275,7 @@ export const Home: React.FC = () => {
         <FadeIn>
           <Link to="/shop" className="group block">
             <div className="bisile-image-frame aspect-[16/9] md:aspect-[16/7]">
-              <OptimizedImage src={heroImages.fragrance03} width={1600} widths={[640, 960, 1280, 1600, 1920]} sizes="100vw" alt="BISILE fragrance bottle and packaging" className="editorial-image" />
+              <OptimizedImage src={brandImages.customerCareInkanyezi} width={1600} widths={[640, 960, 1280, 1600, 1920]} sizes="100vw" alt="BISILE customer care and fragrance" className="editorial-image !object-center" />
             </div>
             <div className="mt-4 flex items-start justify-between gap-6">
               <div>

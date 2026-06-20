@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { brandImages, carouselImages, hairImages, packageImages } from '../../src/assets/images';
+import { carouselImages, hairImages, packageImages } from '../../src/assets/images';
 import { OptimizedImage } from '../UI/OptimizedImage';
 
 type DiscoverItem = {
@@ -44,7 +44,7 @@ const discoverItems: DiscoverItem[] = [
     label: 'Pamper packages',
     path: '/pamper',
     description: 'Soft gifting sets for considered care',
-    image: brandImages.giftPouches,
+    image: packageImages.carePouches,
   },
 ];
 
@@ -54,6 +54,8 @@ const getPreviewItems = (activeIndex: number) => {
 
   return [first, second];
 };
+
+const topCenterPreviewLabels = new Set(['Fragrances', 'Premium Hair', 'Diffuser']);
 
 export const DiscoverGrid: React.FC<DiscoverGridProps> = ({ onNavigate }) => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -80,7 +82,7 @@ export const DiscoverGrid: React.FC<DiscoverGridProps> = ({ onNavigate }) => {
         {previews.map((item) => (
           <Link key={`${item.label}-${activeIndex}`} className="group animate-fade-in block" to={item.path} data-discover="true">
             <div className="bisile-image-frame aspect-[4/3]">
-              <OptimizedImage alt={item.label} className="editorial-image h-full w-full object-cover" src={item.image} width={900} widths={[360, 540, 720, 900, 1200]} sizes="(min-width: 768px) 50vw, 100vw" />
+              <OptimizedImage alt={item.label} className={`editorial-image h-full w-full object-cover ${topCenterPreviewLabels.has(item.label) ? '!object-top' : ''}`} src={item.image} width={900} widths={[360, 540, 720, 900, 1200]} sizes="(min-width: 768px) 50vw, 100vw" />
             </div>
             <p className="mt-3 inline-flex items-center gap-2 font-inter text-sm font-light text-[#2A2114] transition-colors group-hover:text-[#8A6F35]">
               {item.label}

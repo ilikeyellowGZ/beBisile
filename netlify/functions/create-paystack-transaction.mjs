@@ -3,10 +3,10 @@ import { calculateTrustedCheckout, createOrderNumber, mapOrderItems, parseJsonBo
 import { paystackRequest, toPaystackSubunit } from '../lib/paystack-service.mjs';
 
 const shippingPartners = [
-  { id: 'pudo', name: 'Pudo', price: 89 },
-  { id: 'courier-guy', name: 'The Courier Guy', price: 119 },
-  { id: 'fastway', name: 'Fastway', price: 99 },
-  { id: 'postnet', name: 'PostNet', price: 129 },
+  { id: 'postnet-to-postnet', name: 'PostNet to PostNet', price: 109.99 },
+  { id: 'paxi-to-paxi', name: 'PAXI to PAXI', price: 109.99 },
+  { id: 'courier-guy-pudo', name: 'Courier GUY (PUDO)', price: 149.99 },
+  { id: 'postnet-to-address', name: 'PostNet to Address', price: 349.99 },
 ];
 
 const getShippingPartner = (id) => shippingPartners.find((option) => option.id === id) || shippingPartners[0];

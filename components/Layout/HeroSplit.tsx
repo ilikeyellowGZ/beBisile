@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getImageSrcSet, getImageUrl, getVideoUrl } from '../../utils/images';
 
 const heroVideo = getVideoUrl('/videos/hero/hero2 - Trim.mp4', 1600);
@@ -65,6 +66,12 @@ export const HeroSplit: React.FC = () => {
         <p className="mt-6 max-w-xl font-inter text-sm font-light leading-7 text-[#F7F4EF]/76">
           Fragrance, hair, gifting, and care shaped around refined everyday beauty rituals.
         </p>
+        <Link
+          to="/shop"
+          className="mt-8 inline-flex items-center justify-center border border-[#F7F4EF]/70 bg-[#F7F4EF]/10 px-7 py-4 font-inter text-[10px] font-light uppercase tracking-[0.18em] text-[#F7F4EF] backdrop-blur-sm transition-colors hover:border-[#F7F4EF] hover:bg-[#F7F4EF] hover:text-[#2A2114]"
+        >
+          Shop BISILE
+        </Link>
       </div>
     </section>
   );

@@ -53,8 +53,8 @@ const App: React.FC = () => {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/about" element={<About />} />
-              <Route path="/care-packages" element={<ComingSoon title="Care Packages" eyebrow="Gifting rituals" body="Care packages and pamper edits are being prepared for curated gifting, scent pairings, and thoughtful BISILE moments." image={backgroundImages.gifting} />} />
-              <Route path="/pamper" element={<ComingSoon title="Pamper Packages" eyebrow="Gifting rituals" body="Pamper packages are coming soon, with curated beauty rituals made for celebration, restoration, and thoughtful care." image={backgroundImages.gifting} />} />
+              <Route path="/care-packages" element={<ComingSoon title="Care Packages" eyebrow="Gifting rituals" body="Care packages and pamper edits are being prepared for curated gifting, scent pairings, and thoughtful BISILE moments." image={backgroundImages.carePackages} />} />
+              <Route path="/pamper" element={<ComingSoon title="Pamper Packages" eyebrow="Gifting rituals" body="Pamper packages are coming soon, with curated beauty rituals made for celebration, restoration, and thoughtful care." image={backgroundImages.carePackages} />} />
               <Route path="/diffusers" element={<ComingSoon title="Diffusers" eyebrow="Home fragrance" body="BISILE diffusers are coming soon for a softer atmosphere and a more considered room ritual." image={fragranceImages.product06} />} />
               <Route path="/candles" element={<ComingSoon title="Candles" eyebrow="Home fragrance" body="BISILE candles are coming soon as warm ritual pieces for gifting, care packages, and everyday luxury." image={packageImages.product07} />} />
               <Route path="/hair" element={<Hair />} />

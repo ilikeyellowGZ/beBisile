@@ -179,8 +179,18 @@ input[type="radio"] {
   transition: transform 320ms ease;
 }
 
+/* Ensure images are positioned bottom-right inside their frames */
+.bisile-image-frame img {
+  object-position: right bottom;
+}
+
 .bisile-image-frame:hover img {
   transform: scale(1.045);
+}
+
+/* Center only the customer care preview image */
+.customer-care-centered {
+  object-position: center !important;
 }
 
 .bisile-rule {
