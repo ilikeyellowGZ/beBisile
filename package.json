@@ -8,6 +8,8 @@
     "dev:api": "npm --prefix server run dev",
     "dev:netlify": "netlify dev",
     "build": "vite build",
+    "render:build": "npm --prefix server install && npm --prefix server run build",
+    "start": "npm --prefix server start",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run build",
     "preview": "vite preview",
