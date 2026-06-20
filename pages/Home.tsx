@@ -216,6 +216,17 @@ const luxuryCategories = [
   },
 ];
 
+const landingHairImageOverrides: Record<string, string> = {
+  thabitha: hairImages.straightWig11,
+  nokhwezi: hairImages.straightWig01,
+  khwezilokusa: hairImages.straightWig11,
+};
+
+const landingHairProducts = HAIR_PRODUCTS.slice(0, 4).map((product) => {
+  const image = landingHairImageOverrides[product.id];
+  return image ? { ...product, image, secondaryImage: image, galleryImages: [image] } : product;
+});
+
 export const Home: React.FC = () => {
   const location = useLocation();
   const state = location.state as { scrollTo?: string } | null;
@@ -326,7 +337,7 @@ export const Home: React.FC = () => {
           <Link to="/hair" className="bisile-link hidden md:inline-flex">View hair <ArrowRight size={15} strokeWidth={1.3} /></Link>
         </div>
         <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-          {HAIR_PRODUCTS.slice(0, 4).map((product, index) => <FadeIn key={product.id} delay={index * 60}><ProductCard product={product} /></FadeIn>)}
+          {landingHairProducts.map((product, index) => <FadeIn key={product.id} delay={index * 60}><ProductCard product={product} /></FadeIn>)}
         </div>
       </section>
 
