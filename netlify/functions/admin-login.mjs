@@ -6,11 +6,15 @@ export const handler = async (event) => {
   if (event.httpMethod !== 'POST') return json(405, { error: 'Method not allowed' });
 
   try {
-    const { email, password } = parseJsonBody(event);
-    if (!email || !password) return json(400, { error: 'Email and password are required' });
+    const { email, username, password } = parseJsonBody(event);
+    const identifier = String(email || username || '').toLowerCase().trim();
+    if (!identifier || !password) return json(400, { error: 'Username/email and password are required' });
 
     const db = await getDb();
-    const admin = await db.collection(collectionNames.admins).findOne({ email: String(email).toLowerCase(), isActive: { $ne: false } });
+    const admin = await db.collection(collectionNames.admins).findOne({
+      isActive: { $ne: false },
+      $or: [{ email: identifier }, { username: identifier }],
+    });
     if (!admin || !verifyPassword(password, admin.passwordHash)) return json(401, { error: 'Invalid admin login' });
 
     await db.collection(collectionNames.admins).updateOne({ _id: admin._id }, { $set: { lastLoginAt: now(), updatedAt: now() } });

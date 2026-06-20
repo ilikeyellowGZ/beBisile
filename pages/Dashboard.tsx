@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Boxes, CircleDollarSign, ClipboardList, Gauge, Inbox, KeyRound, Layers, Mail, PackageCheck, Percent, RefreshCw, Search, Settings, ShieldCheck, ShoppingBag, Star, Truck, Users } from 'lucide-react';
 import { CONFIGURABLE_HAIR_PRODUCTS, PRODUCTS } from '../constants';
 import { packageImages } from '../src/assets/images';
+import { readJsonResponse } from '../utils/http';
+import { getImageUrl } from '../utils/images';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
 
 type AdminSection = 'overview' | 'products' | 'categories' | 'orders' | 'customers' | 'payments' | 'refunds' | 'inventory' | 'reviews' | 'discounts' | 'messages' | 'newsletter' | 'admins' | 'audit' | 'settings';
 type ApiMap = Record<string, any[]>;
@@ -11,6 +14,8 @@ const dateFormatter = new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', ti
 
 const dashboardProductCatalog = [...PRODUCTS, ...CONFIGURABLE_HAIR_PRODUCTS];
 const productById = new Map(dashboardProductCatalog.map((product) => [product.id, product]));
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+const apiUrl = (path: string) => `${API_BASE_URL}${path}`;
 
 const sections: Array<{ id: AdminSection; label: string; icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }> }> = [
   { id: 'overview', label: 'Dashboard', icon: Gauge },
@@ -35,14 +40,14 @@ const collectionResource: Partial<Record<AdminSection, string>> = {
   customers: 'customers',
   payments: 'payments',
   refunds: 'refunds',
-  inventory: 'inventoryLogs',
+  inventory: 'inventory',
   reviews: 'reviews',
-  discounts: 'discountCodes',
-  messages: 'contactMessages',
-  newsletter: 'newsletterSubscribers',
+  discounts: 'discounts',
+  messages: 'contact-messages',
+  newsletter: 'newsletter',
   admins: 'admins',
-  audit: 'auditLogs',
-  settings: 'storeSettings',
+  audit: 'audit-logs',
+  settings: 'settings',
 };
 
 const demoOrders = [
@@ -92,8 +97,7 @@ const apiFetch = async (url: string, options: RequestInit = {}) => {
       ...(options.headers || {}),
     },
   });
-  if (!response.ok) throw new Error(`${url} returned ${response.status}`);
-  return response.json();
+  return readJsonResponse<any>(response, `${url} returned ${response.status}`);
 };
 
 const normalizeOrderItemId = (item: any) => String(item.productId || item.variantId || item.sku || item.id || normalizeOrderItemName(item));
@@ -142,6 +146,11 @@ const RevenueBars: React.FC<{ data: Array<{ date: string; value: number }> }> = 
 
 export const Dashboard: React.FC = () => {
   const [section, setSection] = useState<AdminSection>('overview');
+  const [token, setToken] = useState(getToken());
+  const [loginIdentifier, setLoginIdentifier] = useState('admin');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
   const [dashboard, setDashboard] = useState<any | null>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -151,17 +160,37 @@ export const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadDashboard = async () => {
+    if (!getToken()) return;
     setIsLoading(true);
     setError(null);
     try {
-      const payload = await apiFetch('/.netlify/functions/orders');
-      setOrders(payload.orders || []);
-      setProducts(payload.products || []);
-      setDashboard(payload.dashboard || null);
+      const [statsPayload, ordersPayload, productsPayload] = await Promise.all([
+        apiFetch(apiUrl('/api/admin/dashboard/stats')),
+        apiFetch(apiUrl('/api/admin/orders')),
+        apiFetch(apiUrl('/api/admin/products')),
+      ]);
+      setOrders(ordersPayload.orders || statsPayload.recentOrders || []);
+      setProducts(productsPayload.products || []);
+      setDashboard({
+        totals: {
+          totalRevenue: statsPayload.totalRevenue,
+          totalOrders: statsPayload.totalOrders,
+          pendingOrders: statsPayload.pendingOrders,
+          totalCustomers: statsPayload.totalCustomers,
+          productsInStock: (productsPayload.products || []).filter((product: any) => Number(product.stock || 0) > 0).length,
+          lowStockProducts: Array.isArray(statsPayload.lowStockProducts) ? statsPayload.lowStockProducts.length : 0,
+        },
+        revenueChart: statsPayload.revenueChart || [],
+      });
     } catch (caught) {
+      if (caught instanceof Error && (caught.message.includes('401') || caught.message.toLowerCase().includes('unauthorized'))) {
+        localStorage.removeItem('bisileAdminToken');
+        localStorage.removeItem('adminToken');
+        setToken('');
+      }
       setError(caught instanceof Error ? caught.message : 'Could not load live dashboard data');
-      setOrders(demoOrders);
-      setProducts(dashboardProductCatalog.map((product) => ({ ...product, stock: product.collection === 'fragrance' ? 12 : 4, isActive: true })));
+      setOrders([]);
+      setProducts([]);
       setDashboard(null);
     } finally {
       setIsLoading(false);
@@ -173,7 +202,7 @@ export const Dashboard: React.FC = () => {
     const resource = collectionResource[nextSection];
     if (!resource || collections[resource]) return;
     try {
-      const payload = await apiFetch(`/.netlify/functions/admin-collections?resource=${resource}`);
+      const payload = await apiFetch(apiUrl(`/api/admin/${resource}`));
       setCollections((current) => ({ ...current, [resource]: payload[resource] || payload[nextSection] || [] }));
     } catch {
       setCollections((current) => ({ ...current, [resource]: [] }));
@@ -181,8 +210,29 @@ export const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    void loadDashboard();
-  }, []);
+    if (token) void loadDashboard();
+    else setIsLoading(false);
+  }, [token]);
+
+  const login = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsLoggingIn(true);
+    setLoginError('');
+    try {
+      const payload = await apiFetch(apiUrl('/api/auth/login'), {
+        method: 'POST',
+        body: JSON.stringify({ username: loginIdentifier.trim(), email: loginIdentifier.trim(), password: loginPassword }),
+      });
+      if (!payload.token) throw new Error('Login did not return a token');
+      localStorage.setItem('bisileAdminToken', payload.token);
+      setToken(payload.token);
+      setLoginPassword('');
+    } catch (caught) {
+      setLoginError(caught instanceof Error ? caught.message : 'Admin login failed');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   const filteredOrders = useMemo(() => {
     const text = query.trim().toLowerCase();
@@ -258,7 +308,7 @@ export const Dashboard: React.FC = () => {
               const product = productById.get(item.id) || products.find((candidate) => getProductRowId(candidate) === item.id || candidate.name === item.name);
               return (
                 <div key={item.id} className="grid grid-cols-[56px_1fr_auto] items-center gap-4">
-                  <div className="aspect-square overflow-hidden bg-[#f7f5f1]"><img src={product?.image || product?.images?.[0] || packageImages.product07} alt={item.name} className={`h-full w-full ${product?.imageFit === 'contain' ? 'object-contain p-2' : 'object-cover'}`} /></div>
+                  <div className="aspect-square overflow-hidden bg-[#f7f5f1]"><OptimizedImage src={getImageUrl(product?.image || product?.images?.[0] || packageImages.product07)} width={180} widths={[120, 180, 240]} sizes="64px" alt={item.name} className={`h-full w-full ${product?.imageFit === 'contain' ? 'object-contain p-2' : 'object-cover'}`} /></div>
                   <div>
                     <p className="font-inter text-sm font-normal">{index + 1}. {item.name}</p>
                     <p className="font-inter text-xs font-light text-primary/45">{item.quantity} sold</p>
@@ -286,7 +336,7 @@ export const Dashboard: React.FC = () => {
   const renderTable = () => {
     if (section === 'products') {
       return <DataTable title="Products" rows={products} columns={[
-        { key: 'image', label: 'Image', render: (row) => <div className="h-12 w-12 overflow-hidden bg-[#f7f5f1]"><img src={row.image || row.images?.[0] || packageImages.product07} alt={row.name} className="h-full w-full object-cover" /></div> },
+        { key: 'image', label: 'Image', render: (row) => <div className="h-12 w-12 overflow-hidden bg-[#f7f5f1]"><OptimizedImage src={getImageUrl(row.image || row.images?.[0] || packageImages.product07)} width={120} widths={[80, 120, 180]} sizes="48px" alt={row.name} className="h-full w-full object-cover" /></div> },
         { key: 'id', label: 'ID / SKU', render: (row) => <span className="font-inter text-xs font-light text-primary/58">{getProductRowId(row)}</span> },
         { key: 'name', label: 'Product', render: (row) => <div><p>{row.name}</p>{row.selectedOptions && <p className="mt-1 text-xs text-primary/42">{Object.values(row.selectedOptions).join(' / ')}</p>}</div> },
         { key: 'category', label: 'Category', render: (row) => row.category || row.collection || '—' },
@@ -328,6 +378,31 @@ export const Dashboard: React.FC = () => {
       { key: 'createdAt', label: 'Created', render: (row) => row.createdAt ? dateFormatter.format(new Date(row.createdAt)) : '—' },
     ]} />;
   };
+
+  if (!token) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-off-white px-6 pt-16 text-primary">
+        <form onSubmit={login} className="bisile-card-surface w-full max-w-md p-7">
+          <p className="bisile-kicker mb-3">Admin Login</p>
+          <h1 className="font-inter text-3xl font-light">BISILE dashboard.</h1>
+          <p className="mt-3 text-sm leading-6 text-primary/58">Use your admin username or email to access live backend data.</p>
+          <label className="mt-7 block">
+            <span className="mb-2 block text-[10px] uppercase tracking-[0.14em] text-[#5B3A24]/68">Username or email</span>
+            <input value={loginIdentifier} onChange={(event) => setLoginIdentifier(event.target.value)} className="field-light w-full px-4 py-4 text-sm" autoComplete="username" />
+          </label>
+          <label className="mt-4 block">
+            <span className="mb-2 block text-[10px] uppercase tracking-[0.14em] text-[#5B3A24]/68">Password</span>
+            <input value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} type="password" className="field-light w-full px-4 py-4 text-sm" autoComplete="current-password" />
+          </label>
+          {loginError && <p className="mt-4 border border-red-300 bg-red-50 px-4 py-3 text-xs leading-6 text-red-800">{loginError}</p>}
+          <button disabled={isLoggingIn} className="mt-6 flex h-12 w-full items-center justify-center bg-primary px-6 text-sm font-light text-white transition-colors hover:bg-accent disabled:opacity-50">
+            {isLoggingIn ? 'Signing in...' : 'Sign in'}
+          </button>
+          <p className="mt-4 text-[11px] leading-5 text-primary/45">Development seed credentials: admin / password123. Replace them before production.</p>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-off-white pt-16 text-primary">

@@ -1,23 +1,24 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { FadeIn } from '../components/UI/FadeIn';
 import { HeroSplit } from '../components/Layout/HeroSplit';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
 import { ProductCard } from '../components/UI/ProductCard';
 import { FRAGRANCE_PRODUCTS, HAIR_PRODUCTS } from '../constants';
-import { backgroundImages, fragranceImages, hairImages, heroImages, packageImages } from '../src/assets/images';
+import { backgroundImages, fragranceImages, hairImages, heroImages } from '../src/assets/images';
 
 const editorialCards = [
   {
     title: 'Gift-ready rituals',
     body: 'Pamper packages and scent pairings prepared for intimate celebrations and thoughtful care.',
-    image: packageImages.product04,
+    image: backgroundImages.gifting,
     path: '/pamper',
   },
   {
     title: 'Beauty maintenance',
     body: 'Wig wash, treatments, curl activation, plucking, dye, and complete laundry packages.',
-    image: hairImages.straightWig07,
+    image: hairImages.wigCleansing,
     path: '/hair/laundry',
   },
 ];
@@ -61,7 +62,6 @@ const ReviewCarousel: React.FC = () => {
   const isDraggingRef = useRef(false);
   const [activeReview, setActiveReview] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const loopedReviews = useMemo(() => [...googleReviews, ...googleReviews, ...googleReviews], []);
 
   const getSlideStep = () => {
     const track = trackRef.current;
@@ -73,25 +73,12 @@ const ReviewCarousel: React.FC = () => {
     return slide.getBoundingClientRect().width + gap;
   };
 
-  const getReviewSetWidth = () => getSlideStep() * googleReviews.length;
-
-  const normalizeLoop = () => {
-    const track = trackRef.current;
-    const setWidth = getReviewSetWidth();
-    if (!track || !setWidth) return;
-
-    if (track.scrollLeft < setWidth * 0.5) track.scrollLeft += setWidth;
-    if (track.scrollLeft >= setWidth * 1.5) track.scrollLeft -= setWidth;
-  };
-
   const updateActiveReview = () => {
     const track = trackRef.current;
     const step = getSlideStep();
-    const setWidth = getReviewSetWidth();
-    if (!track || !step || !setWidth) return;
+    if (!track || !step) return;
 
-    normalizeLoop();
-    const index = Math.round((track.scrollLeft - setWidth) / step);
+    const index = Math.round(track.scrollLeft / step);
     setActiveReview(positiveModulo(index, googleReviews.length));
   };
 
@@ -104,38 +91,17 @@ const ReviewCarousel: React.FC = () => {
   };
 
   const scrollReviews = (direction: -1 | 1) => {
-    const track = trackRef.current;
-    const step = getSlideStep();
-    if (!track || !step) return;
-
-    track.scrollBy({ left: step * direction, behavior: 'smooth' });
+    goToReview(positiveModulo(activeReview + direction, googleReviews.length));
   };
 
   const goToReview = (index: number) => {
     const track = trackRef.current;
     const step = getSlideStep();
-    const setWidth = getReviewSetWidth();
-    if (!track || !step || !setWidth) return;
+    if (!track || !step) return;
 
-    track.scrollTo({ left: setWidth + step * index, behavior: 'smooth' });
+    setActiveReview(index);
+    track.scrollTo({ left: step * index, behavior: 'smooth' });
   };
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return undefined;
-
-    const centerLoop = () => {
-      const setWidth = getReviewSetWidth();
-      if (setWidth) track.scrollLeft = setWidth;
-    };
-
-    const timeout = window.setTimeout(centerLoop, 0);
-    window.addEventListener('resize', centerLoop);
-    return () => {
-      window.clearTimeout(timeout);
-      window.removeEventListener('resize', centerLoop);
-    };
-  }, []);
 
   return (
     <div className="min-w-0">
@@ -184,7 +150,7 @@ const ReviewCarousel: React.FC = () => {
         }}
         aria-label="Google review carousel"
       >
-        {loopedReviews.map((review, index) => (
+        {googleReviews.map((review, index) => (
           <a
             key={`${review.name}-${index}`}
             data-review-slide
@@ -230,23 +196,23 @@ const luxuryCategories = [
   {
     label: 'Discovery Set',
     body: 'Discover fragrances that capture the essence of women - subtle, earthly, and effortlessly powerful.',
-    image: packageImages.product01,
+    image: fragranceImages.discoverySet,
     path: '/shop',
     fit: 'cover',
   },
   {
     label: 'Premium Hair',
     body: 'Bhelekazi Wigs, bundles, closures and wig care shaped around polished everyday beauty.',
-    image: hairImages.straightWig01,
+    image: hairImages.wigShowcase,
     path: '/hair',
     fit: 'cover',
   },
   {
     label: 'Fragrances',
     body: 'The Imvelo Collection, made for quiet presence and memorable finishing rituals.',
-    image: fragranceImages.indoniyamanzi,
+    image: fragranceImages.xdoz,
     path: '/fragrances',
-    fit: 'contain',
+    fit: 'cover',
   },
 ];
 
@@ -278,7 +244,7 @@ export const Home: React.FC = () => {
             <FadeIn key={item.label} delay={index * 70}>
               <Link to={item.path} className="group block">
                 <div className="bisile-image-frame aspect-[4/5]">
-                  <img loading="lazy" src={item.image} alt={item.label} className={item.fit === 'contain' ? 'h-full w-full object-contain p-10 transition-transform duration-500 group-hover:scale-[1.035] sm:p-12' : 'editorial-image'} />
+                  <OptimizedImage src={item.image} width={900} widths={[360, 540, 720, 900, 1200]} sizes="(min-width: 768px) 33vw, 100vw" alt={item.label} className={item.fit === 'contain' ? 'h-full w-full object-contain p-10 transition-transform duration-500 group-hover:scale-[1.035] sm:p-12' : 'editorial-image'} />
                 </div>
                 <div className="mt-4 flex items-start justify-between gap-6">
                   <div>
@@ -298,7 +264,7 @@ export const Home: React.FC = () => {
         <FadeIn>
           <Link to="/shop" className="group block">
             <div className="bisile-image-frame aspect-[16/9] md:aspect-[16/7]">
-              <img loading="lazy" src={heroImages.fragrance03} alt="BISILE fragrance bottle and packaging" className="editorial-image" />
+              <OptimizedImage src={heroImages.fragrance03} width={1600} widths={[640, 960, 1280, 1600, 1920]} sizes="100vw" alt="BISILE fragrance bottle and packaging" className="editorial-image" />
             </div>
             <div className="mt-4 flex items-start justify-between gap-6">
               <div>
@@ -331,29 +297,13 @@ export const Home: React.FC = () => {
           <FadeIn key={item.title} delay={index * 90}>
             <Link to={item.path} className="group block">
               <div className={`bisile-image-frame ${index === 0 ? 'aspect-square' : 'aspect-square md:aspect-[2/1]'}`}>
-                <img loading="lazy" src={item.image} alt={item.title} className="editorial-image" />
+                <OptimizedImage src={item.image} width={1100} widths={[480, 720, 960, 1200]} sizes="(min-width: 768px) 50vw, 100vw" alt={item.title} className="editorial-image" />
               </div>
               <h2 className="mt-4 font-inter text-sm font-normal">{item.title}</h2>
               <p className="mt-1 max-w-xl font-inter text-sm font-light leading-6 text-primary/60">{item.body}</p>
             </Link>
           </FadeIn>
         ))}
-      </section>
-
-      <section id="our-story" className="bisile-shell bisile-section grid gap-10 border-y bisile-rule md:grid-cols-[0.88fr_1.12fr] md:items-center">
-        <FadeIn>
-          <p className="bisile-kicker mb-4">About BISILE</p>
-          <h2 className="max-w-md font-inter text-3xl font-light leading-tight md:text-5xl">Beauty that elevates your presence.</h2>
-          <p className="mt-6 max-w-xl font-inter text-sm font-light leading-7 text-primary/62">
-            BISILE is a luxury beauty house built around the moments that make a woman feel finished: fragrance, hair, gifting, and care. The brand has grown from personal beauty service into a fuller world of refined products and rituals.
-          </p>
-          <p className="mt-6 font-inter text-sm text-primary">Be Luxury.</p>
-        </FadeIn>
-        <FadeIn delay={120}>
-          <div className="bisile-image-frame aspect-[4/3]">
-            <img loading="lazy" src={backgroundImages.gifting} alt="BISILE product arrangement" className="editorial-image" />
-          </div>
-        </FadeIn>
       </section>
 
       <section className="bisile-shell bisile-section">
@@ -367,6 +317,22 @@ export const Home: React.FC = () => {
         <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
           {HAIR_PRODUCTS.slice(0, 4).map((product, index) => <FadeIn key={product.id} delay={index * 60}><ProductCard product={product} /></FadeIn>)}
         </div>
+      </section>
+
+      <section id="our-story" className="bisile-shell bisile-section grid gap-10 border-y bisile-rule md:grid-cols-[0.88fr_1.12fr] md:items-center">
+        <FadeIn>
+          <p className="bisile-kicker mb-4">About BISILE</p>
+          <h2 className="max-w-md font-inter text-3xl font-light leading-tight md:text-5xl">Beauty that elevates your presence.</h2>
+          <p className="mt-6 max-w-xl font-inter text-sm font-light leading-7 text-primary/62">
+            BISILE is a luxury beauty house built around the moments that make a woman feel finished: fragrance, hair, gifting, and care. The brand has grown from personal beauty service into a fuller world of refined products and rituals.
+          </p>
+          <p className="mt-6 font-inter text-sm text-primary">Be Luxury.</p>
+        </FadeIn>
+        <FadeIn delay={120}>
+          <div className="bisile-image-frame aspect-[4/3]">
+            <OptimizedImage src={backgroundImages.presence} width={1200} widths={[480, 720, 960, 1200, 1600]} sizes="(min-width: 768px) 56vw, 100vw" alt="BISILE product arrangement" className="editorial-image" />
+          </div>
+        </FadeIn>
       </section>
 
       <section className="bisile-shell bisile-section">

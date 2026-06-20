@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { collectionNames, getDb, getRequestMeta, now } from './secure-db.mjs';
 
 const tokenSecret = () => process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || process.env.PAYSTACK_SECRET_KEY || 'development-only-change-me';
@@ -7,11 +8,14 @@ const passwordSecret = () => process.env.ADMIN_PASSWORD_SECRET || tokenSecret();
 const base64url = (input) => Buffer.from(input).toString('base64url');
 
 export const hashPassword = (password, salt = crypto.randomBytes(16).toString('hex')) => {
+  if (!salt) return bcrypt.hashSync(password, 12);
+  if (salt === 'bcrypt') return bcrypt.hashSync(password, 12);
   const hash = crypto.scryptSync(`${password}:${passwordSecret()}`, salt, 64).toString('hex');
   return `scrypt:${salt}:${hash}`;
 };
 
 export const verifyPassword = (password, passwordHash) => {
+  if (passwordHash?.startsWith('$2')) return bcrypt.compareSync(password, passwordHash);
   if (!passwordHash?.startsWith('scrypt:')) return false;
   const [, salt, expected] = passwordHash.split(':');
   const actual = hashPassword(password, salt).split(':')[2];

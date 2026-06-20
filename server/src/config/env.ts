@@ -1,10 +1,31 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { z } from 'zod';
+
+const loadEnvFile = (filePath: string) => {
+  if (!fs.existsSync(filePath)) return;
+  for (const line of fs.readFileSync(filePath, 'utf8').split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const separator = trimmed.indexOf('=');
+    if (separator === -1) continue;
+    const key = trimmed.slice(0, separator).trim();
+    let value = trimmed.slice(separator + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
+    if (process.env[key] === undefined) process.env[key] = value;
+  }
+};
+
+loadEnvFile(path.resolve(process.cwd(), '.env'));
+loadEnvFile(path.resolve(process.cwd(), '..', '.env'));
 
 const envSchema = z.object({
   NODE_ENV: z.string().default('development'),
   PORT: z.coerce.number().default(5000),
   MONGODB_URI: z.string().min(1),
-  MONGODB_DB: z.string().default('bisile'),
+  MONGODB_DB: z.string().optional(),
+  MONGODB_DB_NAME: z.string().optional(),
+  MONGODB_DATABASE: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   JWT_SECRET: z.string().min(32),
   PAYSTACK_SECRET_KEY: z.string().min(1),
@@ -25,6 +46,7 @@ const parsedEnv = envSchema.parse(process.env);
 
 export const env = {
   ...parsedEnv,
+  MONGODB_DB: parsedEnv.MONGODB_DB_NAME || parsedEnv.MONGODB_DB || parsedEnv.MONGODB_DATABASE || 'bisile',
   CLIENT_URL: parsedEnv.CLIENT_URL || parsedEnv.FRONTEND_URL,
 };
 

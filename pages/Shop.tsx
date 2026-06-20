@@ -2,13 +2,14 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { FadeIn } from '../components/UI/FadeIn';
-import { fragranceImages, hairImages, packageImages } from '../src/assets/images';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
+import { backgroundImages, fragranceImages, hairImages, packageImages } from '../src/assets/images';
 
 const shopCategories = [
   {
     number: '01',
     title: 'Discovery Set',
-    image: packageImages.product01,
+    image: fragranceImages.discoverySet,
     href: '/product/discovery-set',
     description: 'Discover fragrances that capture the essence of women - subtle, earthly, and effortlessly powerful.',
     items: ['IMVELO Collection', 'Six signature scents', '6 x 10ml Eau de Parfum'],
@@ -17,7 +18,7 @@ const shopCategories = [
   {
     number: '02',
     title: 'Bhelekazi Wigs',
-    image: hairImages.straightWig01,
+    image: hairImages.wigShowcase,
     href: '/hair/wigs',
     description: 'Everyday luxury, soft luxurious quality and premium luxury wigs crafted with refined BISILE finishes.',
     items: ['Everyday Luxury', 'Soft Luxurious Quality', 'Premium Luxury'],
@@ -44,7 +45,7 @@ const shopCategories = [
   {
     number: '05',
     title: 'Wig Laundry',
-    image: hairImages.straightWig07,
+    image: hairImages.wigCleansing,
     href: '/hair/laundry',
     description: 'Refresh, revive and restyle your wig with BISILE premium hair care services.',
     items: ['Wig Wash Only', 'Wig Treatment', 'Styling Services', 'Full Laundry Packages'],
@@ -71,7 +72,7 @@ const shopCategories = [
   {
     number: '08',
     title: 'Care Packages',
-    image: packageImages.product04,
+    image: backgroundImages.gifting,
     href: '/care-packages',
     description: 'Care packages and pamper edits prepared for thoughtful BISILE gifting moments.',
     items: ['Coming soon', 'Pamper Packages', 'Gift-ready Care'],
@@ -99,7 +100,7 @@ export const Shop: React.FC = () => {
                 className="group flex h-full flex-col border-y bisile-rule py-5 transition-colors hover:border-[#8A6F35]/45"
               >
                 <div className="bisile-image-frame aspect-[4/5]">
-                  <img src={category.image} alt={category.title} className="editorial-image" />
+                  <OptimizedImage src={category.image} width={800} widths={[320, 480, 640, 800, 1000]} sizes="(min-width: 1280px) 25vw, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" alt={category.title} className="editorial-image" />
                 </div>
                 <div className="mt-5 flex items-start justify-between gap-4">
                   <h2 className="font-inter text-lg font-light leading-tight md:text-xl">

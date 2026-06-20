@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight, CheckCircle2, ChevronDown } from 'lucide-react';
 import { FadeIn } from '../components/UI/FadeIn';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
 import { heroImages } from '../src/assets/images';
 
 const platformOptions = ['Instagram', 'TikTok', 'YouTube'];
@@ -34,7 +35,7 @@ export const Community: React.FC = () => {
           </FadeIn>
         </div>
         <div className="min-h-[520px] overflow-hidden">
-          <img src={heroImages.fragrance11} alt="BISILE creator community" className="editorial-image h-full w-full object-cover" />
+          <OptimizedImage src={heroImages.fragrance11} width={1200} widths={[480, 720, 960, 1200, 1600]} sizes="(min-width: 768px) 50vw, 100vw" alt="BISILE creator community" className="editorial-image h-full w-full object-cover" />
         </div>
       </section>
 

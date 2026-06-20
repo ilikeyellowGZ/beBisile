@@ -1,31 +1,71 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2 } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { CheckCircle2, MessageCircle } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../CartContext';
+import { getWhatsAppUrl } from '../constants';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
+import { readJsonResponse } from '../utils/http';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const VERIFY_API_URL = import.meta.env.VITE_PAYSTACK_VERIFY_API_URL
-  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/verify-paystack-transaction` : '/.netlify/functions/verify-paystack-transaction');
+  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/verify-paystack-transaction` : '/api/checkout/verify-paystack-transaction');
+
+type VerificationPayload = {
+  success?: boolean;
+  status?: string;
+  error?: string;
+  message?: string;
+  orderNumber?: string | null;
+  customerName?: string | null;
+  orderTotal?: number | null;
+  currency?: string | null;
+  shippingOption?: string | null;
+  paymentStatus?: string | null;
+};
 
 export const PaymentSuccess: React.FC = () => {
   const { clearCart } = useCart();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const orderNumber = searchParams.get('order');
+  const fallbackOrderNumber = searchParams.get('order');
   const reference = searchParams.get('reference') || searchParams.get('trxref');
-  const [status, setStatus] = useState<'checking' | 'paid' | 'processing'>('checking');
+  const [status, setStatus] = useState<'checking' | 'paid' | 'processing' | 'error'>('checking');
+  const [summary, setSummary] = useState<VerificationPayload | null>(null);
+  const [countdown, setCountdown] = useState(30);
   const [error, setError] = useState('');
 
+  const orderNumber = summary?.orderNumber || fallbackOrderNumber;
+  const paymentStatus = summary?.paymentStatus || (status === 'paid' ? 'paid' : status);
+  const formattedTotal = typeof summary?.orderTotal === 'number'
+    ? new Intl.NumberFormat('en-ZA', { style: 'currency', currency: summary.currency || 'ZAR' }).format(summary.orderTotal)
+    : null;
+
   const statusCopy = useMemo(() => {
-    if (status === 'paid') return 'Paystack confirmed your payment. BISILE will confirm your order and delivery details shortly.';
-    if (error) return 'Paystack is still processing this payment. BISILE will confirm your order once payment verification is complete.';
-    return 'Paystack is securely confirming your payment. BISILE will confirm your order and delivery details shortly.';
+    if (status === 'paid') return 'A confirmation email will be sent to you shortly. Please keep your order reference safe for any enquiries.';
+    if (error) return 'We could not confirm this payment yet. BISILE will only process the order once Paystack verification succeeds.';
+    return 'Paystack is securely confirming your payment. This page will update once verification is complete.';
   }, [error, status]);
 
   useEffect(() => {
+    if (status !== 'paid') return undefined;
+
     clearCart();
     sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
-  }, [clearCart]);
+
+    const interval = window.setInterval(() => {
+      setCountdown((current) => {
+        if (current <= 1) {
+          window.clearInterval(interval);
+          navigate('/');
+          return 0;
+        }
+
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [clearCart, navigate, status]);
 
   useEffect(() => {
     if (!reference) {
@@ -41,14 +81,15 @@ export const PaymentSuccess: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reference }),
         });
-        const payload = await response.json() as { status?: string; error?: string };
-        if (!response.ok) throw new Error(payload.error || 'Payment verification failed');
+        const payload = await readJsonResponse<VerificationPayload>(response, 'Payment verification failed');
+        if (payload.success === false) throw new Error(payload.message || payload.error || 'Payment verification failed');
         if (!isActive) return;
-        setStatus(payload.status === 'success' ? 'paid' : 'processing');
+        setSummary(payload);
+        setStatus(payload.status === 'success' || payload.paymentStatus === 'paid' ? 'paid' : 'processing');
       } catch (verifyError) {
         if (!isActive) return;
         setError(verifyError instanceof Error ? verifyError.message : 'Payment verification failed');
-        setStatus('processing');
+        setStatus('error');
       }
     };
 
@@ -62,16 +103,30 @@ export const PaymentSuccess: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-off-white px-6 pt-20 text-center">
       <div className="max-w-xl">
         <CheckCircle2 size={38} strokeWidth={1.1} className="mx-auto mb-5 text-accent" />
-        <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-accent">{status === 'paid' ? 'Payment confirmed' : 'Payment processing'}</p>
-        <h1 className="font-serif text-6xl">Thank you for your order.</h1>
-        <p className="mt-5 text-sm leading-7 text-primary/60">
-          {statusCopy}
-        </p>
-        {orderNumber && <p className="mt-5 text-xs uppercase tracking-[0.16em] text-primary/50">Order {orderNumber}</p>}
-        {reference && <p className="mt-2 text-xs uppercase tracking-[0.16em] text-primary/40">Reference {reference}</p>}
-        <Link to="/" className="mt-7 inline-block border border-primary px-6 py-4 text-[10px] uppercase tracking-[0.18em] hover:border-accent hover:text-accent">
-          Return home
-        </Link>
+        <p className="mb-3 text-[10px] uppercase tracking-[0.2em] text-accent">{status === 'paid' ? 'Payment confirmed' : 'Payment verification'}</p>
+        <h1 className="font-serif text-6xl">{status === 'paid' ? 'Thank you for your order.' : 'Payment verification in progress.'}</h1>
+        {status === 'paid' && <p className="mt-4 text-lg text-primary/70">Your BISILE order has been received and is being processed.</p>}
+        <p className="mt-5 text-sm leading-7 text-primary/60">{statusCopy}</p>
+
+        <div className="mt-8 grid gap-3 border-y border-[#B9AA8B]/36 py-6 text-left font-inter text-xs text-primary/62">
+          {orderNumber && <div className="flex justify-between gap-6"><span>Order reference</span><span className="text-right text-primary">{orderNumber}</span></div>}
+          {summary?.customerName && <div className="flex justify-between gap-6"><span>Customer name</span><span className="text-right text-primary">{summary.customerName}</span></div>}
+          {formattedTotal && <div className="flex justify-between gap-6"><span>Order total</span><span className="text-right text-primary">{formattedTotal}</span></div>}
+          {summary?.shippingOption && <div className="flex justify-between gap-6"><span>Shipping option</span><span className="text-right text-primary">{summary.shippingOption}</span></div>}
+          <div className="flex justify-between gap-6"><span>Payment status</span><span className="text-right capitalize text-primary">{paymentStatus}</span></div>
+          {reference && <div className="flex justify-between gap-6"><span>Paystack reference</span><span className="text-right text-primary">{reference}</span></div>}
+        </div>
+
+        {error && <p className="mt-5 text-xs leading-6 text-red-700">{error}</p>}
+        {status === 'paid' && <p className="mt-5 text-xs uppercase tracking-[0.16em] text-primary/45">Redirecting you to the homepage in {countdown} seconds...</p>}
+        <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link to="/" className="inline-block border border-primary px-6 py-4 text-[10px] uppercase tracking-[0.18em] hover:border-accent hover:text-accent">
+            Return Home
+          </Link>
+          <a href={getWhatsAppUrl(`Hello BISILE, I need help with order ${orderNumber || reference || ''}.`)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 border border-[#B9AA8B]/60 px-6 py-4 text-[10px] uppercase tracking-[0.18em] hover:border-accent hover:text-accent">
+            <MessageCircle size={14} strokeWidth={1.2} /> WhatsApp support
+          </a>
+        </div>
       </div>
     </div>
   );

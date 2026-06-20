@@ -11,12 +11,41 @@ Luxury React storefront for BISILE fragrance, processed virgin hair, wig laundry
 - Backend: Express/Mongoose API in `server/`.
 - Temporary serverless checkout/admin flow: Netlify Functions in `netlify/functions/`.
 
+## Current Status
+
+- Temporary frontend: https://shimmering-churros-307714.netlify.app/
+- Verified Resend email domain: `bisile.co.za`
+- Resend status: verified and test email accepted from `orders@bisile.co.za`
+- Database: MongoDB Atlas database name `bisile`
+- Admin test login: username `admin`, password `password123`
+- Cloudinary: migration script and mapping helper are ready; dry-run checks active website assets only. Actual upload still requires running `npm run migrate:cloudinary` with network/upload approval.
+- Local image fallback: local assets remain in the repo and are used whenever `src/data/cloudinary-image-map.json` has no matching Cloudinary URL.
+
+Netlify environment variables must be added in the Netlify dashboard. Backend/server secrets must not be exposed as frontend `VITE_` variables. If using Netlify Functions locally, run `netlify dev`; if using the Render backend later, set `VITE_API_BASE_URL` to the Render API origin.
+
 ## Local Development
 
 ```bash
 npm install
 npm run dev
 ```
+
+For local checkout on `http://localhost:3000`, run the Express API in a second terminal:
+
+```bash
+npm --prefix server install
+npm run dev:api
+```
+
+The Vite dev server proxies `/api/*` to `http://127.0.0.1:5000`. The payment page calls `/api/checkout/create-paystack-transaction` by default, so Vite alone is not enough unless the Express API is also running.
+
+To test the temporary Netlify Functions flow instead, use Netlify Dev:
+
+```bash
+netlify dev
+```
+
+Netlify production maps `/api/checkout/create-paystack-transaction` to `/.netlify/functions/create-paystack-transaction` and `/api/checkout/verify-paystack-transaction` to `/.netlify/functions/verify-paystack-transaction`.
 
 ## Environment Variables
 
@@ -30,6 +59,9 @@ Use `.env.example` as the template. The real `.env` file should not be committed
 
 Public browser variables must start with `VITE_` because this project uses Vite:
 
+- `VITE_SITE_NAME`, `VITE_SITE_URL`: public site metadata.
+- `VITE_API_BASE_URL`: optional public API base URL, for example the Render backend URL.
+- `VITE_PAYSTACK_PUBLIC_KEY`: optional public Paystack key if a future inline flow needs it. The current hosted checkout flow does not require it in browser code.
 - `VITE_WHATSAPP_NUMBER`: public WhatsApp number used by enquiry and contact buttons.
 - `VITE_PAYSTACK_CHECKOUT_API_URL`: optional public checkout endpoint override. Leave blank on Netlify.
 - `VITE_PAYSTACK_VERIFY_API_URL`: optional public payment verification endpoint override. Leave blank on Netlify.
@@ -38,7 +70,7 @@ Public browser variables must start with `VITE_` because this project uses Vite:
 Server-only variables must not use the `VITE_` prefix:
 
 - `CLIENT_URL`: public production URL used by backend checkout redirects and origin checks.
-- `MONGODB_URI`, `MONGODB_DB`, `MONGODB_DATABASE`: MongoDB connection and database names.
+- `MONGODB_URI`, `MONGODB_DB_NAME`, `MONGODB_DB`, `MONGODB_DATABASE`: MongoDB connection and database names. Use `bisile` for this website so other cluster databases remain untouched.
 - `JWT_SECRET`, `ADMIN_JWT_SECRET`, `ADMIN_PASSWORD_SECRET`: dashboard/auth secrets.
 - `PAYSTACK_SECRET_KEY`: Paystack backend secret used to initialize, verify, and validate payment webhooks.
 - `NODE_ENV`, `PORT`, `SERVER_URL`, `CORS_ORIGINS`: optional server configuration.
@@ -48,6 +80,60 @@ Server-only variables must not use the `VITE_` prefix:
 After editing `.env`, restart the dev server so Vite and any backend process can read the new values.
 
 ## Paystack, MongoDB, and Dashboard
+
+### Useful Scripts
+
+```bash
+npm run seed:admin
+npm run seed:catalog
+npm run test:db
+npm run test:resend
+npm run test:paystack
+```
+
+- `seed:admin`: creates a development owner admin if one does not exist. Defaults to username `admin` and password `password123`, stored with a bcrypt hash. Replace this credential before production.
+- `seed:catalog`: seeds BISILE products, categories, shipping options, and default store settings into the `bisile` database.
+- `test:db`: connects to MongoDB, creates/verifies required collections inside `bisile`, and performs a temporary write/delete probe.
+- `test:resend`: sends `BISILE Test Email` to `officialheyywebb@gmail.com` using Resend and logs the send to `emailLogs` if MongoDB is configured.
+- `test:paystack`: creates a standalone Paystack test transaction and prints the authorization URL/reference. It does not create a BISILE order.
+- `migrate:cloudinary`: uploads active local images/videos to Cloudinary and writes `src/data/cloudinary-image-map.json`. Run only after confirming Cloudinary credentials and desired upload timing. Local files are not deleted.
+
+### MongoDB Collections
+
+Use a dedicated database named `bisile`. Do not point `MONGODB_DB_NAME`, `MONGODB_DB`, or `MONGODB_DATABASE` at other cluster databases.
+
+- `users`: future customer/user accounts.
+- `admins`: dashboard users. Passwords are hashed.
+- `products`: fragrances, hair, wigs, bundles, closures, frontals, wig laundry services, candles, and discovery sets.
+- `orders`: cart items, customer details, delivery info, payment status, and order status.
+- `customers`: customer contact and delivery information.
+- `payments`: Paystack references, status, amount, currency, transaction response, and verification details.
+- `shippingOptions`: Pudo, The Courier Guy, Fastway, PostNet, and prices.
+- `emailLogs`: order confirmations, test emails, and customer notifications.
+- `uploads`: Cloudinary URLs for product images, videos, proof of payment, and customer reference images.
+- `categories`: shop categories such as Fragrance, Hair, Wigs, Bundles, Closures & Frontals, Wig Laundry.
+- `adminLogs` / `auditLogs`: admin login and dashboard actions.
+
+### Checkout Security
+
+- BISILE uses Paystack hosted checkout; card details are never entered into or stored by the BISILE site.
+- The backend recalculates item totals from trusted product records and selected shipping.
+- The frontend must not send price, subtotal, total, or amount fields.
+- Orders are created as `pending`.
+- Orders are marked paid only after Paystack verification or webhook confirmation.
+- In production, use HTTPS and configure `CLIENT_URL` / `FRONTEND_URL` to the deployed frontend URL.
+
+### Common Checkout Error
+
+Error:
+
+```text
+Failed to execute 'json' on 'Response': Unexpected end of JSON input
+```
+
+Cause: the frontend called a missing or incorrect API endpoint and received an empty/HTML/404 response instead of JSON. This happened locally when Vite was running without Netlify Dev or the Express API.
+
+Fix: run `npm run dev:api` beside `npm run dev`, or run `netlify dev` when testing Netlify Functions. The frontend now checks `response.ok`, reads raw response text before parsing JSON, and shows a useful error instead of throwing a JSON parse failure.
 
 The production flow uses Netlify Functions:
 

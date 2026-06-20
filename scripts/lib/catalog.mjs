@@ -1,0 +1,47 @@
+export const shippingOptions = [
+  { id: 'pudo', name: 'Pudo', price: 89, description: 'Locker-to-locker delivery', isActive: true },
+  { id: 'courier-guy', name: 'The Courier Guy', price: 119, description: 'Address courier, final quote may depend on delivery area', isActive: true },
+  { id: 'fastway', name: 'Fastway', price: 99, description: 'Fastway courier delivery', isActive: true },
+  { id: 'postnet', name: 'PostNet', price: 129, description: 'PostNet delivery service', isActive: true },
+];
+
+export const categories = [
+  { name: 'Fragrance', slug: 'fragrance', description: 'BISILE eau de parfum and scent rituals', isActive: true },
+  { name: 'Hair', slug: 'hair', description: 'Processed virgin hair and BISILE hair services', isActive: true },
+  { name: 'Wigs', slug: 'wigs', description: 'Bhelekazi wig collection', isActive: true },
+  { name: 'Bundles', slug: 'bundles', description: 'Processed virgin hair bundles', isActive: true },
+  { name: 'Closures & Frontals', slug: 'closures-frontals', description: 'Premium lace closures and frontals', isActive: true },
+  { name: 'Wig Laundry', slug: 'wig-laundry', description: 'BISILE wig washing, treatment, and styling services', isActive: true },
+];
+
+export const products = [
+  { id: 'indoniyamanzi', name: 'Indoniyamanzi', slug: 'indoniyamanzi', price: 499.99, stock: 20, category: 'parfum', collection: 'fragrance' },
+  { id: 'inkanyezi', name: 'Inkanyezi', slug: 'inkanyezi', price: 499.99, stock: 20, category: 'parfum', collection: 'fragrance' },
+  { id: 'sithelo', name: 'Sithelo', slug: 'sithelo', price: 649.99, stock: 20, category: 'parfum', collection: 'fragrance' },
+  { id: 'langelihle', name: 'Langelihle', slug: 'langelihle', price: 629.99, stock: 20, category: 'parfum', collection: 'fragrance' },
+  { id: 'ndalwenhle', name: 'Ndalwenhle', slug: 'ndalwenhle', price: 529.99, stock: 20, category: 'parfum', collection: 'fragrance' },
+  { id: 'luyanda', name: 'Luyanda', slug: 'luyanda', price: 689.99, stock: 20, category: 'parfum', collection: 'fragrance' },
+  { id: 'discovery-set', name: 'Discovery Set', slug: 'discovery-set', price: 349.99, stock: 20, category: 'parfum', collection: 'fragrance' },
+  { id: 'mvelwenhle', name: 'Mvelwenhle', slug: 'mvelwenhle', price: 2489.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'thabitha', name: 'Thabitha', slug: 'thabitha', price: 2649.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'nokhwezi', name: 'Nokhwezi', slug: 'nokhwezi', price: 2799.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'khwezilokusa', name: 'Khwezilokusa', slug: 'khwezilokusa', price: 2799.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'nobuntu', name: 'Nobuntu', slug: 'nobuntu', price: 2949.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'melokuhle', name: 'Melokuhle', slug: 'melokuhle', price: 3549.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'ntando', name: 'Ntando', slug: 'ntando', price: 3749.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'ayabonga', name: 'Ayabonga', slug: 'ayabonga', price: 3449.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'ayanda', name: 'Ayanda', slug: 'ayanda', price: 3799.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'bonginhlanhla', name: 'Bonginhlanhla', slug: 'bonginhlanhla', price: 3789.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'nobuhle', name: 'Nobuhle', slug: 'nobuhle', price: 3949.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'masindi', name: 'Masindi', slug: 'masindi', price: 4649.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'buhlebendalo', name: 'Buhlebendalo', slug: 'buhlebendalo', price: 4549.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'thabisile', name: 'Thabisile', slug: 'thabisile', price: 4249.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'ntombi-zandile', name: 'Ntombi Zandile', slug: 'ntombi-zandile', price: 4489.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'londiwe', name: 'Londiwe', slug: 'londiwe', price: 4689.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'samkelisiwe', name: 'Samkelisiwe', slug: 'samkelisiwe', price: 4849.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'ntombizonke', name: 'Ntombizonke', slug: 'ntombizonke', price: 4889.99, stock: 4, category: 'wig', collection: 'hair' },
+  { id: 'single-bundle', name: 'Single Bundle', slug: 'single-bundle', price: 799.99, stock: 10, category: 'bundle', collection: 'hair' },
+  { id: 'three-bundles', name: 'Three Bundles', slug: 'three-bundles', price: 1799.99, stock: 10, category: 'bundle', collection: 'hair' },
+  { id: 'closures-frontals', name: 'Closures & Frontals', slug: 'closures-frontals', price: 449.99, stock: 10, category: 'closure', collection: 'hair' },
+  { id: 'wig-laundry', name: 'Wig Laundry', slug: 'wig-laundry', price: 190, stock: 99, category: 'laundry', collection: 'service' },
+];

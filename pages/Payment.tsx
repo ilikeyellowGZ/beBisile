@@ -4,12 +4,25 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
 import { SHIPPING_PARTNERS } from '../constants';
+import { readJsonResponse } from '../utils/http';
 import type { CheckoutDetails } from '../types';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const API_URL = import.meta.env.VITE_PAYSTACK_CHECKOUT_API_URL
   || import.meta.env.VITE_CHECKOUT_API_URL
-  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/create-paystack-transaction` : '/.netlify/functions/create-paystack-transaction');
+  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/create-paystack-transaction` : '/api/checkout/create-paystack-transaction');
+
+type PaystackCheckoutResponse = {
+  success?: boolean;
+  url?: string;
+  authorization_url?: string;
+  authorizationUrl?: string;
+  access_code?: string;
+  accessCode?: string;
+  reference?: string;
+  message?: string;
+  error?: string;
+};
 
 export const Payment: React.FC = () => {
   const { items, subtotal } = useCart();
@@ -74,9 +87,10 @@ export const Payment: React.FC = () => {
           items: items.map(({ id, quantity }) => ({ productId: id, quantity })),
         }),
       });
-      const payload = await response.json() as { url?: string; error?: string };
-      if (!response.ok || !payload.url) throw new Error(payload.error || 'Unable to start Paystack checkout.');
-      window.location.assign(payload.url);
+      const payload = await readJsonResponse<PaystackCheckoutResponse>(response, 'Unable to start Paystack checkout.');
+      const checkoutUrl = payload.authorization_url || payload.authorizationUrl || payload.url;
+      if (payload.success === false || !checkoutUrl) throw new Error(payload.message || payload.error || 'Unable to start Paystack checkout.');
+      window.location.assign(checkoutUrl);
     } catch (checkoutError) {
       setError(checkoutError instanceof Error ? checkoutError.message : 'Unable to start Paystack checkout.');
       setLoading(false);

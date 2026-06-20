@@ -23,7 +23,7 @@ export const getDb = async () => {
     await cachedClient.connect();
   }
 
-  return cachedClient.db(process.env.MONGODB_DB || process.env.MONGO_DB || 'bisile');
+  return cachedClient.db(process.env.MONGODB_DB_NAME || process.env.MONGODB_DB || process.env.MONGODB_DATABASE || process.env.MONGO_DB || 'bisile');
 };
 
 export const toObjectId = (value) => {
@@ -41,6 +41,7 @@ export const getRequestMeta = (event) => ({
 export const normalizeMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
 
 export const collectionNames = {
+  users: 'users',
   admins: 'admins',
   products: 'products',
   categories: 'categories',
@@ -48,6 +49,10 @@ export const collectionNames = {
   carts: 'carts',
   orders: 'orders',
   payments: 'payments',
+  shippingOptions: 'shippingOptions',
+  emailLogs: 'emailLogs',
+  uploads: 'uploads',
+  adminLogs: 'adminLogs',
   refunds: 'refunds',
   contactMessages: 'contactMessages',
   newsletterSubscribers: 'newsletterSubscribers',

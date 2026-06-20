@@ -3,6 +3,7 @@ import { ArrowRight, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { FadeIn } from '../components/UI/FadeIn';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
 import { BUNDLE_PRICES, BUNDLE_PRODUCTS, BundleLength, BundlePackageType, BundleTexture, formatPrice, getBundlePrice } from '../data/hairCatalog';
 import { getWhatsAppUrl } from '../constants';
 import type { Product } from '../types';
@@ -46,12 +47,12 @@ export const Bundles: React.FC = () => {
       <section className="bisile-shell bisile-section grid gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
         <FadeIn>
           <div className="bisile-image-frame aspect-[4/5]">
-            <img src={baseProduct.image} alt={`${packageType} ${texture}`} className="editorial-image" />
+            <OptimizedImage src={baseProduct.image} width={1000} widths={[480, 720, 960, 1200]} sizes="(min-width: 1024px) 48vw, 100vw" alt={`${packageType} ${texture}`} className="editorial-image" />
           </div>
           <div className="mt-5 grid grid-cols-3 gap-3">
             {baseProduct.galleryImages?.slice(1, 4).map((image, index) => (
               <div key={image} className="bisile-image-frame aspect-square">
-                <img src={image} alt={`BISILE bundle detail ${index + 1}`} className="editorial-image" />
+                <OptimizedImage src={image} width={360} widths={[180, 240, 360, 480]} sizes="(min-width: 1024px) 16vw, 33vw" alt={`BISILE bundle detail ${index + 1}`} className="editorial-image" />
               </div>
             ))}
           </div>

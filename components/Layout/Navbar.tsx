@@ -3,8 +3,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
 import { useCart } from '../../CartContext';
 import { ALL_HAIR_PRODUCTS, FRAGRANCE_PRODUCTS } from '../../constants';
-import { brandImages, carouselImages, fragranceImages, hairImages, heroImages, packageImages } from '../../src/assets/images';
+import { brandImages, carouselImages, hairImages, heroImages, packageImages } from '../../src/assets/images';
 import { DiscoverGrid } from './DiscoverGrid';
+import { OptimizedImage } from '../UI/OptimizedImage';
 
 type MenuPreview = {
   label: string;
@@ -31,9 +32,9 @@ type SearchItem = {
 
 const shopPreviews: MenuPreview[] = [
   { label: 'Fragrances', path: '/fragrances', image: carouselImages.perfumeDisplay04 },
-  { label: 'Bhelekazi wigs', path: '/hair/wigs', image: hairImages.straightWig01 },
-  { label: 'Pamper packages', path: '/pamper', image: packageImages.product04 },
-  { label: 'Wig laundry', path: '/hair/laundry', image: hairImages.straightWig07 },
+  { label: 'Bhelekazi wigs', path: '/hair/wigs', image: hairImages.wigShowcase },
+  { label: 'Pamper packages', path: '/pamper', image: brandImages.giftPouches },
+  { label: 'Wig laundry', path: '/hair/laundry', image: hairImages.wigCleansing },
 ];
 
 const leftLinks: MenuLink[] = [
@@ -82,8 +83,8 @@ const rightLinks: MenuLink[] = [
     label: 'Contact',
     path: '/contact',
     preview: [
-      { label: 'Customer care', path: '/contact', image: fragranceImages.product07 },
-      { label: 'Delivery support', path: '/contact', image: hairImages.straightWig07 },
+      { label: 'Customer care', path: '/contact', image: brandImages.customerCareInkanyezi },
+      { label: 'Delivery support', path: '/contact', image: brandImages.deliveryPackaging },
     ],
     links: [
       { label: 'Contact us', path: '/contact', description: 'Questions, quotes, and order support' },
@@ -249,7 +250,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           <Link to="/" className="absolute left-1/2 z-20 flex -translate-x-1/2 items-center justify-center transition-opacity hover:opacity-75">
-            <img src={brandImages.logo} alt="BISILE - Be Luxury" className={`h-9 w-auto object-contain transition-all duration-500 ease-out md:h-10 ${logoClass}`} />
+            <OptimizedImage src={brandImages.logo} width={220} widths={[120, 180, 220, 320]} sizes="160px" alt="BISILE - Be Luxury" className={`h-9 w-auto object-contain transition-all duration-500 ease-out md:h-10 ${logoClass}`} />
           </Link>
 
           <div className="hidden items-center justify-end gap-7 md:flex">
@@ -306,7 +307,7 @@ export const Navbar: React.FC = () => {
                 {(activeMenu.preview ?? []).slice(activePreview, activePreview + 2).concat((activeMenu.preview ?? []).slice(0, Math.max(0, activePreview + 2 - (activeMenu.preview?.length ?? 0)))).slice(0, 2).map((item) => (
                   <Link key={`${activeMenu.label}-${item.label}-${activePreview}`} to={item.path} onClick={() => setActiveMenu(null)} className="group animate-fade-in block">
                     <div className="bisile-image-frame aspect-[4/3]">
-                      <img src={item.image} alt={item.label} className="editorial-image" />
+                      <OptimizedImage src={item.image} width={540} widths={[240, 360, 540, 720]} sizes="280px" alt={item.label} className="editorial-image" />
                     </div>
                     <p className="mt-3 inline-flex items-center gap-2 font-inter text-sm font-light text-primary transition-colors group-hover:text-accent">
                       {item.label}
@@ -325,7 +326,7 @@ export const Navbar: React.FC = () => {
         <div className={`min-h-full transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${isSearchOpen ? 'translate-y-0' : '-translate-y-5'}`}>
           <div className="bisile-shell relative flex h-16 items-center justify-end border-b border-[#A3915D]/24 bg-[#F7F4EF]">
             <Link to="/" onClick={() => setIsSearchOpen(false)} className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center transition-opacity hover:opacity-75">
-              <img src={brandImages.logo} alt="BISILE - Be Luxury" className="h-8 w-auto object-contain md:h-9" />
+              <OptimizedImage src={brandImages.logo} width={220} widths={[120, 180, 220, 320]} sizes="160px" alt="BISILE - Be Luxury" className="h-8 w-auto object-contain md:h-9" />
             </Link>
             <button onClick={() => setIsSearchOpen(false)} className="flex h-11 w-11 items-center justify-center text-[#2A2114]/70 transition-colors hover:text-[#8A6F35]" aria-label="Close search">
               <X size={23} strokeWidth={1.15} />
@@ -371,7 +372,7 @@ export const Navbar: React.FC = () => {
                     className={`group grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-4 py-4 transition-all duration-300 hover:bg-[#E9E6DF]/60 sm:grid-cols-[80px_minmax(0,1fr)_auto] sm:gap-6 sm:px-4 ${isSearchOpen ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
                   >
                     <div className="flex h-20 w-16 shrink-0 items-center justify-center overflow-hidden bg-[#E9E6DF] sm:h-24 sm:w-20">
-                      {item.image ? <img src={item.image} alt="" className="h-full w-full object-contain p-2" /> : <Search size={18} strokeWidth={1.15} className="text-primary/32" />}
+                      {item.image ? <OptimizedImage src={item.image} width={120} widths={[80, 120, 180]} sizes="48px" alt="" className="h-full w-full object-contain p-2" /> : <Search size={18} strokeWidth={1.15} className="text-primary/32" />}
                     </div>
                     <div className="min-w-0">
                       <p className="font-inter text-[10px] font-light uppercase tracking-[0.18em] text-accent">{item.type}</p>

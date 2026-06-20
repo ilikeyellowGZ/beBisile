@@ -5,9 +5,9 @@ export const formatPrice = (price: number) =>
   new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(price).replace('ZAR', 'R');
 
 export const hairGallery = {
-  straight: [hairImages.straightWig01, hairImages.straightWig02, hairImages.straightWig07, hairImages.straightWig08],
-  curly: [hairImages.curlyBundle01, hairImages.curlyBundle02, hairImages.kinkyWig01, hairImages.kinkyWig02],
-  laundry: [hairImages.straightWig07, hairImages.straightWig04, hairImages.kinkyWig04, hairImages.curlyBundle01],
+  straight: [hairImages.wigShowcase],
+  curly: [hairImages.wigShowcase],
+  laundry: [hairImages.wigCleansing],
 };
 
 export const HAIR_CATEGORY_LINKS = [
@@ -15,7 +15,7 @@ export const HAIR_CATEGORY_LINKS = [
     label: 'Bhelekazi Wigs',
     path: '/hair/wigs',
     description: 'Everyday luxury, soft luxurious quality and premium luxury wigs crafted with refined BISILE finishes.',
-    image: hairImages.straightWig01,
+    image: hairImages.wigShowcase,
     cta: 'Shop Wigs',
     options: ['Everyday Luxury', 'Soft Luxurious Quality', 'Premium Luxury'],
   },
@@ -39,7 +39,7 @@ export const HAIR_CATEGORY_LINKS = [
     label: 'Wig Laundry',
     path: '/hair/laundry',
     description: "Refresh, revive and restyle your wig with BISILE's premium hair care service.",
-    image: hairImages.straightWig07,
+    image: hairImages.wigCleansing,
     cta: 'Book Wig Laundry',
     options: [] as string[],
   },
@@ -190,8 +190,8 @@ export const WIG_LAUNDRY_PRODUCT: Product = {
   price: WIG_LAUNDRY_SERVICE_PRICES['Wig Wash Only'],
   description: 'Premium wig washing, conditioning and styling service for BISILE hair units and customer-owned wigs.',
   notes: ['Wash', 'Condition', 'Style'],
-  image: hairImages.straightWig07,
-  secondaryImage: hairImages.straightWig04,
+  image: hairImages.wigCleansing,
+  secondaryImage: hairImages.wigCleansing,
   galleryImages: hairGallery.laundry,
   category: 'laundry',
   collection: 'service',

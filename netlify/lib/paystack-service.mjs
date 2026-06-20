@@ -67,16 +67,26 @@ export const markPaystackOrderPaid = async (db, transaction) => {
     throw error;
   }
 
+  const paidOrder = {
+    ...order,
+    paymentStatus: 'paid',
+    orderStatus: 'paid',
+    paystackTransactionId: transaction.id,
+    paystackPaidAt: transaction.paid_at ? new Date(transaction.paid_at) : now(),
+    paidAt: transaction.paid_at ? new Date(transaction.paid_at) : now(),
+    updatedAt: now(),
+  };
+
   await db.collection(collectionNames.orders).updateOne(
     { _id: order._id },
     {
       $set: {
-        paymentStatus: 'paid',
-        orderStatus: 'paid',
-        paystackTransactionId: transaction.id,
-        paystackPaidAt: transaction.paid_at ? new Date(transaction.paid_at) : now(),
-        paidAt: transaction.paid_at ? new Date(transaction.paid_at) : now(),
-        updatedAt: now(),
+        paymentStatus: paidOrder.paymentStatus,
+        orderStatus: paidOrder.orderStatus,
+        paystackTransactionId: paidOrder.paystackTransactionId,
+        paystackPaidAt: paidOrder.paystackPaidAt,
+        paidAt: paidOrder.paidAt,
+        updatedAt: paidOrder.updatedAt,
       },
     }
   );
@@ -102,7 +112,7 @@ export const markPaystackOrderPaid = async (db, transaction) => {
     { upsert: true }
   );
 
-  await reduceStockForOrder(db, order);
+  await reduceStockForOrder(db, paidOrder);
 
   if (order.discountCode) {
     await db.collection(collectionNames.discountCodes).updateOne(
@@ -111,6 +121,5 @@ export const markPaystackOrderPaid = async (db, transaction) => {
     );
   }
 
-  return order;
+  return paidOrder;
 };
-

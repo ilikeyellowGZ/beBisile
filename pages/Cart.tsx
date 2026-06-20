@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, Minus, Plus, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../CartContext';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
 
 export const Cart: React.FC = () => {
   const { items, subtotal, totalItems, updateQuantity, removeItem } = useCart();
@@ -23,7 +24,7 @@ export const Cart: React.FC = () => {
           <div className="bisile-card-surface">
             {items.map((item) => (
               <div key={item.id} className="flex gap-4 border-b border-[#B9AA8B]/34 p-5 transition-colors last:border-b-0 hover:bg-[#E9E6DF]/42 md:gap-6 md:p-7">
-                <img src={item.image} alt={item.name} className={`h-32 w-24 shrink-0 bg-[#E9E6DF] md:h-40 md:w-32 ${item.imageFit === 'contain' ? 'object-contain p-3' : 'object-cover'}`} />
+                <OptimizedImage src={item.image} width={320} widths={[180, 240, 320, 420]} sizes="(min-width: 768px) 128px, 96px" alt={item.name} className={`h-32 w-24 shrink-0 bg-[#E9E6DF] md:h-40 md:w-32 ${item.imageFit === 'contain' ? 'object-contain p-3' : 'object-cover'}`} />
                 <div className="flex flex-1 flex-col justify-between gap-5 md:flex-row md:items-center">
                   <div>
                     <p className="mb-2 text-[9px] uppercase tracking-[0.18em] text-accent">{item.eyebrow}</p>

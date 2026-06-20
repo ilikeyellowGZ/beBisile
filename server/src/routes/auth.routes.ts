@@ -10,10 +10,18 @@ import { writeAuditLog } from '../services/audit.service.js';
 
 export const authRoutes = Router();
 
-const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1) }).strict();
+const loginSchema = z.object({
+  email: z.string().optional(),
+  username: z.string().optional(),
+  password: z.string().min(1)
+}).strict().refine((value) => value.email || value.username, { message: 'Username or email is required' });
 
 authRoutes.post('/login', validate(loginSchema), async (req, res) => {
-  const admin = await Admin.findOne({ email: req.body.email.toLowerCase(), isActive: true });
+  const identifier = String(req.body.email || req.body.username || '').toLowerCase().trim();
+  const admin = await Admin.findOne({
+    isActive: true,
+    $or: [{ email: identifier }, { username: identifier }]
+  });
   if (!admin || !(await bcrypt.compare(req.body.password, admin.passwordHash))) return res.status(401).json({ error: 'Invalid login' });
   admin.lastLoginAt = new Date();
   await admin.save();

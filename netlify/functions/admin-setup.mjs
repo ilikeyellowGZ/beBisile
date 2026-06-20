@@ -17,7 +17,8 @@ export const handler = async (event) => {
     const admin = {
       fullName: body.fullName,
       email: String(body.email).toLowerCase(),
-      passwordHash: hashPassword(body.password),
+      username: String(body.username || 'admin').toLowerCase(),
+      passwordHash: hashPassword(body.password, 'bcrypt'),
       role: 'owner',
       avatar: '',
       isActive: true,

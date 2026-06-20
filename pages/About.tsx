@@ -2,34 +2,12 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FadeIn } from '../components/UI/FadeIn';
-import { backgroundImages, fragranceImages, hairImages, heroImages, packageImages } from '../src/assets/images';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
+import { backgroundImages, fragranceImages, hairImages } from '../src/assets/images';
+import { getImageUrl, getVideoUrl } from '../utils/images';
 
-const storyChapters = [
-  {
-    label: '01',
-    title: 'The beginning',
-    body: 'BISILE began with beauty that felt personal: careful service, polished presentation, and a desire to make every client feel seen before they stepped out into the world.',
-    image: packageImages.product06,
-  },
-  {
-    label: '02',
-    title: 'The BISILE essence expands',
-    body: 'From beauty and makeup, the brand grew into fragrance and gifting. Scent became part of the BISILE language: soft, memorable, and made for everyday luxury.',
-    image: heroImages.fragrance03,
-  },
-  {
-    label: '03',
-    title: 'Crowned in elegance',
-    body: 'BISILE then shaped a focused hair world: Bhelekazi wigs, processed virgin hair bundles, closures, frontals, and services that help every unit stay beautiful for longer.',
-    image: hairImages.straightWig01,
-  },
-  {
-    label: '04',
-    title: 'Care after purchase',
-    body: 'Wig laundry, styling, plucking, curl activation, dye, and custom finishing became part of the promise. BISILE does not end at checkout; the care continues.',
-    image: hairImages.straightWig07,
-  },
-];
+const storyVideo = getVideoUrl('/videos/IMG_1892.mov', 1600);
+const storyPoster = getImageUrl('/media/image 33.png', { width: 1200 });
 
 const values = ['Luxury with restraint', 'Beauty with care', 'Hair with confidence', 'Service with intention'];
 
@@ -45,40 +23,31 @@ export const About: React.FC = () => (
       </FadeIn>
       <FadeIn delay={100}>
         <div className="bisile-image-frame aspect-[4/3] md:aspect-[5/4]">
-          <img src={backgroundImages.gifting} alt="BISILE product arrangement" className="editorial-image" />
+          <OptimizedImage src={backgroundImages.gifting} width={1200} widths={[480, 720, 960, 1200, 1600]} sizes="(min-width: 768px) 50vw, 100vw" alt="BISILE product arrangement" className="editorial-image" />
         </div>
       </FadeIn>
     </section>
 
-    <section className="bisile-shell bisile-section border-y bisile-rule">
-      <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-        <FadeIn>
-          <p className="bisile-kicker mb-3">From start to finish</p>
-          <h2 className="max-w-sm font-inter text-3xl font-light leading-tight md:text-5xl">A brand built with elegance & intention.</h2>
-        </FadeIn>
-        <div className="grid gap-10">
-          {storyChapters.map((chapter, index) => (
-            <FadeIn key={chapter.title} delay={index * 70}>
-              <article className="grid gap-5 border-t border-[#e5e2dd] pt-6 sm:grid-cols-[0.82fr_1.18fr] sm:items-start">
-                <div className="bisile-image-frame aspect-[4/3]">
-                  <img src={chapter.image} alt={chapter.title} className="editorial-image" loading="lazy" />
-                </div>
-                <div className="sm:pt-1">
-                  <p className="mb-3 font-inter text-[10px] font-light uppercase tracking-[0.18em] text-accent">{chapter.label}</p>
-                  <h3 className="font-inter text-2xl font-light md:text-3xl">{chapter.title}</h3>
-                  <p className="mt-4 max-w-xl font-inter text-sm font-light leading-7 text-primary/62">{chapter.body}</p>
-                </div>
-              </article>
-            </FadeIn>
-          ))}
-        </div>
+    <section className="bisile-shell bisile-section border-y bisile-rule" aria-label="BISILE brand video">
+      <div className="bisile-image-frame aspect-[4/5] bg-[#111111] sm:aspect-[16/10] lg:aspect-[16/8]">
+        <video
+          className="h-full w-full scale-[0.94] object-cover"
+          muted
+          loop
+          playsInline
+          autoPlay
+          preload="metadata"
+          poster={storyPoster}
+        >
+          <source src={storyVideo} />
+        </video>
       </div>
     </section>
 
     <section className="bisile-shell bisile-section grid gap-6 md:grid-cols-3">
       <FadeIn>
         <div className="bisile-image-frame aspect-[3/4]">
-          <img src={fragranceImages.indoniyamanzi} alt="BISILE Indoniyamanzi perfume" className="h-full w-full object-contain p-12" loading="lazy" />
+          <OptimizedImage src={fragranceImages.indoniyamanzi} width={900} widths={[360, 540, 720, 900]} sizes="(min-width: 768px) 50vw, 100vw" alt="BISILE Indoniyamanzi perfume" className="h-full w-full object-contain p-12" />
         </div>
       </FadeIn>
       <FadeIn delay={90}>
@@ -92,7 +61,7 @@ export const About: React.FC = () => (
       </FadeIn>
       <FadeIn delay={160}>
         <div className="bisile-image-frame aspect-[3/4]">
-          <img src={hairImages.kinkyWig01} alt="BISILE hair collection" className="editorial-image" loading="lazy" />
+          <OptimizedImage src={hairImages.wigShowcase} width={1200} widths={[480, 720, 960, 1200, 1600]} sizes="(min-width: 768px) 50vw, 100vw" alt="BISILE hair collection" className="editorial-image" />
         </div>
       </FadeIn>
     </section>

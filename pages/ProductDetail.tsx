@@ -4,7 +4,9 @@ import { Link, useParams } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { ALL_HAIR_PRODUCTS, CONTACT_PHONE, FRAGRANCE_PRODUCTS, HAIR_PRODUCTS, LAYBYE_TERMS, ORDER_EMAIL, PRODUCTS, SERVICE_PRODUCTS, getWhatsAppUrl } from '../constants';
 import { FadeIn } from '../components/UI/FadeIn';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
 import { ProductCard } from '../components/UI/ProductCard';
+import { getImageUrl } from '../utils/images';
 import {
   BUNDLE_PRODUCTS,
   CLOSURE_PRODUCT,
@@ -96,7 +98,7 @@ export const ProductDetail: React.FC = () => {
   const [laundryAddOns, setLaundryAddOns] = useState<LaundryAddon[]>([]);
   const [openDetailSections, setOpenDetailSections] = useState<Record<string, boolean>>({ Description: true });
   const fallbackGallery = product?.category === 'wig' && product.notes.some((note) => /curl|waterwave|kinky/i.test(note)) ? hairGallery.curly : hairGallery.straight;
-  const galleryImages = product ? Array.from(new Set([product.image, ...(product.galleryImages ?? [product.secondaryImage, product.tertiaryImage, ...fallbackGallery])].filter((image): image is string => Boolean(image)))).slice(0, 4) : [];
+  const galleryImages = product ? Array.from(new Set([product.image, ...(product.galleryImages ?? [product.secondaryImage, product.tertiaryImage, ...fallbackGallery])].filter((image): image is string => Boolean(image)).map((image) => getImageUrl(image)))).slice(0, 4) : [];
   const lightboxImageCount = galleryImages.length;
 
   useEffect(() => {
@@ -160,7 +162,7 @@ export const ProductDetail: React.FC = () => {
     const title = `${product.name} | BISILE`;
     const description = `${product.subtitle}. ${product.description}`;
     const productImages = Array.from(new Set([product.image, ...(product.galleryImages ?? [product.secondaryImage, product.tertiaryImage])].filter((image): image is string => Boolean(image))));
-    const imageUrl = new URL(product.image, window.location.origin).toString();
+    const imageUrl = new URL(getImageUrl(product.image), window.location.origin).toString();
 
     document.title = title;
 
@@ -192,7 +194,7 @@ export const ProductDetail: React.FC = () => {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.name,
-      image: productImages.map((image) => new URL(image, window.location.origin).toString()),
+      image: productImages.map((image) => new URL(getImageUrl(image), window.location.origin).toString()),
       description,
       brand: { '@type': 'Brand', name: 'BISILE' },
       category: product.collection,
@@ -271,8 +273,11 @@ export const ProductDetail: React.FC = () => {
                   className="group relative block h-full w-full overflow-hidden text-left"
                   aria-label={`Open ${product.name} image ${index + 1}`}
                 >
-                  <img
+                  <OptimizedImage
                     src={image}
+                    width={index === 0 ? 1400 : 900}
+                    widths={index === 0 ? [640, 960, 1280, 1600] : [360, 540, 720, 960]}
+                    sizes={index === 0 ? '(min-width: 1024px) 54vw, 100vw' : '(min-width: 1024px) 27vw, 50vw'}
                     alt={index === 0 ? product.name : `${product.name} detail ${index + 1}`}
                     className={`h-full w-full transition-transform duration-500 group-hover:scale-[1.025] ${product.imageFit === 'contain' && index === 0 ? 'object-contain p-12 md:p-16 lg:p-20' : 'editorial-image object-cover'}`}
                   />
@@ -508,8 +513,11 @@ export const ProductDetail: React.FC = () => {
               <ChevronLeft size={24} strokeWidth={1.25} />
             </button>
 
-            <img
+            <OptimizedImage
               src={galleryImages[selectedImage]}
+              width={1800}
+              widths={[720, 960, 1280, 1600, 2000]}
+              sizes="100vw"
               alt={`${product.name} enlarged view ${selectedImage + 1}`}
               className="max-h-full max-w-full object-contain"
             />
@@ -533,7 +541,7 @@ export const ProductDetail: React.FC = () => {
                 className={`h-12 w-12 shrink-0 overflow-hidden border ${index === selectedImage ? 'border-primary' : 'border-transparent'}`}
                 aria-label={`View image ${index + 1}`}
               >
-                <img src={image} alt="" className={`h-full w-full ${product.imageFit === 'contain' && index === 0 ? 'object-contain p-1' : 'object-cover'}`} />
+                <OptimizedImage src={image} width={120} widths={[120, 180, 240]} sizes="48px" alt="" className={`h-full w-full ${product.imageFit === 'contain' && index === 0 ? 'object-contain p-1' : 'object-cover'}`} />
               </button>
             ))}
           </div>

@@ -5,8 +5,8 @@ import { paystackRequest, toPaystackSubunit } from '../lib/paystack-service.mjs'
 const shippingPartners = [
   { id: 'pudo', name: 'Pudo', price: 89 },
   { id: 'courier-guy', name: 'The Courier Guy', price: 119 },
-  { id: 'paxi', name: 'PAXI', price: 110 },
-  { id: 'postnet', name: 'PostNet to PostNet', price: 120 },
+  { id: 'fastway', name: 'Fastway', price: 99 },
+  { id: 'postnet', name: 'PostNet', price: 129 },
 ];
 
 const getShippingPartner = (id) => shippingPartners.find((option) => option.id === id) || shippingPartners[0];
@@ -71,7 +71,7 @@ export const handler = async (event) => {
     };
 
     const orderResult = await trusted.db.collection(collectionNames.orders).insertOne(orderDoc);
-    const callbackUrl = `${clientUrl}/#/payment/success?order=${encodeURIComponent(orderNumber)}&reference=${encodeURIComponent(paystackReference)}`;
+    const callbackUrl = `${clientUrl}/#/order-complete?order=${encodeURIComponent(orderNumber)}&reference=${encodeURIComponent(paystackReference)}`;
 
     const paystackPayload = await paystackRequest('/transaction/initialize', {
       method: 'POST',
@@ -102,15 +102,17 @@ export const handler = async (event) => {
     );
 
     return json(200, {
+      success: true,
       url: paystackPayload.data?.authorization_url,
+      authorization_url: paystackPayload.data?.authorization_url,
       authorizationUrl: paystackPayload.data?.authorization_url,
+      access_code: paystackPayload.data?.access_code,
       accessCode: paystackPayload.data?.access_code,
       reference: paystackPayload.data?.reference || paystackReference,
       orderNumber,
       orderId: String(orderResult.insertedId),
     });
   } catch (error) {
-    return json(error.statusCode || 500, { error: error.message || 'Paystack checkout failed' });
+    return json(error.statusCode || 500, { success: false, message: error.message || 'Paystack checkout failed', error: error.message || 'Paystack checkout failed' });
   }
 };
-

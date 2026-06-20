@@ -10,8 +10,11 @@ const initializePaystackCheckout = async (req: any, res: any) => {
   const order = await createPendingOrder(req.body, calculated);
   const transaction = await createPaystackTransaction(order);
   res.json({
+    success: true,
     url: transaction.authorization_url,
+    authorization_url: transaction.authorization_url,
     authorizationUrl: transaction.authorization_url,
+    access_code: transaction.access_code,
     accessCode: transaction.access_code,
     reference: transaction.reference,
     orderNumber: order.orderNumber,
@@ -23,7 +26,26 @@ checkoutRoutes.post('/create-paystack-transaction', rejectPriceFields, validate(
 checkoutRoutes.post('/create-session', rejectPriceFields, validate(checkoutSchema), initializePaystackCheckout);
 checkoutRoutes.post('/verify-paystack-transaction', async (req, res) => {
   const reference = String(req.body?.reference || '').trim();
-  if (!reference) return res.status(400).json({ error: 'Paystack reference is required' });
+  if (!reference) return res.status(400).json({ success: false, message: 'Paystack reference is required', error: 'Paystack reference is required' });
   const { transaction, order } = await verifyPaystackTransaction(reference);
-  res.json({ status: transaction.status, reference, orderNumber: order?.orderNumber || transaction.metadata?.orderNumber || null });
+  if (transaction.status === 'success' && !order) {
+    return res.status(404).json({
+      success: false,
+      status: transaction.status,
+      reference,
+      message: 'Verified payment succeeded, but the matching BISILE order was not found.',
+    });
+  }
+
+  res.json({
+    success: true,
+    status: transaction.status,
+    reference,
+    orderNumber: order?.orderNumber || transaction.metadata?.orderNumber || null,
+    customerName: order?.customerInfo?.fullName || transaction.metadata?.customerName || null,
+    orderTotal: order?.totalAmount || null,
+    currency: order?.currency || transaction.currency || 'ZAR',
+    shippingOption: order?.shippingPartner?.name || order?.shippingPartner?.id || transaction.metadata?.shippingPartner || null,
+    paymentStatus: order?.paymentStatus || transaction.status,
+  });
 });

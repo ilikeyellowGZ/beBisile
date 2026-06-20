@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --bisile-dark: #2A2114;
   --bisile-black: #111111;
@@ -57,6 +61,15 @@ a {
 :focus-visible {
   outline: 1px solid var(--bisile-gold);
   outline-offset: 4px;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .editorial-image {

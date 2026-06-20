@@ -10,11 +10,20 @@ export const checkoutItemSchema = z.object({
 const shippingPartners = [
   { id: 'pudo', name: 'Pudo', price: 89 },
   { id: 'courier-guy', name: 'The Courier Guy', price: 119 },
-  { id: 'paxi', name: 'PAXI', price: 110 },
-  { id: 'postnet', name: 'PostNet to PostNet', price: 120 }
+  { id: 'fastway', name: 'Fastway', price: 99 },
+  { id: 'postnet', name: 'PostNet', price: 129 }
 ];
 
 const getShippingPartner = (id?: string) => shippingPartners.find((option) => option.id === id) || shippingPartners[0];
+const productLookup = (productId: string) => ({
+  $or: [
+    ...(productId.match(/^[a-f\d]{24}$/i) ? [{ _id: productId }] : []),
+    { id: productId },
+    { slug: productId },
+    { legacyId: productId },
+    { sku: productId },
+  ],
+});
 
 export const checkoutSchema = z.object({
   items: z.array(checkoutItemSchema).min(1),
@@ -36,7 +45,7 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
   const trustedItems = [];
 
   for (const item of input.items) {
-    const product = await Product.findById(item.productId);
+    const product = await Product.findOne(productLookup(item.productId));
     if (!product || product.isActive === false || product.isArchived === true) throw Object.assign(new Error('Product is not available'), { statusCode: 400 });
     const productStock = Number(product.stock ?? 0);
     if (productStock <= 0 || item.quantity > productStock) throw Object.assign(new Error(`${product.name} does not have enough stock`), { statusCode: 400 });

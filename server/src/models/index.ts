@@ -2,8 +2,16 @@ import mongoose, { Schema } from 'mongoose';
 
 const timestamps = { timestamps: true };
 
+export const User = mongoose.model('User', new Schema({
+  fullName: String,
+  email: { type: String, lowercase: true, index: true },
+  role: String,
+  isActive: { type: Boolean, default: true }
+}, timestamps));
+
 export const Admin = mongoose.model('Admin', new Schema({
   fullName: { type: String, required: true },
+  username: { type: String, lowercase: true, trim: true, index: true },
   email: { type: String, required: true, unique: true, lowercase: true, index: true },
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ['owner', 'manager', 'support'], required: true },
@@ -111,6 +119,39 @@ export const Payment = mongoose.model('Payment', new Schema({
   receiptUrl: String,
   refundedAmount: { type: Number, default: 0 }
 }, timestamps));
+
+export const ShippingOption = mongoose.model('ShippingOption', new Schema({
+  id: { type: String, required: true, unique: true, index: true },
+  name: String,
+  price: Number,
+  description: String,
+  isActive: { type: Boolean, default: true }
+}, timestamps));
+
+export const EmailLog = mongoose.model('EmailLog', new Schema({
+  provider: String,
+  type: String,
+  to: String,
+  from: String,
+  subject: String,
+  status: String,
+  providerResponse: Schema.Types.Mixed
+}, timestamps));
+
+export const Upload = mongoose.model('Upload', new Schema({
+  localPath: String,
+  cloudinaryUrl: String,
+  publicId: String,
+  resourceType: String,
+  folder: String
+}, timestamps));
+
+export const AdminLog = mongoose.model('AdminLog', new Schema({
+  type: String,
+  message: String,
+  detail: Schema.Types.Mixed,
+  createdAt: { type: Date, default: Date.now }
+}));
 
 export const Refund = mongoose.model('Refund', new Schema({
   orderId: { type: Schema.Types.ObjectId, ref: 'Order' },

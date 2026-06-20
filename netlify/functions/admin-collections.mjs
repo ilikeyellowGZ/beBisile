@@ -15,6 +15,11 @@ const resourceConfig = {
   auditLogs: { collection: collectionNames.auditLogs, roles: ['owner'] },
   storeSettings: { collection: collectionNames.storeSettings, roles: ['owner'] },
   admins: { collection: collectionNames.admins, roles: ['owner'] },
+  users: { collection: collectionNames.users, roles: ['owner'] },
+  shippingOptions: { collection: collectionNames.shippingOptions, roles: ['owner', 'manager'] },
+  emailLogs: { collection: collectionNames.emailLogs, roles: ['owner', 'manager', 'support'] },
+  uploads: { collection: collectionNames.uploads, roles: ['owner', 'manager'] },
+  adminLogs: { collection: collectionNames.adminLogs, roles: ['owner'] },
 };
 
 const getResource = (event) => {
@@ -35,7 +40,7 @@ const sanitizeBody = (resource, body) => {
   delete next._id;
   if (resource === 'admins') {
     if (next.password) {
-      next.passwordHash = hashPassword(next.password);
+      next.passwordHash = hashPassword(next.password, 'bcrypt');
       delete next.password;
     }
   }

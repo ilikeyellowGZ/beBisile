@@ -3,6 +3,7 @@ import { ArrowRight, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { FadeIn } from '../components/UI/FadeIn';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
 import { ProductCard } from '../components/UI/ProductCard';
 import { ALL_HAIR_PRODUCTS, WIG_PRODUCTS } from '../constants';
 import { CLOSURE_PRODUCT, BUNDLE_PRODUCTS, HAIR_CATEGORY_LINKS, WIG_LAUNDRY_PRODUCT, WIG_LAUNDRY_SERVICE_PRICES, formatPrice } from '../data/hairCatalog';
@@ -83,7 +84,7 @@ export const Hair: React.FC = () => {
                 <article className="group flex h-full flex-col border-y bisile-rule py-5 transition-colors hover:border-[#8A6F35]/45">
                   <Link to={item.path} className="block">
                     <div className="bisile-image-frame">
-                      <img src={item.image} alt={item.label} className="editorial-image" />
+                      <OptimizedImage src={item.image} width={800} widths={[320, 480, 640, 800, 1000]} sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw" alt={item.label} className="editorial-image" />
                     </div>
                   </Link>
 

@@ -45,7 +45,7 @@ const paystackRequest = async <T>(path: string, init: RequestInit = {}) => {
 
 export const createPaystackTransaction = async (order: InstanceType<typeof Order>) => {
   const reference = makeReference(order.orderNumber);
-  const callbackUrl = `${env.CLIENT_URL}/#/payment/success?order=${encodeURIComponent(order.orderNumber)}&reference=${encodeURIComponent(reference)}`;
+  const callbackUrl = `${env.CLIENT_URL}/#/order-complete?order=${encodeURIComponent(order.orderNumber)}&reference=${encodeURIComponent(reference)}`;
   const payload = await paystackRequest<{ authorization_url: string; access_code: string; reference: string }>('/transaction/initialize', {
     method: 'POST',
     body: JSON.stringify({
@@ -124,4 +124,3 @@ export const markPaystackOrderPaid = async (transaction: PaystackTransaction) =>
 
   return order;
 };
-

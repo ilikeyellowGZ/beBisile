@@ -34,12 +34,13 @@ const perfumePicnic = packageImages.product06;
 const perfumeBottles = carouselImages.perfumeDisplay04;
 const perfumeFloral = fragranceImages.product05;
 const perfumeDiffuser = fragranceImages.product06;
-const perfumeWrapped = fragranceImages.product07;
-const hairStraight = hairImages.straightWig01;
-const hairCurly = hairImages.kinkyWig01;
-const laundryImage = hairImages.straightWig07;
+const perfumeWrapped = fragranceImages.customerCareInkanyezi;
+const discoverySetImage = fragranceImages.discoverySet;
+const hairStraight = hairImages.wigShowcase;
+const hairCurly = hairImages.wigShowcase;
+const laundryImage = hairImages.wigCleansing;
 
-export const PRODUCTS: Product[] = [
+const baseProducts: Product[] = [
   {
     id: 'indoniyamanzi',
     name: 'Indoniyamanzi',
@@ -202,10 +203,10 @@ export const PRODUCTS: Product[] = [
     price: 349.99,
     description: 'A fragrance journey inspired by nature\'s ability to nurture, restore, and breathe life into everything it touches. Each scent is crafted to ground your spirit, elevate your mood, and remind you of the beauty found in simplicity.',
     notes: ['Eau de Parfum', '6 x 10ml', '0.34 fl oz each'],
-    image: perfumePicnic,
-    secondaryImage: perfumeBottles,
-    tertiaryImage: perfumeIndoniyamanzi,
-    galleryImages: [perfumePicnic, perfumeBottles, perfumeIndoniyamanzi, perfumeHero],
+    image: discoverySetImage,
+    secondaryImage: discoverySetImage,
+    tertiaryImage: discoverySetImage,
+    galleryImages: [discoverySetImage],
     imageFit: 'cover',
     category: 'parfum',
     collection: 'fragrance',
@@ -226,7 +227,7 @@ export const PRODUCTS: Product[] = [
     description: '8 inch, 4x4 closure, natural black, 180% density, straight.',
     notes: ['Processed Virgin Hair', 'Natural Black', '180% Density'],
     image: hairStraight,
-    secondaryImage: hairImages.straightWig02,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
     isBestSeller: true,
@@ -266,7 +267,7 @@ export const PRODUCTS: Product[] = [
     description: '8 inch, 4x4 closure, glueless lace, bob straight, 180% density, natural black.',
     notes: ['Processed Virgin Hair', 'Bob Straight', 'Glueless Lace'],
     image: hairStraight,
-    secondaryImage: hairImages.straightWig04,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
     isNew: true,
@@ -293,7 +294,7 @@ export const PRODUCTS: Product[] = [
     description: '12 inch, 5x5 closure, HD lace, bob straight, 130% density, colour #4, blunt cut.',
     notes: ['Processed Virgin Hair', 'HD Lace', 'Colour #4'],
     image: hairStraight,
-    secondaryImage: hairImages.straightWig08,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
   },
@@ -319,7 +320,7 @@ export const PRODUCTS: Product[] = [
     description: '16 inch, 4x4 closure, glueless lace, natural black, 180% density, jerry curls.',
     notes: ['Processed Virgin Hair', 'Jerry Curls', 'Glueless Lace'],
     image: hairCurly,
-    secondaryImage: hairImages.curlyBundle01,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
   },
@@ -345,7 +346,7 @@ export const PRODUCTS: Product[] = [
     description: '12 inch, 5x5 closure, HD lace, bob straight, blunt cut, natural black, 180% density.',
     notes: ['Processed Virgin Hair', 'Premium Luxury', 'HD Lace'],
     image: hairStraight,
-    secondaryImage: hairImages.straightWig10,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
   },
@@ -371,7 +372,7 @@ export const PRODUCTS: Product[] = [
     description: '16 inch, 13x4 closure, HD lace, straight, 180% density, natural black, blunt cut.',
     notes: ['Processed Virgin Hair', 'Straight', 'Blunt Cut'],
     image: hairStraight,
-    secondaryImage: hairImages.straightWig11,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
   },
@@ -397,7 +398,7 @@ export const PRODUCTS: Product[] = [
     description: '12 inch, 13x4 closure, HD lace, bob straight, blunt cut, 130% density, ombre natural black roots and #4.',
     notes: ['Processed Virgin Hair', 'Ombre', 'Blunt Cut'],
     image: hairStraight,
-    secondaryImage: hairImages.kinkyWig02,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
   },
@@ -423,7 +424,7 @@ export const PRODUCTS: Product[] = [
     description: '20 inch, 13x4 closure, HD lace, straight, 180% density, ombre natural black and #30.',
     notes: ['Processed Virgin Hair', 'Ombre', 'Colour #30'],
     image: hairStraight,
-    secondaryImage: hairImages.straightWig06,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
   },
@@ -449,7 +450,7 @@ export const PRODUCTS: Product[] = [
     description: '18 inch, 13x4 closure, HD lace, kinky jerry curls, 200% density, natural black.',
     notes: ['Processed Virgin Hair', 'Kinky Jerry Curls', '200% Density'],
     image: hairCurly,
-    secondaryImage: hairImages.kinkyWig04,
+    secondaryImage: hairImages.wigShowcase,
     category: 'wig',
     collection: 'hair',
   },
@@ -592,7 +593,7 @@ export const PRODUCTS: Product[] = [
     description: 'Dye service for wigs or bundles.',
     notes: ['Customisation', 'Dye'],
     image: laundryImage,
-    secondaryImage: hairImages.curlyBundle02,
+    secondaryImage: laundryImage,
     category: 'laundry',
     collection: 'service',
   },
@@ -637,6 +638,19 @@ export const PRODUCTS: Product[] = [
   },
 ];
 
+export const PRODUCTS: Product[] = baseProducts.map((product) => {
+  if (product.category !== 'wig') return product;
+  const image = product.id === 'mvelwenhle' ? hairImages.mvelwenhle : hairImages.wigShowcase;
+
+  return {
+    ...product,
+    image,
+    secondaryImage: image,
+    tertiaryImage: undefined,
+    galleryImages: [image],
+  };
+});
+
 export const FRAGRANCE_PRODUCTS = PRODUCTS.filter((product) => product.collection === 'fragrance');
 export const WIG_PRODUCTS = PRODUCTS.filter((product) => product.collection === 'hair' && product.category === 'wig');
 export const HAIR_PRODUCTS = WIG_PRODUCTS;
@@ -655,8 +669,8 @@ export const DELIVERY_OPTIONS = [
 export const SHIPPING_PARTNERS = [
   { id: 'pudo', name: 'Pudo', price: 89, mark: 'PUDO', tone: '#8A6F35', description: 'Locker-to-locker delivery' },
   { id: 'courier-guy', name: 'The Courier Guy', price: 119, mark: 'CG', tone: '#5B3A24', description: 'Address courier, final quote may depend on delivery area' },
-  { id: 'paxi', name: 'PAXI', price: 110, mark: 'PAXI', tone: '#A3915D', description: 'PAXI parcel counter delivery' },
-  { id: 'postnet', name: 'PostNet to PostNet', price: 120, mark: 'PN', tone: '#2A2114', description: 'Branch-to-branch delivery' },
+  { id: 'fastway', name: 'Fastway', price: 99, mark: 'FW', tone: '#A3915D', description: 'Fastway courier delivery' },
+  { id: 'postnet', name: 'PostNet', price: 129, mark: 'PN', tone: '#2A2114', description: 'PostNet delivery service' },
 ];
 
 export const LAYBYE_TERMS = [

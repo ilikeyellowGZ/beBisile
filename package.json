@@ -5,12 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "npm --prefix server run dev",
+    "dev:netlify": "netlify dev",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:admin": "node scripts/seed-admin.mjs",
+    "seed:catalog": "node scripts/seed-catalog.mjs",
+    "test:db": "node scripts/test-db.mjs",
+    "test:resend": "node scripts/test-resend.mjs",
+    "test:paystack": "node scripts/test-paystack.mjs",
+    "migrate:cloudinary": "node scripts/migrate-images-to-cloudinary.mjs"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "gsap": "^3.15.0",
     "lucide-react": "^0.562.0",
     "mongodb": "^7.2.0",
@@ -21,6 +30,9 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

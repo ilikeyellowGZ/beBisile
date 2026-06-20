@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import { Instagram } from 'lucide-react';
 import { CONTACT_EMAIL, CONTACT_PHONE, INSTAGRAM_URL, PINTEREST_URL, getWhatsAppUrl } from '../../constants';
 import { brandImages } from '../../src/assets/images';
+import { OptimizedImage } from '../UI/OptimizedImage';
 
 export const Footer: React.FC = () => (
   <footer className="relative z-10 border-t border-[#A3915D]/24 bg-[#2A2114] px-6 pb-8 pt-14 text-[#F7F4EF]">
     <div className="w-full">
       <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[1.1fr_2.6fr]">
           <div>
-            <Link to="/" className="mb-6 inline-block"><img src={brandImages.logo} alt="BISILE - Be Luxury" className="h-10 w-auto object-contain brightness-0 invert" /></Link>
+            <Link to="/" className="mb-6 inline-block"><OptimizedImage src={brandImages.logo} width={220} widths={[120, 180, 220, 320]} sizes="160px" alt="BISILE - Be Luxury" className="h-10 w-auto object-contain brightness-0 invert" /></Link>
           <p className="max-w-xs font-inter text-sm font-light leading-6 text-[#E9E6DF]/70">
             Bhelekazi Hair Collection<br />IMVELO Collection<br />Luxury Hair Laundry service
           </p>

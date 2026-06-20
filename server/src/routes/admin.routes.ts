@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { requireAdminManagement, requirePricePermission, requireRefundPermission, requireRole } from '../middleware/role.middleware.js';
-import { Admin, AuditLog, Category, ContactMessage, Customer, DiscountCode, InventoryLog, NewsletterSubscriber, Order, Payment, Product, Refund, Review, StoreSettings } from '../models/index.js';
+import { Admin, AdminLog, AuditLog, Category, ContactMessage, Customer, DiscountCode, EmailLog, InventoryLog, NewsletterSubscriber, Order, Payment, Product, Refund, Review, ShippingOption, StoreSettings, Upload, User } from '../models/index.js';
 import { writeAuditLog } from '../services/audit.service.js';
 
 export const adminRoutes = Router();
@@ -63,6 +63,11 @@ crud('inventory', InventoryLog, ['owner', 'manager']);
 crud('audit-logs', AuditLog, ['owner']);
 crud('settings', StoreSettings, ['owner']);
 crud('admins', Admin, ['owner']);
+crud('users', User, ['owner']);
+crud('shipping-options', ShippingOption, ['owner', 'manager']);
+crud('email-logs', EmailLog, ['owner', 'manager', 'support']);
+crud('uploads', Upload, ['owner', 'manager']);
+crud('admin-logs', AdminLog, ['owner']);
 
 adminRoutes.patch('/refunds/:id/approve', requireRefundPermission, async (req, res) => res.json({ refund: await Refund.findByIdAndUpdate(req.params.id, { status: 'approved' }, { new: true }) }));
 adminRoutes.patch('/admins/:id', requireAdminManagement, async (req, res) => res.json({ admin: await Admin.findByIdAndUpdate(req.params.id, req.body, { new: true }) }));

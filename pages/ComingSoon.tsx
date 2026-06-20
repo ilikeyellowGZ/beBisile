@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FadeIn } from '../components/UI/FadeIn';
+import { OptimizedImage } from '../components/UI/OptimizedImage';
 
 interface ComingSoonProps {
   title: string;
@@ -27,7 +28,7 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({ title, eyebrow, body, im
 
         <FadeIn delay={90}>
           <div className="bisile-image-frame min-h-[360px] md:min-h-[520px]">
-            <img src={image} alt={title} className="editorial-image h-full w-full object-cover" />
+            <OptimizedImage src={image} width={1200} widths={[480, 720, 960, 1200, 1600]} sizes="(min-width: 768px) 55vw, 100vw" alt={title} className="editorial-image h-full w-full object-cover" />
           </div>
         </FadeIn>
       </div>
