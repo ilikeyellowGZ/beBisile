@@ -2,14 +2,31 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getImageSrcSet, getImageUrl, getVideoUrl } from '../../utils/images';
 
-const heroVideo = getVideoUrl('/videos/hero/hero2 - Trim.mp4', 1600);
+const heroVideos = [
+  {
+    src: getVideoUrl('/videos/IMG_1892.mov', 1600),
+    label: 'BISILE hero video one',
+  },
+  {
+    src: getVideoUrl('/videos/IMG_1865.mov', 1600),
+    label: 'BISILE hero video two',
+  },
+];
 const heroPoster = getImageUrl('/media/image 33.png', { width: 1600 });
 const heroPosterSrcSet = getImageSrcSet('/media/image 33.png', [640, 960, 1280, 1600, 1920]);
 
 export const HeroSplit: React.FC = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const [canLoadVideo, setCanLoadVideo] = useState(false);
-  const [videoFailed, setVideoFailed] = useState(false);
+  const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+  const [failedVideoIndexes, setFailedVideoIndexes] = useState<number[]>([]);
+
+  const availableVideoIndexes = heroVideos
+    .map((_, index) => index)
+    .filter((index) => !failedVideoIndexes.includes(index));
+  const activeAvailableIndex = availableVideoIndexes.includes(activeVideoIndex)
+    ? activeVideoIndex
+    : availableVideoIndexes[0] ?? 0;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 768px)');
@@ -21,13 +38,32 @@ export const HeroSplit: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!canLoadVideo || videoFailed) return;
+    if (!canLoadVideo || availableVideoIndexes.length === 0) return;
 
-    const video = videoRef.current;
+    videoRefs.current.forEach((video, index) => {
+      if (!video || index === activeAvailableIndex) return;
+      video.pause();
+    });
+
+    const video = videoRefs.current[activeAvailableIndex];
+    if (video) video.currentTime = 0;
     void video?.play().catch((error) => {
       if (import.meta.env.DEV) console.warn('BISILE hero video could not autoplay.', error);
     });
-  }, [canLoadVideo, videoFailed]);
+  }, [activeAvailableIndex, availableVideoIndexes.length, canLoadVideo]);
+
+  useEffect(() => {
+    if (!canLoadVideo || availableVideoIndexes.length < 2) return;
+
+    const timer = window.setInterval(() => {
+      setActiveVideoIndex((current) => {
+        const currentPosition = availableVideoIndexes.indexOf(current);
+        return availableVideoIndexes[(currentPosition + 1) % availableVideoIndexes.length];
+      });
+    }, 9000);
+
+    return () => window.clearInterval(timer);
+  }, [availableVideoIndexes, canLoadVideo]);
 
   return (
     <section id="bisile-hero" className="relative h-screen min-h-[100svh] w-full overflow-hidden bg-[#2A2114] text-[#F7F4EF]" aria-label="BISILE video hero" data-navbar-theme="hero">
@@ -40,24 +76,30 @@ export const HeroSplit: React.FC = () => {
         className="absolute inset-0 h-full w-full object-cover"
         fetchPriority="high"
       />
-      {canLoadVideo && !videoFailed && (
-        <video
-          ref={videoRef}
-          className="absolute inset-0 hidden h-full w-full object-cover md:block"
-          muted
-          loop
-          playsInline
-          autoPlay
-          preload="metadata"
-          poster={heroPoster}
-          onError={(event) => {
-            setVideoFailed(true);
-            if (import.meta.env.DEV) console.warn('BISILE hero video failed to load.', event.currentTarget.currentSrc || heroVideo);
-          }}
-        >
-          <source src={heroVideo} type="video/mp4" />
-        </video>
-      )}
+      {canLoadVideo && availableVideoIndexes.length > 0 && heroVideos.map((video, index) => (
+        failedVideoIndexes.includes(index) ? null : (
+          <video
+            key={video.src}
+            ref={(node) => {
+              videoRefs.current[index] = node;
+            }}
+            className={`absolute inset-0 hidden h-full w-full object-cover transition-opacity duration-1000 md:block ${index === activeAvailableIndex ? 'opacity-100' : 'opacity-0'}`}
+            muted
+            loop
+            playsInline
+            autoPlay={index === activeAvailableIndex}
+            preload={index === activeAvailableIndex ? 'auto' : 'metadata'}
+            poster={heroPoster}
+            aria-label={video.label}
+            onError={(event) => {
+              setFailedVideoIndexes((current) => current.includes(index) ? current : [...current, index]);
+              if (import.meta.env.DEV) console.warn('BISILE hero video failed to load.', event.currentTarget.currentSrc || video.src);
+            }}
+          >
+            <source src={video.src} />
+          </video>
+        )
+      ))}
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0.68)_0%,rgba(17,17,17,0.38)_42%,rgba(17,17,17,0.78)_100%)]" />
       <div className="absolute inset-0 bg-black/28" />
       <div className="absolute inset-x-0 bottom-0 z-10 px-6 pb-14 pt-28 sm:px-10 md:pb-20 lg:px-16">

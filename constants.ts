@@ -669,15 +669,9 @@ const baseProducts: Product[] = [
   },
 ];
 
-const restoredWigImages: Partial<Record<string, string>> = {
-  thabitha: hairImages.straightWig11,
-  nokhwezi: hairImages.straightWig01,
-  khwezilokusa: hairImages.straightWig11,
-};
-
 export const PRODUCTS: Product[] = baseProducts.map((product) => {
   if (product.category !== 'wig') return product;
-  const image = restoredWigImages[product.id] ?? (product.id === 'mvelwenhle' ? hairImages.mvelwenhle : hairImages.wigShowcase);
+  const image = product.id === 'mvelwenhle' ? hairImages.mvelwenhle : hairImages.wigImg;
 
   return {
     ...product,

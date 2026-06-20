@@ -96,6 +96,7 @@ const perfumeSitheloUrl = asset('images/products/perfume-sithelo.png', perfumeSi
 const fragranceXdozUrl = getImageUrl('folder/bisileimages/XDOZ5737.JPG', fragranceXdoz);
 const discoverySetRequestedUrl = publicAsset('/media/WhatsApp Image 2026-06-17 at 01.44.33.jpeg');
 const carePackagePouchesUrl = publicAsset('/media/ChatGPT Image Jun 20, 2026, 03_05_17 PM (2).png');
+const wigImgUrl = publicAsset('/WigImg.jpeg');
 const wigLaundryWashUrl = publicAsset('/media/ChatGPT Image Jun 20, 2026, 03_05_17 PM (1).png');
 const wigLaundryTowelUrl = publicAsset('/media/WhatsApp Image 2026-06-15 at 21.57.58.jpeg');
 const wigLaundryLaceUrl = publicAsset('/media/WhatsApp Image 2026-06-15 at 21.57.59.jpeg');
@@ -143,6 +144,7 @@ export const fragranceImages = {
 export const hairImages = {
   wigShowcase: bhelekaziWigRequestedUrl,
   wigShowcaseLegacy: bisileBhelekaziWigShowcaseUrl,
+  wigImg: wigImgUrl,
   mvelwenhle: mvelwenhleHairUrl,
   wigCleansing: bisileWigCleansingUrl,
   wigLaundryWash: wigLaundryWashUrl,
