@@ -26,7 +26,7 @@ authRoutes.post('/login', validate(loginSchema), async (req, res) => {
   admin.lastLoginAt = new Date();
   await admin.save();
   await writeAuditLog(req, { adminId: String(admin._id), action: 'admin_login', entityType: 'admin', entityId: admin._id });
-  const token = jwt.sign({ sub: String(admin._id), email: admin.email, role: admin.role }, env.JWT_SECRET, { expiresIn: '12h' });
+  const token = jwt.sign({ sub: String(admin._id), email: admin.email, role: admin.role }, env.JWT_SECRET, { expiresIn: '15m' });
   res.json({ token, admin: { id: admin._id, fullName: admin.fullName, email: admin.email, role: admin.role } });
 });
 

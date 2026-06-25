@@ -28,6 +28,7 @@ const envSchema = z.object({
   MONGODB_DATABASE: z.string().optional(),
   DATABASE_URL: z.string().optional(),
   JWT_SECRET: z.string().min(32),
+  BACKEND_WAKE_TOKEN: z.string().optional(),
   PAYSTACK_SECRET_KEY: z.string().min(1),
   FRONTEND_URL: z.string().url().default('http://localhost:5173'),
   TEMP_NETLIFY_URL: z.string().url().or(z.literal('')).optional(),

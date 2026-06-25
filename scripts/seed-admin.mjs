@@ -6,12 +6,12 @@ loadEnv();
 
 const uri = requireEnv('MONGODB_URI');
 const dbName = getDatabaseName();
-const username = process.env.SEED_ADMIN_USERNAME || 'admin';
-const email = process.env.SEED_ADMIN_EMAIL || 'admin@bisile.local';
-const password = process.env.SEED_ADMIN_PASSWORD || 'password123';
+const username = process.env.SEED_ADMIN_USERNAME || 'bisile';
+const email = process.env.SEED_ADMIN_EMAIL || 'studio@bisile.co.za';
+const password = process.env.SEED_ADMIN_PASSWORD || 'Bisi@2026!';
 
-if (password === 'password123' && process.env.NODE_ENV === 'production') {
-  throw new Error('Refusing to seed the development admin password in production.');
+if (password === 'Bisi@2026!' && process.env.NODE_ENV === 'production') {
+  throw new Error('Set SEED_ADMIN_PASSWORD before seeding an admin in production.');
 }
 
 const client = new MongoClient(uri);
@@ -38,7 +38,7 @@ try {
       role: 'owner',
       avatar: '',
       isActive: true,
-      mustChangePassword: password === 'password123',
+      mustChangePassword: password === 'Bisi@2026!',
       createdAt: new Date(),
       updatedAt: new Date(),
     });

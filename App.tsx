@@ -24,6 +24,7 @@ import { PaymentSuccess } from './pages/PaymentSuccess';
 import { Dashboard } from './pages/Dashboard';
 import { NotFound } from './pages/NotFound';
 import { backgroundImages, fragranceImages, packageImages } from './src/assets/images';
+import { wakeBackend } from './utils/backendWake';
 
 // Scroll to top on route change wrapper, but allow section scrolling via state
 const ScrollToTop = () => {
@@ -40,6 +41,10 @@ const ScrollToTop = () => {
 };
 
 const App: React.FC = () => {
+  React.useEffect(() => {
+    void wakeBackend();
+  }, []);
+
   return (
     <BrowserRouter>
       <SeoManager />
@@ -72,7 +77,7 @@ const App: React.FC = () => {
               <Route path="/payment" element={<Payment />} />
               <Route path="/order-complete" element={<PaymentSuccess />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/bisile-studio" element={<Dashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

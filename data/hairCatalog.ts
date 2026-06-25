@@ -15,7 +15,7 @@ export const HAIR_CATEGORY_LINKS = [
     label: 'Bhelekazi Wigs',
     path: '/hair/wigs',
     description: 'Everyday luxury, soft luxurious quality and premium luxury wigs crafted with refined BISILE finishes.',
-    image: hairImages.mvelwenhle,
+    image: hairImages.straightWig04,
     cta: 'Shop Wigs',
     options: ['Everyday Luxury', 'Soft Luxurious Quality', 'Premium Luxury'],
   },

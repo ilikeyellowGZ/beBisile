@@ -71,7 +71,7 @@ export const handler = async (event) => {
     };
 
     const orderResult = await trusted.db.collection(collectionNames.orders).insertOne(orderDoc);
-    const callbackUrl = `${clientUrl}/#/order-complete?order=${encodeURIComponent(orderNumber)}&reference=${encodeURIComponent(paystackReference)}`;
+    const callbackUrl = `${clientUrl}/order-complete?order=${encodeURIComponent(orderNumber)}&reference=${encodeURIComponent(paystackReference)}`;
 
     const paystackPayload = await paystackRequest('/transaction/initialize', {
       method: 'POST',

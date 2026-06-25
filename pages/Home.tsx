@@ -319,26 +319,21 @@ export const Home: React.FC = () => {
           <FadeIn key={item.title} delay={index * 90}>
             <Link to={item.path} className="group block">
               <div className={`bisile-image-frame ${index === 0 ? 'aspect-square' : 'aspect-square md:aspect-[2/1]'}`}>
-                <OptimizedImage src={item.image} width={1100} widths={[480, 720, 960, 1200]} sizes="(min-width: 768px) 50vw, 100vw" alt={item.title} className="editorial-image" />
+                <OptimizedImage
+                  src={item.image}
+                  width={1100}
+                  widths={[480, 720, 960, 1200]}
+                  sizes="(min-width: 768px) 50vw, 100vw"
+                  alt={item.title}
+                  className={`editorial-image ${item.title === 'Beauty maintenance' ? '!object-center' : ''}`}
+                  style={item.title === 'Beauty maintenance' ? { objectPosition: 'center center' } : undefined}
+                />
               </div>
               <h2 className="mt-4 font-inter text-sm font-normal">{item.title}</h2>
               <p className="mt-1 max-w-xl font-inter text-sm font-light leading-6 text-primary/60">{item.body}</p>
             </Link>
           </FadeIn>
         ))}
-      </section>
-
-      <section className="bisile-shell bisile-section">
-        <div className="mb-8 flex items-end justify-between gap-6">
-          <FadeIn>
-            <p className="bisile-kicker mb-3">Hair collection</p>
-            <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">Processed virgin hair.</h2>
-          </FadeIn>
-          <Link to="/hair" className="bisile-link hidden md:inline-flex">View hair <ArrowRight size={15} strokeWidth={1.3} /></Link>
-        </div>
-        <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-          {landingHairProducts.map((product, index) => <FadeIn key={product.id} delay={index * 60}><ProductCard product={product} /></FadeIn>)}
-        </div>
       </section>
 
       <section id="our-story" className="bisile-shell bisile-section grid gap-10 border-y bisile-rule md:grid-cols-[0.88fr_1.12fr] md:items-center">
@@ -355,6 +350,19 @@ export const Home: React.FC = () => {
             <OptimizedImage src={backgroundImages.presence} width={1200} widths={[480, 720, 960, 1200, 1600]} sizes="(min-width: 768px) 56vw, 100vw" alt="BISILE product arrangement" className="editorial-image" />
           </div>
         </FadeIn>
+      </section>
+
+      <section className="bisile-shell bisile-section">
+        <div className="mb-8 flex items-end justify-between gap-6">
+          <FadeIn>
+            <p className="bisile-kicker mb-3">Hair collection</p>
+            <h2 className="font-inter text-3xl font-light leading-tight md:text-5xl">Processed virgin hair.</h2>
+          </FadeIn>
+          <Link to="/hair" className="bisile-link hidden md:inline-flex">View hair <ArrowRight size={15} strokeWidth={1.3} /></Link>
+        </div>
+        <div className="grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+          {landingHairProducts.map((product, index) => <FadeIn key={product.id} delay={index * 60}><ProductCard product={product} /></FadeIn>)}
+        </div>
       </section>
 
       <section className="bisile-shell bisile-section">

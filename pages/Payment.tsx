@@ -5,13 +5,13 @@ import { useCart } from '../CartContext';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
 import { SHIPPING_PARTNERS } from '../constants';
 import { readJsonResponse } from '../utils/http';
+import { ensureBackendReady, getBackendWakeToken, wakeBackend } from '../utils/backendWake';
 import type { CheckoutDetails } from '../types';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
 const API_URL = import.meta.env.VITE_PAYSTACK_CHECKOUT_API_URL
   || import.meta.env.VITE_CHECKOUT_API_URL
-  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/create-paystack-transaction` : '/api/checkout/create-paystack-transaction');
-const API_HEALTH_URL = API_BASE_URL ? `${API_BASE_URL}/api/health` : '/api/health';
+  || (API_BASE_URL ? `${API_BASE_URL}/api/payments/initialize` : '/api/payments/initialize');
 const SERVER_WARMUP_SECONDS = 60;
 
 type PaystackCheckoutResponse = {
@@ -51,14 +51,10 @@ export const Payment: React.FC = () => {
     if (!items.length || !details) return;
 
     const pingServer = async () => {
-      try {
-        const response = await fetch(API_HEALTH_URL, { cache: 'no-store' });
-        if (response.ok) {
-          setServerReady(true);
-          setWarmupSeconds(0);
-        }
-      } catch {
-        // Render may still be waking up. The visible countdown keeps the customer informed.
+      const ready = await wakeBackend(1);
+      if (ready) {
+        setServerReady(true);
+        setWarmupSeconds(0);
       }
     };
 
@@ -97,12 +93,21 @@ export const Payment: React.FC = () => {
   }
 
   const startPaystackCheckout = async () => {
+    if (loading) return;
     setLoading(true);
     setError('');
     try {
+      await ensureBackendReady();
+      setServerReady(true);
+      setWarmupSeconds(0);
+
+      const wakeToken = getBackendWakeToken();
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(wakeToken ? { Authorization: `Bearer ${wakeToken}` } : {}),
+        },
         body: JSON.stringify({
           customerInfo: {
             fullName: details.fullName,

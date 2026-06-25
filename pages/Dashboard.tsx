@@ -8,6 +8,18 @@ import { OptimizedImage } from '../components/UI/OptimizedImage';
 
 type AdminSection = 'overview' | 'products' | 'categories' | 'orders' | 'customers' | 'payments' | 'refunds' | 'inventory' | 'reviews' | 'discounts' | 'messages' | 'newsletter' | 'admins' | 'audit' | 'settings';
 type ApiMap = Record<string, any[]>;
+type ProductDraft = {
+  name: string;
+  slug: string;
+  description: string;
+  price: string;
+  stock: string;
+  sku: string;
+  image: string;
+  tags: string;
+  isFeatured: boolean;
+  isActive: boolean;
+};
 
 const currency = new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' });
 const dateFormatter = new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', timeStyle: 'short' });
@@ -85,7 +97,34 @@ const statusTone = (status: string) => {
   return 'bg-[#f7f5f1] text-primary/60';
 };
 
-const getToken = () => localStorage.getItem('bisileAdminToken') ?? localStorage.getItem('adminToken') ?? '';
+const ADMIN_TOKEN_KEY = 'bisileAdminToken';
+
+const decodeJwtPayload = (token: string): { exp?: number } | null => {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')));
+  } catch {
+    return null;
+  }
+};
+
+const clearStoredToken = () => {
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem('adminToken');
+};
+
+const getToken = () => {
+  const token = sessionStorage.getItem(ADMIN_TOKEN_KEY) ?? localStorage.getItem(ADMIN_TOKEN_KEY) ?? localStorage.getItem('adminToken') ?? '';
+  const expiresAt = decodeJwtPayload(token)?.exp;
+  if (expiresAt && expiresAt * 1000 <= Date.now()) {
+    clearStoredToken();
+    return '';
+  }
+  return token;
+};
 
 const apiFetch = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
@@ -103,6 +142,32 @@ const apiFetch = async (url: string, options: RequestInit = {}) => {
 const normalizeOrderItemId = (item: any) => String(item.productId || item.variantId || item.sku || item.id || normalizeOrderItemName(item));
 const normalizeOrderItemName = (item: any) => item.productName || item.name || item.id || 'Product';
 const normalizeOrderTotal = (order: any) => Number(order.totalAmount ?? order.total ?? 0);
+const getProductDocumentId = (row: any) => String(row._id || row.id || '');
+const slugifyProduct = (value: string) => value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const emptyProductDraft = (): ProductDraft => ({
+  name: '',
+  slug: '',
+  description: '',
+  price: '',
+  stock: '0',
+  sku: '',
+  image: '',
+  tags: '',
+  isFeatured: false,
+  isActive: true,
+});
+const draftFromProduct = (product: any): ProductDraft => ({
+  name: product.name || '',
+  slug: product.slug || '',
+  description: product.description || product.shortDescription || '',
+  price: product.price == null ? '' : String(product.price),
+  stock: product.stock == null ? '0' : String(product.stock),
+  sku: product.sku || '',
+  image: product.image || product.images?.[0] || '',
+  tags: Array.isArray(product.tags) ? product.tags.join(', ') : '',
+  isFeatured: Boolean(product.isFeatured),
+  isActive: product.isActive !== false,
+});
 const getProductRowId = (row: any) => String(row.productId || row.variantId || row.sku || row.id || row._id || '—');
 
 const DataTable: React.FC<{ title: string; rows: any[]; columns: Array<{ key: string; label: string; render?: (row: any) => React.ReactNode }> }> = ({ title, rows, columns }) => (
@@ -158,6 +223,10 @@ export const Dashboard: React.FC = () => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [productDraft, setProductDraft] = useState<ProductDraft>(() => emptyProductDraft());
+  const [editingProductId, setEditingProductId] = useState('');
+  const [productMessage, setProductMessage] = useState('');
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
 
   const loadDashboard = async () => {
     if (!getToken()) return;
@@ -184,8 +253,7 @@ export const Dashboard: React.FC = () => {
       });
     } catch (caught) {
       if (caught instanceof Error && (caught.message.includes('401') || caught.message.toLowerCase().includes('unauthorized'))) {
-        localStorage.removeItem('bisileAdminToken');
-        localStorage.removeItem('adminToken');
+        clearStoredToken();
         setToken('');
       }
       setError(caught instanceof Error ? caught.message : 'Could not load live dashboard data');
@@ -209,6 +277,76 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const resetProductForm = () => {
+    setEditingProductId('');
+    setProductDraft(emptyProductDraft());
+  };
+
+  const editProduct = (product: any) => {
+    setSection('products');
+    setEditingProductId(getProductDocumentId(product));
+    setProductDraft(draftFromProduct(product));
+    setProductMessage('');
+  };
+
+  const saveProduct = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setIsSavingProduct(true);
+    setProductMessage('');
+    try {
+      const slug = productDraft.slug.trim() || slugifyProduct(productDraft.name);
+      const payload = {
+        name: productDraft.name.trim(),
+        slug,
+        description: productDraft.description.trim(),
+        price: Number(productDraft.price),
+        stock: Number(productDraft.stock || 0),
+        sku: productDraft.sku.trim(),
+        images: productDraft.image.trim() ? [productDraft.image.trim()] : [],
+        tags: productDraft.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+        isFeatured: productDraft.isFeatured,
+        isActive: productDraft.isActive,
+        isArchived: false,
+      };
+      if (!payload.name || !payload.slug || Number.isNaN(payload.price)) throw new Error('Name, slug, and price are required.');
+
+      const url = editingProductId
+        ? apiUrl(`/api/admin/products/${editingProductId}`)
+        : apiUrl('/api/admin/products');
+      await apiFetch(url, {
+        method: editingProductId ? 'PATCH' : 'POST',
+        body: JSON.stringify(payload),
+      });
+      setProductMessage(editingProductId ? 'Product updated.' : 'Product created.');
+      resetProductForm();
+      await loadDashboard();
+    } catch (caught) {
+      setProductMessage(caught instanceof Error ? caught.message : 'Product could not be saved.');
+    } finally {
+      setIsSavingProduct(false);
+    }
+  };
+
+  const archiveProduct = async (product: any) => {
+    const id = getProductDocumentId(product);
+    if (!id) {
+      setProductMessage('This product has no database ID to archive.');
+      return;
+    }
+    setIsSavingProduct(true);
+    setProductMessage('');
+    try {
+      await apiFetch(apiUrl(`/api/admin/products/${id}`), { method: 'DELETE' });
+      setProductMessage('Product archived.');
+      if (editingProductId === id) resetProductForm();
+      await loadDashboard();
+    } catch (caught) {
+      setProductMessage(caught instanceof Error ? caught.message : 'Product could not be archived.');
+    } finally {
+      setIsSavingProduct(false);
+    }
+  };
+
   useEffect(() => {
     if (token) void loadDashboard();
     else setIsLoading(false);
@@ -224,7 +362,8 @@ export const Dashboard: React.FC = () => {
         body: JSON.stringify({ username: loginIdentifier.trim(), email: loginIdentifier.trim(), password: loginPassword }),
       });
       if (!payload.token) throw new Error('Login did not return a token');
-      localStorage.setItem('bisileAdminToken', payload.token);
+      clearStoredToken();
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, payload.token);
       setToken(payload.token);
       setLoginPassword('');
     } catch (caught) {
@@ -333,8 +472,79 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 
+  const renderProductManager = () => (
+    <div className="space-y-6">
+      <form onSubmit={saveProduct} className="border border-[#e5e2dd] bg-white p-5">
+        <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <p className="bisile-kicker mb-2">{editingProductId ? 'Edit product' : 'New product'}</p>
+            <h2 className="font-inter text-2xl font-light">Website product manager.</h2>
+          </div>
+          <div className="flex gap-2">
+            {editingProductId && <button type="button" onClick={resetProductForm} className="border border-[#e5e2dd] px-4 py-3 font-inter text-xs font-light uppercase tracking-[0.14em]">Cancel</button>}
+            <button disabled={isSavingProduct} className="bg-primary px-4 py-3 font-inter text-xs font-light uppercase tracking-[0.14em] text-white disabled:opacity-50">
+              {isSavingProduct ? 'Saving...' : editingProductId ? 'Save Changes' : 'Add Product'}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <label className="grid gap-2 font-inter text-xs font-light text-primary/55">
+            Name
+            <input required value={productDraft.name} onChange={(event) => setProductDraft((current) => ({ ...current, name: event.target.value, slug: current.slug || slugifyProduct(event.target.value) }))} className="field-light px-4 py-3 text-sm text-primary" />
+          </label>
+          <label className="grid gap-2 font-inter text-xs font-light text-primary/55">
+            Slug
+            <input required value={productDraft.slug} onChange={(event) => setProductDraft((current) => ({ ...current, slug: slugifyProduct(event.target.value) }))} className="field-light px-4 py-3 text-sm text-primary" />
+          </label>
+          <label className="grid gap-2 font-inter text-xs font-light text-primary/55">
+            Price
+            <input required type="number" min="0" step="0.01" value={productDraft.price} onChange={(event) => setProductDraft((current) => ({ ...current, price: event.target.value }))} className="field-light px-4 py-3 text-sm text-primary" />
+          </label>
+          <label className="grid gap-2 font-inter text-xs font-light text-primary/55">
+            Stock
+            <input type="number" min="0" step="1" value={productDraft.stock} onChange={(event) => setProductDraft((current) => ({ ...current, stock: event.target.value }))} className="field-light px-4 py-3 text-sm text-primary" />
+          </label>
+          <label className="grid gap-2 font-inter text-xs font-light text-primary/55">
+            SKU
+            <input value={productDraft.sku} onChange={(event) => setProductDraft((current) => ({ ...current, sku: event.target.value }))} className="field-light px-4 py-3 text-sm text-primary" />
+          </label>
+          <label className="grid gap-2 font-inter text-xs font-light text-primary/55 xl:col-span-2">
+            Main image URL
+            <input value={productDraft.image} onChange={(event) => setProductDraft((current) => ({ ...current, image: event.target.value }))} className="field-light px-4 py-3 text-sm text-primary" placeholder="Cloudinary or hosted image URL" />
+          </label>
+          <label className="grid gap-2 font-inter text-xs font-light text-primary/55">
+            Tags
+            <input value={productDraft.tags} onChange={(event) => setProductDraft((current) => ({ ...current, tags: event.target.value }))} className="field-light px-4 py-3 text-sm text-primary" placeholder="hair, wig, featured" />
+          </label>
+          <label className="grid gap-2 font-inter text-xs font-light text-primary/55 md:col-span-2 xl:col-span-4">
+            Description
+            <textarea rows={4} value={productDraft.description} onChange={(event) => setProductDraft((current) => ({ ...current, description: event.target.value }))} className="field-light px-4 py-3 text-sm text-primary" />
+          </label>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-5 font-inter text-sm font-light text-primary/60">
+          <label className="flex items-center gap-2"><input type="checkbox" checked={productDraft.isFeatured} onChange={(event) => setProductDraft((current) => ({ ...current, isFeatured: event.target.checked }))} /> Featured</label>
+          <label className="flex items-center gap-2"><input type="checkbox" checked={productDraft.isActive} onChange={(event) => setProductDraft((current) => ({ ...current, isActive: event.target.checked }))} /> Active on site</label>
+        </div>
+        {productMessage && <p className="mt-4 border border-[#e5e2dd] bg-[#f7f5f1] p-3 font-inter text-sm font-light text-primary/60">{productMessage}</p>}
+      </form>
+
+      <DataTable title="Products" rows={products} columns={[
+        { key: 'image', label: 'Image', render: (row) => <div className="h-12 w-12 overflow-hidden bg-[#f7f5f1]"><OptimizedImage src={getImageUrl(row.image || row.images?.[0] || packageImages.product07)} width={120} widths={[80, 120, 180]} sizes="48px" alt={row.name} className="h-full w-full object-cover" /></div> },
+        { key: 'id', label: 'ID / SKU', render: (row) => <span className="font-inter text-xs font-light text-primary/58">{getProductRowId(row)}</span> },
+        { key: 'name', label: 'Product', render: (row) => <div><p>{row.name}</p><p className="mt-1 text-xs text-primary/42">{row.slug || row.sku}</p></div> },
+        { key: 'price', label: 'Price', render: (row) => currency.format(Number(row.price || 0)) },
+        { key: 'stock', label: 'Stock', render: (row) => <span className={Number(row.stock || 0) <= Number(row.lowStockThreshold ?? 3) ? 'text-[#a63b2d]' : ''}>{row.stock ?? 'â€”'}</span> },
+        { key: 'status', label: 'Status', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.isActive === false ? 'inactive' : 'active')}`}>{row.isActive === false ? 'Inactive' : 'Active'}</span> },
+        { key: 'actions', label: 'Actions', render: (row) => <div className="flex flex-wrap gap-2"><button type="button" onClick={() => editProduct(row)} className="border border-[#e5e2dd] px-3 py-2 text-xs hover:border-primary">Edit</button><button type="button" onClick={() => void archiveProduct(row)} className="border border-[#e5e2dd] px-3 py-2 text-xs text-[#a63b2d] hover:border-[#a63b2d]">Archive</button></div> },
+      ]} />
+    </div>
+  );
+
   const renderTable = () => {
     if (section === 'products') {
+      return renderProductManager();
       return <DataTable title="Products" rows={products} columns={[
         { key: 'image', label: 'Image', render: (row) => <div className="h-12 w-12 overflow-hidden bg-[#f7f5f1]"><OptimizedImage src={getImageUrl(row.image || row.images?.[0] || packageImages.product07)} width={120} widths={[80, 120, 180]} sizes="48px" alt={row.name} className="h-full w-full object-cover" /></div> },
         { key: 'id', label: 'ID / SKU', render: (row) => <span className="font-inter text-xs font-light text-primary/58">{getProductRowId(row)}</span> },
@@ -398,7 +608,6 @@ export const Dashboard: React.FC = () => {
           <button disabled={isLoggingIn} className="mt-6 flex h-12 w-full items-center justify-center bg-primary px-6 text-sm font-light text-white transition-colors hover:bg-accent disabled:opacity-50">
             {isLoggingIn ? 'Signing in...' : 'Sign in'}
           </button>
-          <p className="mt-4 text-[11px] leading-5 text-primary/45">Development seed credentials: admin / password123. Replace them before production.</p>
         </form>
       </div>
     );

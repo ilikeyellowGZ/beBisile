@@ -17,7 +17,7 @@ Luxury React storefront for BISILE fragrance, processed virgin hair, wig laundry
 - Verified Resend email domain: `bisile.co.za`
 - Resend status: verified and test email accepted from `orders@bisile.co.za`
 - Database: MongoDB Atlas database name `bisile`
-- Admin test login: username `admin`, password `password123`
+- Admin login: create or reset the owner account with `npm run seed:admin` or `npm run reset:admin-login`; do not ship demo credentials.
 - Cloudinary: migration script and mapping helper are ready; dry-run checks active website assets only. Actual upload still requires running `npm run migrate:cloudinary` with network/upload approval.
 - Local image fallback: local assets remain in the repo and are used whenever `src/data/cloudinary-image-map.json` has no matching Cloudinary URL.
 
@@ -91,7 +91,8 @@ npm run test:resend
 npm run test:paystack
 ```
 
-- `seed:admin`: creates a development owner admin if one does not exist. Defaults to username `admin` and password `password123`, stored with a bcrypt hash. Replace this credential before production.
+- `seed:admin`: creates a development owner admin if one does not exist. Defaults to username `bisile` and email `studio@bisile.co.za`; set `SEED_ADMIN_PASSWORD` before production.
+- `reset:admin-login`: updates or creates the owner admin with `RESET_ADMIN_CURRENT`, `RESET_ADMIN_USERNAME`, `RESET_ADMIN_EMAIL`, and `RESET_ADMIN_PASSWORD`.
 - `seed:catalog`: seeds BISILE products, categories, shipping options, and default store settings into the `bisile` database.
 - `test:db`: connects to MongoDB, creates/verifies required collections inside `bisile`, and performs a temporary write/delete probe.
 - `test:resend`: sends `BISILE Test Email` to `officialheyywebb@gmail.com` using Resend and logs the send to `emailLogs` if MongoDB is configured.

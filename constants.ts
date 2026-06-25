@@ -669,9 +669,31 @@ const baseProducts: Product[] = [
   },
 ];
 
+const wigProductImageOverrides: Record<string, string> = {
+  thabitha: hairImages.kinkyWig01,
+  nokhwezi: hairImages.kinkyWig02,
+  khwezilokusa: hairImages.straightWig04,
+  nobuntu: hairImages.straightWig06,
+  melokuhle: hairImages.straightWig04,
+  ntando: hairImages.kinkyWig02,
+  ayabonga: hairImages.kinkyWig01,
+  ayanda: hairImages.kinkyWig04,
+  bonginhlanhla: hairImages.straightWig04,
+  nobuhle: hairImages.straightWig06,
+  masindi: hairImages.straightWig08,
+  buhlebendalo: hairImages.kinkyWig04,
+  thabisile: hairImages.straightWig10,
+  'ntombi-zandile': hairImages.kinkyWig01,
+  londiwe: hairImages.straightWig08,
+  samkelisiwe: hairImages.kinkyWig02,
+  ntombizonke: hairImages.kinkyWig04,
+};
+
 export const PRODUCTS: Product[] = baseProducts.map((product) => {
   if (product.category !== 'wig') return product;
-  const image = product.id === 'mvelwenhle' ? hairImages.mvelwenhle : hairImages.wigImg;
+  const image = product.id === 'mvelwenhle'
+    ? hairImages.mvelwenhle
+    : wigProductImageOverrides[product.id] ?? product.image;
 
   return {
     ...product,

@@ -5,10 +5,12 @@ import { useCart } from '../CartContext';
 import { getWhatsAppUrl } from '../constants';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
 import { readJsonResponse } from '../utils/http';
+import { getBackendWakeToken } from '../utils/backendWake';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
-const VERIFY_API_URL = import.meta.env.VITE_PAYSTACK_VERIFY_API_URL
-  || (API_BASE_URL ? `${API_BASE_URL}/api/checkout/verify-paystack-transaction` : '/api/checkout/verify-paystack-transaction');
+const VERIFY_API_OVERRIDE = import.meta.env.VITE_PAYSTACK_VERIFY_API_URL;
+const getVerifyApiUrl = (reference: string) => VERIFY_API_OVERRIDE
+  || `${API_BASE_URL}/api/payments/verify/${encodeURIComponent(reference)}`;
 
 type VerificationPayload = {
   success?: boolean;
@@ -76,10 +78,14 @@ export const PaymentSuccess: React.FC = () => {
     let isActive = true;
     const verifyPayment = async () => {
       try {
-        const response = await fetch(VERIFY_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reference }),
+        const wakeToken = getBackendWakeToken();
+        const response = await fetch(getVerifyApiUrl(reference), {
+          method: VERIFY_API_OVERRIDE ? 'POST' : 'GET',
+          headers: {
+            ...(VERIFY_API_OVERRIDE ? { 'Content-Type': 'application/json' } : {}),
+            ...(wakeToken ? { Authorization: `Bearer ${wakeToken}` } : {}),
+          },
+          ...(VERIFY_API_OVERRIDE ? { body: JSON.stringify({ reference }) } : {}),
         });
         const payload = await readJsonResponse<VerificationPayload>(response, 'Payment verification failed');
         if (payload.success === false) throw new Error(payload.message || payload.error || 'Payment verification failed');
