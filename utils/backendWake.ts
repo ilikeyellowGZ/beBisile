@@ -1,7 +1,8 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+import { apiUrl } from './http';
+
 const WAKE_TOKEN = import.meta.env.VITE_BACKEND_WAKE_TOKEN ?? '';
 
-const healthUrl = `${API_BASE_URL}/api/health`;
+const healthUrl = apiUrl('/api/health');
 
 let wakePromise: Promise<boolean> | null = null;
 let lastReadyAt = 0;

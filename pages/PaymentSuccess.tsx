@@ -4,12 +4,12 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { getWhatsAppUrl } from '../constants';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
-import { readJsonResponse } from '../utils/http';
+import { configuredApiUrl, readJsonResponse } from '../utils/http';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const VERIFY_API_OVERRIDE = import.meta.env.VITE_PAYSTACK_VERIFY_API_URL;
 const getVerifyApiUrl = (reference: string) => VERIFY_API_OVERRIDE
-  || `${API_BASE_URL}/api/payments/verify/${encodeURIComponent(reference)}`;
+  ? configuredApiUrl(VERIFY_API_OVERRIDE, `/api/payments/verify/${encodeURIComponent(reference)}`)
+  : configuredApiUrl(undefined, `/api/payments/verify/${encodeURIComponent(reference)}`);
 
 type VerificationPayload = {
   success?: boolean;

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Activity, Boxes, CircleDollarSign, ClipboardList, Gauge, Inbox, KeyRound, Layers, Mail, PackageCheck, Percent, RefreshCw, Search, Settings, ShieldCheck, ShoppingBag, Star, Truck, Users } from 'lucide-react';
 import { CONFIGURABLE_HAIR_PRODUCTS, PRODUCTS } from '../constants';
 import { packageImages } from '../src/assets/images';
-import { readJsonResponse } from '../utils/http';
+import { apiUrl, readJsonResponse } from '../utils/http';
 import { getImageUrl } from '../utils/images';
 import { OptimizedImage } from '../components/UI/OptimizedImage';
 
@@ -26,8 +26,6 @@ const dateFormatter = new Intl.DateTimeFormat('en-ZA', { dateStyle: 'medium', ti
 
 const dashboardProductCatalog = [...PRODUCTS, ...CONFIGURABLE_HAIR_PRODUCTS];
 const productById = new Map(dashboardProductCatalog.map((product) => [product.id, product]));
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
-const apiUrl = (path: string) => `${API_BASE_URL}${path}`;
 
 const sections: Array<{ id: AdminSection; label: string; icon: React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }> }> = [
   { id: 'overview', label: 'Dashboard', icon: Gauge },

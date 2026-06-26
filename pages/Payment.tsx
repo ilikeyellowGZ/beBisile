@@ -4,14 +4,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
 import { SHIPPING_PARTNERS } from '../constants';
-import { readJsonResponse } from '../utils/http';
+import { configuredApiUrl, readJsonResponse } from '../utils/http';
 import { ensureBackendReady, getBackendWakeToken, wakeBackend } from '../utils/backendWake';
 import type { CheckoutDetails } from '../types';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-const API_URL = import.meta.env.VITE_PAYSTACK_CHECKOUT_API_URL
-  || import.meta.env.VITE_CHECKOUT_API_URL
-  || (API_BASE_URL ? `${API_BASE_URL}/api/payments/initialize` : '/api/payments/initialize');
+const API_URL = configuredApiUrl(
+  import.meta.env.VITE_PAYSTACK_CHECKOUT_API_URL || import.meta.env.VITE_CHECKOUT_API_URL,
+  '/api/payments/initialize',
+);
 
 type PaystackCheckoutResponse = {
   success?: boolean;

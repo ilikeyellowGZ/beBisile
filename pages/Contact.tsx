@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { ArrowRight, CheckCircle2, MessageCircle } from 'lucide-react';
 import { CONTACT_EMAIL, CONTACT_PHONE, ORDER_EMAIL, getWhatsAppUrl } from '../constants';
-import { readJsonResponse } from '../utils/http';
+import { apiUrl, readJsonResponse } from '../utils/http';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
-const contactApiUrl = `${API_BASE_URL}/api/contact`;
+const contactApiUrl = apiUrl('/api/contact');
 
 export const Contact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
