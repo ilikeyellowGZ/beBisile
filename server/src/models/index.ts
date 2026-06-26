@@ -84,6 +84,7 @@ export const Order = mongoose.model('Order', new Schema({
   },
   items: [{
     productId: { type: Schema.Types.ObjectId, ref: 'Product' },
+    trustedProductId: String,
     productName: String,
     quantity: Number,
     unitPrice: Number,

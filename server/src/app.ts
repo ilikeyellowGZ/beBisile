@@ -15,6 +15,8 @@ import { requireWakeJwt } from './middleware/wake.middleware.js';
 import { errorMiddleware } from './middleware/error.middleware.js';
 
 export const app = express();
+app.set('trust proxy', 1);
+
 const clientDistPath = [
   path.resolve(process.cwd(), '..', 'dist'),
   path.resolve(process.cwd(), 'dist'),

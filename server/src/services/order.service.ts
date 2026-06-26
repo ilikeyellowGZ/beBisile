@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { findTrustedProduct } from './trustedCatalog.js';
 import { DiscountCode, Order, Product, StoreSettings } from '../models/index.js';
 
 export const checkoutItemSchema = z.object({
@@ -46,19 +47,39 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
 
   for (const item of input.items) {
     const product = await Product.findOne(productLookup(item.productId));
-    if (!product || product.isActive === false || product.isArchived === true) throw Object.assign(new Error('Product is not available'), { statusCode: 400 });
-    const productStock = Number(product.stock ?? 0);
-    if (productStock <= 0 || item.quantity > productStock) throw Object.assign(new Error(`${product.name} does not have enough stock`), { statusCode: 400 });
-    const unitPrice = Number(product.price ?? 0);
+    const catalogProduct = findTrustedProduct(item.productId);
+
+    if (product) {
+      if (product.isActive === false || product.isArchived === true) throw Object.assign(new Error('Product is not available'), { statusCode: 400 });
+      const productStock = Number(product.stock ?? 0);
+      if (productStock <= 0 || item.quantity > productStock) throw Object.assign(new Error(`${product.name} does not have enough stock`), { statusCode: 400 });
+
+      trustedItems.push({
+        product,
+        documentId: product._id,
+        trustedProductId: item.productId,
+        productId: product._id,
+        productName: product.name,
+        quantity: item.quantity,
+        selectedVariant: item.selectedVariant,
+        unitPrice: Number(product.price ?? 0),
+        totalPrice: Number(product.price ?? 0) * item.quantity
+      });
+      continue;
+    }
+
+    if (!catalogProduct || !catalogProduct.available) throw Object.assign(new Error('Product is not available'), { statusCode: 400 });
+    if (item.quantity > catalogProduct.stock) throw Object.assign(new Error(`${catalogProduct.name} does not have enough stock`), { statusCode: 400 });
 
     trustedItems.push({
-      product,
-      productId: product._id,
-      productName: product.name,
+      product: null,
+      productId: undefined,
+      trustedProductId: catalogProduct.id,
+      productName: catalogProduct.name,
       quantity: item.quantity,
       selectedVariant: item.selectedVariant,
-      unitPrice,
-      totalPrice: unitPrice * item.quantity
+      unitPrice: catalogProduct.price,
+      totalPrice: catalogProduct.price * item.quantity
     });
   }
 
@@ -104,6 +125,7 @@ export const createPendingOrder = async (input: z.infer<typeof checkoutSchema>, 
     shippingPartner: calculated.shippingPartner,
     items: calculated.trustedItems.map((item) => ({
       productId: item.productId,
+      trustedProductId: item.trustedProductId,
       productName: item.productName,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
