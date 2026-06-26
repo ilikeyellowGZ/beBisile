@@ -1,7 +1,5 @@
 import { apiUrl } from './http';
 
-const WAKE_TOKEN = import.meta.env.VITE_BACKEND_WAKE_TOKEN ?? '';
-
 const healthUrl = apiUrl('/api/health');
 
 let wakePromise: Promise<boolean> | null = null;
@@ -32,8 +30,6 @@ type WakeBackendOptions = {
   retryDelayMs?: number;
   signal?: AbortSignal;
 };
-
-export const getBackendWakeToken = () => WAKE_TOKEN;
 
 export const wakeBackend = async (options: WakeBackendOptions = {}): Promise<boolean> => {
   if (Date.now() - lastReadyAt < READY_TTL_MS) return true;

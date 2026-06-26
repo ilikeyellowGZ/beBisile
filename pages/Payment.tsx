@@ -5,7 +5,7 @@ import { useCart } from '../CartContext';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
 import { SHIPPING_PARTNERS } from '../constants';
 import { configuredApiUrl, readJsonResponse } from '../utils/http';
-import { ensureBackendReady, getBackendWakeToken, wakeBackend } from '../utils/backendWake';
+import { ensureBackendReady, wakeBackend } from '../utils/backendWake';
 import type { CheckoutDetails } from '../types';
 
 const API_URL = configuredApiUrl(
@@ -103,19 +103,12 @@ export const Payment: React.FC = () => {
       setServerReady(true);
       setIsCheckingBackend(false);
 
-      const wakeToken = getBackendWakeToken();
-      if (!wakeToken) {
-        console.warn('BISILE payment initialization is missing VITE_BACKEND_WAKE_TOKEN. The protected payment route may return 401.');
-        throw new Error('Unable to authorize the payment request. Please try again shortly.');
-      }
-
       console.info('BISILE payment initialization request', { url: API_URL, itemCount: items.length });
       const response = await fetch(API_URL, {
         method: 'POST',
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
-          ...(wakeToken ? { Authorization: `Bearer ${wakeToken}` } : {}),
         },
         body: JSON.stringify({
           customerInfo: {

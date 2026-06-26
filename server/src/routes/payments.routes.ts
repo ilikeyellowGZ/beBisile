@@ -1,12 +1,11 @@
 import { Router } from 'express';
 import { rejectPriceFields, validate } from '../middleware/validate.middleware.js';
-import { requireWakeJwt } from '../middleware/wake.middleware.js';
 import { calculateTrustedOrder, checkoutSchema, createPendingOrder } from '../services/order.service.js';
 import { createPaystackTransaction, verifyPaystackTransaction } from '../services/paystack.service.js';
 
 export const paymentsRoutes = Router();
 
-paymentsRoutes.post('/initialize', requireWakeJwt, rejectPriceFields, validate(checkoutSchema), async (req, res) => {
+paymentsRoutes.post('/initialize', rejectPriceFields, validate(checkoutSchema), async (req, res) => {
   console.info('Payment initialization request', {
     itemCount: Array.isArray(req.body?.items) ? req.body.items.length : 0,
     emailPresent: Boolean(req.body?.customerInfo?.email),
