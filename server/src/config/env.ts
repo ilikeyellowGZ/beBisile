@@ -19,6 +19,8 @@ const loadEnvFile = (filePath: string) => {
 loadEnvFile(path.resolve(process.cwd(), '.env'));
 loadEnvFile(path.resolve(process.cwd(), '..', '.env'));
 
+const defaultFrontendUrl = process.env.NODE_ENV === 'production' ? 'https://bisile.co.za' : 'http://localhost:5173';
+
 const envSchema = z.object({
   NODE_ENV: z.string().default('development'),
   PORT: z.coerce.number().default(5000),
@@ -30,7 +32,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   BACKEND_WAKE_TOKEN: z.string().optional(),
   PAYSTACK_SECRET_KEY: z.string().min(1),
-  FRONTEND_URL: z.string().url().default('http://localhost:5173'),
+  FRONTEND_URL: z.string().url().default(defaultFrontendUrl),
   TEMP_NETLIFY_URL: z.string().url().or(z.literal('')).optional(),
   CLIENT_URL: z.string().url().or(z.literal('')).optional(),
   SERVER_URL: z.string().url().optional(),
@@ -54,6 +56,7 @@ export const env = {
 const isString = (value: string | undefined): value is string => Boolean(value);
 
 export const corsOrigins = Array.from(new Set([
+  ...(env.NODE_ENV === 'production' ? ['https://bisile.co.za', 'https://www.bisile.co.za'] : []),
   env.FRONTEND_URL,
   env.CLIENT_URL,
   env.TEMP_NETLIFY_URL,

@@ -1,42 +1,76 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const WAKE_TOKEN = import.meta.env.VITE_BACKEND_WAKE_TOKEN ?? '';
 
-const protectedHealthUrl = `${API_BASE_URL}/api/health/protected`;
+const healthUrl = `${API_BASE_URL}/api/health`;
 
 let wakePromise: Promise<boolean> | null = null;
 let lastReadyAt = 0;
 const READY_TTL_MS = 60_000;
+const DEFAULT_TIMEOUT_MS = 30_000;
+const RETRY_DELAY_MS = 2_000;
 
 const logWakeError = (error: unknown) => {
   if (import.meta.env.DEV) console.warn('BISILE backend wake check failed.', error);
 };
 
-const protectedHeaders = () => ({
-  ...(WAKE_TOKEN ? { Authorization: `Bearer ${WAKE_TOKEN}` } : {}),
+const wait = (ms: number, signal?: AbortSignal) => new Promise<void>((resolve, reject) => {
+  if (signal?.aborted) {
+    reject(signal.reason ?? new DOMException('Request aborted', 'AbortError'));
+    return;
+  }
+
+  const timeoutId = window.setTimeout(resolve, ms);
+  signal?.addEventListener('abort', () => {
+    window.clearTimeout(timeoutId);
+    reject(signal.reason ?? new DOMException('Request aborted', 'AbortError'));
+  }, { once: true });
 });
+
+type WakeBackendOptions = {
+  timeoutMs?: number;
+  retryDelayMs?: number;
+  signal?: AbortSignal;
+};
 
 export const getBackendWakeToken = () => WAKE_TOKEN;
 
-export const wakeBackend = async (retries = 2): Promise<boolean> => {
+export const wakeBackend = async (options: WakeBackendOptions = {}): Promise<boolean> => {
   if (Date.now() - lastReadyAt < READY_TTL_MS) return true;
   if (wakePromise) return wakePromise;
 
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const retryDelayMs = options.retryDelayMs ?? RETRY_DELAY_MS;
+  const startedAt = Date.now();
+
   wakePromise = (async () => {
-    for (let attempt = 0; attempt <= retries; attempt += 1) {
+    while (Date.now() - startedAt <= timeoutMs) {
       try {
-        const response = await fetch(protectedHealthUrl, {
+        console.info('BISILE backend wake request', { url: healthUrl });
+        const response = await fetch(healthUrl, {
           cache: 'no-store',
-          headers: protectedHeaders(),
+          signal: options.signal,
         });
+
         if (response.ok) {
+          console.info('BISILE backend health response', { status: response.status });
           lastReadyAt = Date.now();
           return true;
         }
+
+        console.warn('BISILE backend health request was not ready', {
+          status: response.status,
+          statusText: response.statusText,
+        });
       } catch (error) {
+        if (options.signal?.aborted) throw error;
         logWakeError(error);
       }
 
-      if (attempt < retries) await new Promise((resolve) => window.setTimeout(resolve, 1400 + attempt * 900));
+      if (Date.now() - startedAt + retryDelayMs <= timeoutMs) {
+        await wait(retryDelayMs, options.signal);
+      } else {
+        break;
+      }
     }
 
     return false;
@@ -47,7 +81,7 @@ export const wakeBackend = async (retries = 2): Promise<boolean> => {
   return wakePromise;
 };
 
-export const ensureBackendReady = async () => {
-  const ready = await wakeBackend(3);
-  if (!ready) throw new Error('Payment service is starting. Please try again in a few seconds.');
+export const ensureBackendReady = async (options: WakeBackendOptions = {}) => {
+  const ready = await wakeBackend({ timeoutMs: DEFAULT_TIMEOUT_MS, retryDelayMs: RETRY_DELAY_MS, ...options });
+  if (!ready) throw new Error('Unable to connect to our payment service. Please try again shortly.');
 };

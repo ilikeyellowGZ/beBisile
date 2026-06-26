@@ -26,6 +26,7 @@ const toPaystackSubunit = (amount: number) => Math.round(Number(amount || 0) * 1
 const makeReference = (orderNumber: string) => `${orderNumber}-${Date.now()}`.replace(/[^A-Za-z0-9-.=]/g, '-');
 
 const paystackRequest = async <T>(path: string, init: RequestInit = {}) => {
+  console.info('Paystack request', { path, method: init.method || 'GET' });
   const response = await fetch(`${paystackApiBase}${path}`, {
     ...init,
     headers: {
@@ -36,6 +37,13 @@ const paystackRequest = async <T>(path: string, init: RequestInit = {}) => {
   });
 
   const payload = await response.json().catch(() => ({})) as Partial<PaystackResponse<T>>;
+  console.info('Paystack response', {
+    path,
+    statusCode: response.status,
+    paystackStatus: payload.status,
+    message: payload.message,
+  });
+
   if (!response.ok || payload.status === false) {
     throw Object.assign(new Error(payload.message || 'Paystack request failed'), { statusCode: response.status || 502 });
   }
@@ -67,6 +75,12 @@ export const createPaystackTransaction = async (order: InstanceType<typeof Order
   order.paystackAccessCode = payload.data.access_code;
   order.paystackAuthorizationUrl = payload.data.authorization_url;
   await order.save();
+  console.info('Paystack checkout initialized', {
+    orderNumber: order.orderNumber,
+    reference: order.paystackReference,
+    hasAuthorizationUrl: Boolean(order.paystackAuthorizationUrl),
+    callbackUrl,
+  });
   return payload.data;
 };
 

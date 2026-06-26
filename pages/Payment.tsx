@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ArrowRight, CreditCard, LockKeyhole, ShieldCheck } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, CreditCard, Loader2, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
@@ -8,11 +8,10 @@ import { readJsonResponse } from '../utils/http';
 import { ensureBackendReady, getBackendWakeToken, wakeBackend } from '../utils/backendWake';
 import type { CheckoutDetails } from '../types';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+const API_BASE_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 const API_URL = import.meta.env.VITE_PAYSTACK_CHECKOUT_API_URL
   || import.meta.env.VITE_CHECKOUT_API_URL
   || (API_BASE_URL ? `${API_BASE_URL}/api/payments/initialize` : '/api/payments/initialize');
-const SERVER_WARMUP_SECONDS = 60;
 
 type PaystackCheckoutResponse = {
   success?: boolean;
@@ -40,37 +39,35 @@ export const Payment: React.FC = () => {
   }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [warmupSeconds, setWarmupSeconds] = useState(SERVER_WARMUP_SECONDS);
+  const [isCheckingBackend, setIsCheckingBackend] = useState(false);
   const [serverReady, setServerReady] = useState(false);
+  const checkoutAbortRef = useRef<AbortController | null>(null);
   const selectedShipping = SHIPPING_PARTNERS.find((option) => option.id === details?.shippingPartner) ?? SHIPPING_PARTNERS[0];
   const estimatedTotal = subtotal + selectedShipping.price;
-  const isWarmingServer = !serverReady && warmupSeconds > 0;
-  const paymentDisabled = loading || isWarmingServer;
+  const paymentDisabled = loading || isCheckingBackend;
 
   useEffect(() => {
     if (!items.length || !details) return;
+    const controller = new AbortController();
 
     const pingServer = async () => {
-      const ready = await wakeBackend(1);
-      if (ready) {
-        setServerReady(true);
-        setWarmupSeconds(0);
+      try {
+        const ready = await wakeBackend({ timeoutMs: 30_000, retryDelayMs: 2_000, signal: controller.signal });
+        if (ready) {
+          setServerReady(true);
+        }
+      } catch (wakeError) {
+        if (!controller.signal.aborted) console.warn('BISILE background payment health check failed.', wakeError);
       }
     };
 
     void pingServer();
-    const healthCheckId = window.setInterval(() => {
-      void pingServer();
-    }, 5000);
-    const countdownId = window.setInterval(() => {
-      setWarmupSeconds((current) => Math.max(current - 1, 0));
-    }, 1000);
-
     return () => {
-      window.clearInterval(healthCheckId);
-      window.clearInterval(countdownId);
+      controller.abort();
     };
   }, [details, items.length]);
+
+  useEffect(() => () => checkoutAbortRef.current?.abort(), []);
 
   if (!items.length) {
     return (
@@ -94,16 +91,28 @@ export const Payment: React.FC = () => {
 
   const startPaystackCheckout = async () => {
     if (loading) return;
+    checkoutAbortRef.current?.abort();
+    const controller = new AbortController();
+    checkoutAbortRef.current = controller;
+
     setLoading(true);
+    setIsCheckingBackend(true);
     setError('');
     try {
-      await ensureBackendReady();
+      await ensureBackendReady({ signal: controller.signal });
       setServerReady(true);
-      setWarmupSeconds(0);
+      setIsCheckingBackend(false);
 
       const wakeToken = getBackendWakeToken();
+      if (!wakeToken) {
+        console.warn('BISILE payment initialization is missing VITE_BACKEND_WAKE_TOKEN. The protected payment route may return 401.');
+        throw new Error('Unable to authorize the payment request. Please try again shortly.');
+      }
+
+      console.info('BISILE payment initialization request', { url: API_URL, itemCount: items.length });
       const response = await fetch(API_URL, {
         method: 'POST',
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           ...(wakeToken ? { Authorization: `Bearer ${wakeToken}` } : {}),
@@ -132,10 +141,16 @@ export const Payment: React.FC = () => {
       const payload = await readJsonResponse<PaystackCheckoutResponse>(response, 'Unable to start Paystack checkout.');
       const checkoutUrl = payload.authorization_url || payload.authorizationUrl || payload.url;
       if (payload.success === false || !checkoutUrl) throw new Error(payload.message || payload.error || 'Unable to start Paystack checkout.');
+      console.info('BISILE Paystack redirect URL received', { reference: payload.reference, hasAuthorizationUrl: Boolean(checkoutUrl) });
       window.location.assign(checkoutUrl);
     } catch (checkoutError) {
-      setError(checkoutError instanceof Error ? checkoutError.message : 'Unable to start Paystack checkout.');
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        setError(checkoutError instanceof Error ? checkoutError.message : 'Unable to start Paystack checkout.');
+        setLoading(false);
+        setIsCheckingBackend(false);
+      }
+    } finally {
+      if (checkoutAbortRef.current === controller) checkoutAbortRef.current = null;
     }
   };
 
@@ -191,14 +206,14 @@ export const Payment: React.FC = () => {
                 <ArrowLeft size={14} /> Edit details
               </Link>
               <div className="flex flex-col items-start gap-2 sm:items-end">
-                <button disabled={paymentDisabled} onClick={startPaystackCheckout} className={`flex items-center justify-between gap-8 px-6 py-4 text-[10px] uppercase tracking-[0.18em] text-[#F7F4EF] transition-colors ${isWarmingServer ? 'cursor-not-allowed bg-[#9B948A]' : 'bg-[#5B3A24] hover:bg-[#8A6F35]'} disabled:opacity-70`}>
-                  {loading ? 'Opening Paystack...' : isWarmingServer ? 'Preparing secure checkout' : 'Continue to Paystack'} <ArrowRight size={14} />
-                </button>
-                {isWarmingServer && (
-                  <span className="text-[9px] uppercase tracking-[0.16em] text-[#5B3A24]/46">
-                    Server waking up: {warmupSeconds}s
+                <button disabled={paymentDisabled} onClick={startPaystackCheckout} className="flex items-center justify-between gap-8 bg-[#5B3A24] px-6 py-4 text-[10px] uppercase tracking-[0.18em] text-[#F7F4EF] transition-colors hover:bg-[#8A6F35] disabled:cursor-not-allowed disabled:opacity-70">
+                  <span className="inline-flex items-center gap-3">
+                    {loading && <Loader2 size={14} className="animate-spin" />}
+                    {loading ? (isCheckingBackend ? 'Connecting securely...' : 'Opening Paystack...') : 'Continue to Paystack'}
                   </span>
-                )}
+                  <ArrowRight size={14} />
+                </button>
+                {!serverReady && !loading && <span className="text-[9px] uppercase tracking-[0.16em] text-[#5B3A24]/46">Payment service will connect automatically</span>}
               </div>
             </div>
           </section>

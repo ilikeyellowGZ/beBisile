@@ -21,13 +21,48 @@ const clientDistPath = [
 ].find((candidate) => fs.existsSync(path.join(candidate, 'index.html')));
 
 app.use(helmet());
-app.use(cors({ origin: corsOrigins, credentials: true }));
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || corsOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    console.warn('CORS blocked request', { origin });
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  optionsSuccessStatus: 204,
+}));
+app.options('*', cors({
+  origin(origin, callback) {
+    if (!origin || corsOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    console.warn('CORS blocked preflight', { origin });
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  optionsSuccessStatus: 204,
+}));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 200 }));
 const healthLimiter = rateLimit({ windowMs: 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false });
 const paymentLimiter = rateLimit({ windowMs: 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
 
-app.get('/api/health', healthLimiter, (_req, res) => {
-  res.json({ status: 'ok' });
+app.get('/api/health', healthLimiter, (req, res) => {
+  const payload = {
+    success: true,
+    status: 'online',
+    timestamp: new Date().toISOString(),
+  };
+  console.info('Health response', {
+    origin: req.headers.origin || null,
+    status: payload.status,
+    timestamp: payload.timestamp,
+  });
+  res.json(payload);
 });
 
 app.get('/api/health/protected', healthLimiter, requireWakeJwt, (_req, res) => {

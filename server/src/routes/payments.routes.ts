@@ -6,12 +6,20 @@ import { createPaystackTransaction, verifyPaystackTransaction } from '../service
 
 export const paymentsRoutes = Router();
 
-paymentsRoutes.use(requireWakeJwt);
-
-paymentsRoutes.post('/initialize', rejectPriceFields, validate(checkoutSchema), async (req, res) => {
+paymentsRoutes.post('/initialize', requireWakeJwt, rejectPriceFields, validate(checkoutSchema), async (req, res) => {
+  console.info('Payment initialization request', {
+    itemCount: Array.isArray(req.body?.items) ? req.body.items.length : 0,
+    emailPresent: Boolean(req.body?.customerInfo?.email),
+    shippingPartner: req.body?.shippingPartner?.id || null,
+  });
   const calculated = await calculateTrustedOrder(req.body);
   const order = await createPendingOrder(req.body, calculated);
   const transaction = await createPaystackTransaction(order);
+  console.info('Payment initialization completed', {
+    orderNumber: order.orderNumber,
+    reference: transaction.reference,
+    hasAuthorizationUrl: Boolean(transaction.authorization_url),
+  });
   res.json({
     success: true,
     authorization_url: transaction.authorization_url,
