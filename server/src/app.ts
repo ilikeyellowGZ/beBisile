@@ -1,4 +1,4 @@
-import cors from 'cors';
+import cors, { type CorsOptions } from 'cors';
 import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -19,34 +19,24 @@ const clientDistPath = [
   path.resolve(process.cwd(), '..', 'dist'),
   path.resolve(process.cwd(), 'dist'),
 ].find((candidate) => fs.existsSync(path.join(candidate, 'index.html')));
+const corsOptions: CorsOptions = {
+  origin(origin, callback) {
+    if (!origin || corsOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    console.warn('CORS blocked request', { origin, allowedOrigins: corsOrigins });
+    callback(new Error('Not allowed by CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+};
 
 app.use(helmet());
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || corsOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    console.warn('CORS blocked request', { origin });
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  optionsSuccessStatus: 204,
-}));
-app.options('*', cors({
-  origin(origin, callback) {
-    if (!origin || corsOrigins.includes(origin)) {
-      callback(null, true);
-      return;
-    }
-
-    console.warn('CORS blocked preflight', { origin });
-    callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  optionsSuccessStatus: 204,
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 200 }));
 const healthLimiter = rateLimit({ windowMs: 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false });
 const paymentLimiter = rateLimit({ windowMs: 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
