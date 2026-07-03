@@ -6,7 +6,7 @@ import { brandImages } from '../../src/assets/images';
 import { OptimizedImage } from '../UI/OptimizedImage';
 
 export const Footer: React.FC = () => (
-  <footer className="relative z-10 border-t border-[#A3915D]/24 bg-[#2A2114] px-6 pb-8 pt-14 text-[#F7F4EF]">
+  <footer className="relative z-10 border-t border-[#A3915D]/24 bg-[var(--bisile-forest)] px-6 pb-8 pt-14 text-[#F7F4EF]">
     <div className="w-full">
       <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[1.1fr_2.6fr]">
           <div>

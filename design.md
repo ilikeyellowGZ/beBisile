@@ -238,6 +238,7 @@ The brand direction is minimalist and neutral. Use warm whites, soft stone tones
 | `--color-taupe` | `#80776F` | Muted text / captions |
 | `--color-charcoal` | `#2A2724` | Secondary dark text |
 | `--color-ink` | `#171513` | Primary text and black buttons |
+| `--color-forest` | `#174A32` | Footer background |
 | `--color-champagne` | `#C8A875` | Luxury accent |
 | `--color-antique-gold` | `#A77A45` | Accent hover / premium details |
 | `--color-white` | `#FFFFFF` | Cards and clean backgrounds |
@@ -1548,6 +1549,7 @@ Footer
   --color-taupe: #80776F;
   --color-charcoal: #2A2724;
   --color-ink: #171513;
+  --color-forest: #174A32;
   --color-champagne: #C8A875;
   --color-antique-gold: #A77A45;
   --color-white: #FFFFFF;
@@ -1673,4 +1675,3 @@ Minimal jewelry.
 Modern elegance.
 Effortless everyday luxury.
 ```
-
