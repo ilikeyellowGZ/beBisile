@@ -6,7 +6,7 @@ import { brandImages } from '../../src/assets/images';
 import { OptimizedImage } from '../UI/OptimizedImage';
 
 export const Footer: React.FC = () => (
-  <footer className="relative z-10 border-t border-[#A3915D]/24 bg-[var(--bisile-forest)] px-6 pb-8 pt-14 text-[#F7F4EF]">
+  <footer className="relative z-10 border-t border-[#A3915D]/24 bg-[var(--bisile-dark)] px-6 pb-8 pt-14 text-[#F7F4EF]">
     <div className="w-full">
       <div className="mb-12 grid grid-cols-1 gap-12 md:grid-cols-[1.1fr_2.6fr]">
           <div>
@@ -32,6 +32,8 @@ export const Footer: React.FC = () => (
             <h4 className="mb-5 font-inter text-sm font-normal text-[#F7F4EF]">Support</h4>
             <ul className="space-y-3 font-inter text-sm font-light leading-relaxed text-[#E9E6DF]/66">
               <li><Link to="/contact" className="hover:text-[#A3915D]">Contact Us</Link></li>
+              <li><Link to="/policies" className="hover:text-[#A3915D]">Policies</Link></li>
+              <li><Link to="/refund-and-shipping-policy" className="hover:text-[#A3915D]">Refund &amp; Shipping Policy</Link></li>
               <li><a href={getWhatsAppUrl('Hello BISILE, I need help with an order.')} target="_blank" rel="noreferrer" className="hover:text-[#A3915D]">WhatsApp Support</a></li>
               <li><Link to="/checkout" className="hover:text-[#A3915D]">Checkout</Link></li>
               <li><Link to="/dashboard" className="hover:text-[#A3915D]">Dashboard</Link></li>
@@ -50,7 +52,9 @@ export const Footer: React.FC = () => (
       </div>
       <div className="flex flex-col items-center justify-between border-t border-[#A3915D]/24 pt-6 md:flex-row">
         <a href="https://heyywebb.com" target="_blank" rel="noreferrer" className="font-inter text-xs font-light text-[#E9E6DF]/45 hover:text-[#A3915D]">Made by HeyyWebb</a>
-        <div className="mt-4 flex items-center gap-6 md:mt-0">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-5 md:mt-0 md:justify-end">
+          <Link to="/terms-and-conditions" className="font-inter text-xs font-light text-[#E9E6DF]/45 hover:text-[#A3915D]">Terms &amp; Conditions</Link>
+          <Link to="/privacy-policy" className="font-inter text-xs font-light text-[#E9E6DF]/45 hover:text-[#A3915D]">Privacy Policy</Link>
           <a href={INSTAGRAM_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-inter text-xs font-light uppercase tracking-[0.14em] text-[#E9E6DF]/55 transition-colors hover:text-[#A3915D]" aria-label="BISILE Instagram">
             <Instagram size={17} strokeWidth={1.2} /> Instagram
           </a>

@@ -23,6 +23,7 @@ import { Payment } from './pages/Payment';
 import { PaymentSuccess } from './pages/PaymentSuccess';
 import { Dashboard } from './pages/Dashboard';
 import { NotFound } from './pages/NotFound';
+import { Policies, PrivacyPolicy, RefundAndShippingPolicy, TermsAndConditions } from './pages/LegalPages';
 import { backgroundImages, fragranceImages, packageImages } from './src/assets/images';
 import { wakeBackend } from './utils/backendWake';
 
@@ -78,6 +79,14 @@ const App: React.FC = () => {
               <Route path="/order-complete" element={<PaymentSuccess />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/bisile-studio" element={<Dashboard />} />
+              <Route path="/policies" element={<Policies />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+              <Route path="/terms" element={<TermsAndConditions />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/refund-and-shipping-policy" element={<RefundAndShippingPolicy />} />
+              <Route path="/refund-shipping" element={<RefundAndShippingPolicy />} />
+              <Route path="/shipping-returns" element={<RefundAndShippingPolicy />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

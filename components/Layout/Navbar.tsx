@@ -255,7 +255,7 @@ export const Navbar: React.FC = () => {
             {leftLinks.map(renderNavLink)}
           </div>
 
-          <Link to="/" className="absolute left-1/2 z-20 flex -translate-x-1/2 items-center justify-center transition-opacity hover:opacity-75">
+          <Link to="/" className="relative z-20 flex items-center justify-center transition-opacity hover:opacity-75 md:absolute md:left-1/2 md:-translate-x-1/2">
             <OptimizedImage src={brandImages.logo} width={220} widths={[120, 180, 220, 320]} sizes="160px" alt="BISILE - Be Luxury" className={`h-9 w-auto object-contain transition-all duration-500 ease-out md:h-10 ${logoClass}`} />
           </Link>
 
