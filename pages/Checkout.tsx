@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../CartContext';
 import { CONTACT_PHONE, LAYBYE_TERMS, ORDER_EMAIL, SHIPPING_PARTNERS } from '../constants';
+import { prewarmBackend } from '../utils/backendWake';
 import type { CheckoutDetails } from '../types';
 
 export const CHECKOUT_STORAGE_KEY = 'bisile-checkout-details-v1';
@@ -46,6 +47,10 @@ export const Checkout: React.FC = () => {
     [form.shippingPartner]
   );
   const estimatedTotal = subtotal + selectedShipping.price;
+
+  useEffect(() => {
+    if (items.length) void prewarmBackend();
+  }, [items.length]);
 
   const updateField = (name: keyof CheckoutDetails, value: string) => setForm((current) => ({ ...current, [name]: value }));
 

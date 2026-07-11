@@ -11,10 +11,7 @@ export const apiUrl = (path: string) => {
   if (isAbsoluteUrl(path)) return path;
 
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  if (!API_BASE_URL) {
-    if (import.meta.env.PROD) throw new Error('VITE_API_URL is required for production API requests.');
-    return normalizedPath;
-  }
+  if (!API_BASE_URL) return normalizedPath;
 
   return `${API_BASE_URL}${normalizedPath}`;
 };

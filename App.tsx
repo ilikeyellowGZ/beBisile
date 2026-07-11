@@ -25,7 +25,7 @@ import { Dashboard } from './pages/Dashboard';
 import { NotFound } from './pages/NotFound';
 import { Policies, PrivacyPolicy, RefundAndShippingPolicy, TermsAndConditions } from './pages/LegalPages';
 import { backgroundImages, fragranceImages, packageImages } from './src/assets/images';
-import { wakeBackend } from './utils/backendWake';
+import { prewarmBackend } from './utils/backendWake';
 
 // Scroll to top on route change wrapper, but allow section scrolling via state
 const ScrollToTop = () => {
@@ -41,15 +41,28 @@ const ScrollToTop = () => {
   return null;
 };
 
-const App: React.FC = () => {
+const BackendPrewarm = () => {
+  const location = useLocation();
+
   React.useEffect(() => {
-    void wakeBackend();
+    void prewarmBackend();
   }, []);
 
+  React.useEffect(() => {
+    if (['/cart', '/checkout', '/payment'].includes(location.pathname)) {
+      void prewarmBackend();
+    }
+  }, [location.pathname]);
+
+  return null;
+};
+
+const App: React.FC = () => {
   return (
     <BrowserRouter>
       <SeoManager />
       <ScrollToTop />
+      <BackendPrewarm />
       <CartProvider>
         <div className="flex flex-col min-h-screen bg-off-white text-primary font-sans antialiased selection:bg-accent selection:text-white">
           <Navbar />

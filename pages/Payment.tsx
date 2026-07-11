@@ -5,7 +5,7 @@ import { useCart } from '../CartContext';
 import { CHECKOUT_STORAGE_KEY } from './Checkout';
 import { SHIPPING_PARTNERS } from '../constants';
 import { configuredApiUrl, readJsonResponse } from '../utils/http';
-import { ensureBackendReady, wakeBackend } from '../utils/backendWake';
+import { ensureBackendReady, prewarmBackend, wakeBackend } from '../utils/backendWake';
 import type { CheckoutDetails } from '../types';
 
 const API_URL = configuredApiUrl(
@@ -48,6 +48,7 @@ export const Payment: React.FC = () => {
 
   useEffect(() => {
     if (!items.length || !details) return;
+    void prewarmBackend();
     const controller = new AbortController();
 
     const pingServer = async () => {

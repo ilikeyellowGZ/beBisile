@@ -1,12 +1,15 @@
 import { apiUrl } from './http';
 
-const healthUrl = apiUrl('/api/health');
-
 let wakePromise: Promise<boolean> | null = null;
 let lastReadyAt = 0;
-const READY_TTL_MS = 60_000;
-const DEFAULT_TIMEOUT_MS = 30_000;
-const RETRY_DELAY_MS = 2_000;
+let lastPrewarmStartedAt = 0;
+const READY_TTL_MS = 10 * 60_000;
+const PREWARM_ATTEMPT_TTL_MS = 2 * 60_000;
+const DEFAULT_TIMEOUT_MS = 45_000;
+const PREWARM_TIMEOUT_MS = 120_000;
+const RETRY_DELAY_MS = 3_000;
+
+const getHealthUrl = () => apiUrl('/api/health');
 
 const logWakeError = (error: unknown) => {
   if (import.meta.env.DEV) console.warn('BISILE backend wake check failed.', error);
@@ -42,22 +45,25 @@ export const wakeBackend = async (options: WakeBackendOptions = {}): Promise<boo
   wakePromise = (async () => {
     while (Date.now() - startedAt <= timeoutMs) {
       try {
-        console.info('BISILE backend wake request', { url: healthUrl });
+        const healthUrl = getHealthUrl();
+        if (import.meta.env.DEV) console.info('BISILE backend wake request', { url: healthUrl });
         const response = await fetch(healthUrl, {
           cache: 'no-store',
           signal: options.signal,
         });
 
         if (response.ok) {
-          console.info('BISILE backend health response', { status: response.status });
+          if (import.meta.env.DEV) console.info('BISILE backend health response', { status: response.status });
           lastReadyAt = Date.now();
           return true;
         }
 
-        console.warn('BISILE backend health request was not ready', {
-          status: response.status,
-          statusText: response.statusText,
-        });
+        if (import.meta.env.DEV) {
+          console.warn('BISILE backend health request was not ready', {
+            status: response.status,
+            statusText: response.statusText,
+          });
+        }
       } catch (error) {
         if (options.signal?.aborted) throw error;
         logWakeError(error);
@@ -76,6 +82,15 @@ export const wakeBackend = async (options: WakeBackendOptions = {}): Promise<boo
   });
 
   return wakePromise;
+};
+
+export const prewarmBackend = () => {
+  if (Date.now() - lastReadyAt < READY_TTL_MS) return Promise.resolve(true);
+  if (wakePromise) return wakePromise;
+  if (Date.now() - lastPrewarmStartedAt < PREWARM_ATTEMPT_TTL_MS) return Promise.resolve(false);
+
+  lastPrewarmStartedAt = Date.now();
+  return wakeBackend({ timeoutMs: PREWARM_TIMEOUT_MS, retryDelayMs: RETRY_DELAY_MS });
 };
 
 export const ensureBackendReady = async (options: WakeBackendOptions = {}) => {
