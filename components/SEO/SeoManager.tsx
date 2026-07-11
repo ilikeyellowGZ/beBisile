@@ -65,8 +65,8 @@ const routeSeo: Record<string, SeoConfig> = {
     description: 'Contact BISILE for order support, fragrance questions, hair enquiries, wig laundry bookings, delivery support, and customer care.',
   },
   '/policies': {
-    title: 'BISILE Policies | Terms, Privacy, Refunds & Shipping',
-    description: 'Review BISILE policies for website terms, privacy, secure Paystack payments, refunds, returns, shipping, delivery, and customer care.',
+    title: 'BISILE Policies | Terms, Privacy, Refunds, Returns & Shipping',
+    description: 'Review BISILE policies for website terms, privacy, secure Paystack payments, refunds, returns, exchanges, shipping, delivery, and customer care.',
   },
   '/terms-and-conditions': {
     title: 'BISILE Terms & Conditions | Website, Orders & Payments',
@@ -87,17 +87,17 @@ const routeSeo: Record<string, SeoConfig> = {
     canonicalPath: '/privacy-policy',
   },
   '/refund-and-shipping-policy': {
-    title: 'BISILE Refund & Shipping Policy | Returns & Delivery',
-    description: 'Read the BISILE Refund and Shipping Policy for delivery methods, processing times, returns, damaged items, refunds, and customer care.',
+    title: 'BISILE Refund, Return & Shipping Policy | Delivery',
+    description: 'Read the BISILE Refund, Return and Shipping Policy for return eligibility, refund timelines, delivery methods, processing times, damaged items, and customer care.',
   },
   '/refund-shipping': {
-    title: 'BISILE Refund & Shipping Policy | Returns & Delivery',
-    description: 'Read the BISILE Refund and Shipping Policy for delivery methods, processing times, returns, damaged items, refunds, and customer care.',
+    title: 'BISILE Refund, Return & Shipping Policy | Delivery',
+    description: 'Read the BISILE Refund, Return and Shipping Policy for return eligibility, refund timelines, delivery methods, processing times, damaged items, and customer care.',
     canonicalPath: '/refund-and-shipping-policy',
   },
   '/shipping-returns': {
-    title: 'BISILE Refund & Shipping Policy | Returns & Delivery',
-    description: 'Read the BISILE Refund and Shipping Policy for delivery methods, processing times, returns, damaged items, refunds, and customer care.',
+    title: 'BISILE Refund, Return & Shipping Policy | Delivery',
+    description: 'Read the BISILE Refund, Return and Shipping Policy for return eligibility, refund timelines, delivery methods, processing times, damaged items, and customer care.',
     canonicalPath: '/refund-and-shipping-policy',
   },
   '/care-packages': {

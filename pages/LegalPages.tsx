@@ -16,9 +16,10 @@ type LegalPageConfig = {
   sections: LegalSection[];
 };
 
-const lastUpdated = '7 July 2026';
+const lastUpdated = '11 July 2026';
 
 const contactLine = `Questions about these terms can be sent to ${CONTACT_EMAIL} or ${CONTACT_PHONE}.`;
+const policyContactLine = `For questions about refunds, returns, shipping, or your order, contact BISILE customer support at ${CONTACT_EMAIL} or ${CONTACT_PHONE}. We aim to respond within 1 to 2 business days.`;
 
 const termsSections: LegalSection[] = [
   {
@@ -56,7 +57,7 @@ const termsSections: LegalSection[] = [
   },
   {
     title: 'Returns, refunds, and delivery',
-    body: 'Refund, return, exchange, and delivery rules are set out in the Refund & Shipping Policy. That policy forms part of these Terms and Conditions.',
+    body: 'Refund, return, exchange, and delivery rules are set out in the Refund, Return & Shipping Policy. That policy forms part of these Terms and Conditions.',
   },
   {
     title: 'Intellectual property',
@@ -114,56 +115,93 @@ const privacySections: LegalSection[] = [
 
 const refundShippingSections: LegalSection[] = [
   {
-    title: 'Shipping areas and delivery methods',
-    body: 'BISILE ships within South Africa using the delivery methods selected or confirmed during checkout.',
+    title: 'Refund, return, and shipping policy',
+    body: 'At BISILE, we are committed to delivering luxury products of exceptional quality. Because our products include fragrance, hair, beauty, and personal-care items, we maintain strict hygiene and quality standards.',
   },
   {
-    title: 'Delivery options',
-    items: DELIVERY_OPTIONS.map((option) => `${option.name}: ${option.price}`),
-  },
-  {
-    title: 'Processing and delivery timing',
+    title: 'Returns',
+    body: 'Returns are accepted only where the product is incorrect, damaged, defective, or has a manufacturing defect.',
     items: [
-      'Orders are usually processed after payment has cleared and order details have been confirmed.',
-      'In-stock product orders are normally prepared within 1 to 3 business days.',
-      'Estimated delivery after dispatch is usually 2 to 7 business days, depending on the delivery method, address, courier workload, public holidays, and service interruptions.',
-      'Custom, made-to-order, pre-order, wig laundry, or special service orders may take longer. We will communicate timelines directly where required.',
+      'You must contact BISILE within 48 hours of receiving your order.',
+      'The item must be unused, unopened where sealed, and in its original packaging.',
+      'Proof of purchase and clear photographs of the product and packaging must be provided.',
+      'Products returned without prior approval will not be accepted.',
     ],
   },
   {
-    title: 'Shipping responsibility',
+    title: 'Non-returnable items',
+    body: 'For hygiene and safety reasons, BISILE cannot accept returns or exchanges on the following items unless they are defective, damaged, or incorrectly supplied.',
     items: [
-      'Customers must provide correct delivery details and be available to receive or collect parcels.',
-      'Risk passes to the customer once the parcel is delivered, collected, or marked as delivered by the courier or delivery partner.',
+      'Used fragrances.',
+      'Used hair products, wigs, bundles, closures, frontals, or lace products.',
+      'Used beauty or personal-care products.',
+      'Customised or personalised items.',
+      'Gift cards.',
+      'Sale or promotional items.',
+    ],
+  },
+  {
+    title: 'Refunds',
+    items: [
+      'Once your approved return has been received and inspected, BISILE will notify you of the outcome.',
+      'If approved, your refund will be processed to your original payment method within 5 to 10 business days.',
+      'Shipping fees are non-refundable unless the return is due to an error made by BISILE.',
+      'If your return is declined because it does not meet the policy requirements, the product will be returned to you.',
+    ],
+  },
+  {
+    title: 'Exchanges',
+    body: 'BISILE only replaces products that are defective, damaged, or incorrectly supplied, subject to inspection and approval.',
+  },
+  {
+    title: 'Order processing',
+    items: [
+      'Orders are processed within 1 to 3 business days after payment has been confirmed.',
+      'Custom orders are processed within 14 to 21 business days after payment has been confirmed, unless a different timeline is agreed in writing.',
+      'Processing times may be longer during product launches, promotions, public holidays, or periods of high order volume.',
+    ],
+  },
+  {
+    title: 'Delivery time',
+    items: [
+      'Major South African cities: estimated delivery within 2 to 5 business days after dispatch.',
+      'Regional and outlying areas: estimated delivery within 3 to 7 business days after dispatch.',
+      'Delivery times are estimates and may vary depending on the courier, destination, public holidays, service interruptions, and circumstances outside BISILE control.',
+    ],
+  },
+  {
+    title: 'Shipping costs and delivery options',
+    body: 'Shipping costs are calculated or confirmed at checkout based on your delivery address, selected delivery method, and order size. Any free-shipping promotion will be clearly communicated on the website or BISILE social media platforms.',
+    items: DELIVERY_OPTIONS.map((option) => `${option.name}: ${option.price}`),
+  },
+  {
+    title: 'Order tracking',
+    body: 'Once your order has been dispatched, you will receive a tracking number or delivery update by email or WhatsApp so you can monitor your delivery.',
+  },
+  {
+    title: 'Delivery responsibility',
+    body: 'Please ensure that your delivery address and contact details are accurate before placing your order.',
+    items: [
+      'BISILE cannot be held responsible for delays or failed deliveries caused by incorrect delivery information.',
+      'BISILE cannot be held responsible for customer unavailability or failed collection.',
+      'BISILE cannot be held responsible for courier delays beyond our control.',
+      'BISILE cannot be held responsible for severe weather, public disruptions, or unforeseen circumstances.',
       'If a parcel is returned because of incorrect details, failed collection, or failed delivery attempts, the customer may be responsible for the new delivery fee.',
     ],
   },
   {
-    title: 'Refunds and returns',
+    title: 'Damaged or incorrect orders',
+    body: 'If your order arrives damaged, defective, or incorrect, please contact BISILE within 48 hours of delivery so the issue can be reviewed quickly.',
     items: [
-      'Refund or exchange requests must be reported within 7 days of receiving the order, unless a shorter product-specific notice period applies below.',
-      'Items must be unused, unworn, unopened where sealed, in original packaging, and in resellable condition.',
-      'Fragrance, beauty, and personal care products cannot be returned once opened, used, sprayed, or unsealed, unless defective.',
-      'Hair, wigs, closures, frontals, bundles, and lace products cannot be returned after being worn, washed, cut, installed, brushed out, coloured, altered, or customised.',
-      'Wig laundry and beauty services cannot be refunded once the service has started or been completed, unless BISILE agrees there was a service fault.',
-      'Delivery fees are not refundable unless the return is caused by a confirmed BISILE error or defective item.',
-    ],
-  },
-  {
-    title: 'Damaged, defective, or incorrect items',
-    items: [
-      'Please report damaged, defective, or incorrect items within 48 hours of delivery.',
-      'Send your order number, photos or video of the issue, packaging photos, and a clear description to BISILE customer care.',
+      'Include your order number.',
+      'Include clear photographs of the product and packaging.',
+      'Include a brief description of the issue.',
       'After assessment, BISILE may offer a replacement, repair, exchange, store credit, or refund depending on the issue and product type.',
     ],
   },
   {
-    title: 'How refunds are paid',
-    body: 'Approved refunds are paid back through the original payment method where possible. Processing time depends on Paystack, the customer bank, and any verification required for the transaction.',
-  },
-  {
     title: 'Contact',
-    body: contactLine,
+    body: policyContactLine,
   },
 ];
 
@@ -177,8 +215,8 @@ const policiesSections: LegalSection[] = [
     body: 'The Privacy Policy explains what customer information BISILE collects, how it is used, how Paystack payment information is handled, and how privacy requests can be made.',
   },
   {
-    title: 'Refund & Shipping Policy',
-    body: 'The Refund & Shipping Policy explains delivery options, processing timelines, return eligibility, defective item reporting, and refund processing.',
+    title: 'Refund, Return & Shipping Policy',
+    body: 'The Refund, Return & Shipping Policy explains delivery options, processing timelines, return eligibility, non-returnable items, defective item reporting, exchanges, and refund processing.',
   },
   {
     title: 'Payment provider verification',
@@ -205,8 +243,8 @@ const pages: Record<string, LegalPageConfig> = {
   },
   refundShipping: {
     eyebrow: 'Customer care',
-    title: 'Refund & Shipping Policy',
-    intro: 'Delivery options, processing timelines, return rules, refund eligibility, and damaged-item reporting for BISILE orders.',
+    title: 'Refund, Return & Shipping Policy',
+    intro: 'Return eligibility, non-returnable items, refund timelines, exchanges, delivery options, shipping costs, order tracking, and damaged-item reporting for BISILE orders.',
     sections: refundShippingSections,
   },
   policies: {
@@ -220,7 +258,7 @@ const pages: Record<string, LegalPageConfig> = {
 const policyLinks = [
   { label: 'Terms & Conditions', to: '/terms-and-conditions' },
   { label: 'Privacy Policy', to: '/privacy-policy' },
-  { label: 'Refund & Shipping Policy', to: '/refund-and-shipping-policy' },
+  { label: 'Refund, Return & Shipping Policy', to: '/refund-and-shipping-policy' },
   { label: 'Policies', to: '/policies' },
 ];
 

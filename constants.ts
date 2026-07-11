@@ -3,8 +3,8 @@ import { BUNDLE_PRODUCTS, CLOSURE_PRODUCT, WIG_LAUNDRY_PRODUCT } from './data/ha
 import { carouselImages, fragranceImages, hairImages, packageImages } from './src/assets/images';
 
 export const WHATSAPP_NUMBER = (import.meta.env.VITE_WHATSAPP_NUMBER ?? '27608957481').replace(/\D/g, '');
-export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'bisilebeautyandmakeup@mail.com';
-export const ORDER_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'bisilebeautyandmakeup@mail.com';
+export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'bisilebeautyandmakeup@gmail.com';
+export const ORDER_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'bisilebeautyandmakeup@gmail.com';
 export const CONTACT_PHONE = '+27 60 895 7481';
 export const INSTAGRAM_URL = import.meta.env.VITE_INSTAGRAM_URL ?? 'https://www.instagram.com/be_bisile/';
 export const PINTEREST_URL = import.meta.env.VITE_PINTEREST_URL ?? 'https://za.pinterest.com/be_bisile/';
