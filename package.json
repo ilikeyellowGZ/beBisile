@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "npm --prefix server run dev",
-    "dev:netlify": "netlify dev",
     "build": "vite build",
     "render:build": "npm --prefix server install && npm --prefix server run build",
     "start": "npm --prefix server start",
@@ -17,7 +16,6 @@
     "reset:admin-login": "node scripts/reset-admin-login.mjs",
     "seed:catalog": "node scripts/seed-catalog.mjs",
     "test:db": "node scripts/test-db.mjs",
-    "test:resend": "node scripts/test-resend.mjs",
     "test:paystack": "node scripts/test-paystack.mjs",
     "migrate:cloudinary": "node scripts/migrate-images-to-cloudinary.mjs"
   },

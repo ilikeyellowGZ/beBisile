@@ -12,8 +12,6 @@ services:
         sync: false
       - key: CLIENT_URL
         sync: false
-      - key: TEMP_NETLIFY_URL
-        sync: false
       - key: CORS_ORIGINS
         sync: false
       - key: MONGODB_URI

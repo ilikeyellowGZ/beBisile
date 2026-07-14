@@ -8,7 +8,7 @@ export const checkoutRoutes = Router();
 const initializePaystackCheckout = async (req: any, res: any, next: any) => {
   try {
     const calculated = await calculateTrustedOrder(req.body);
-    const order = await createPendingOrder(req.body, calculated);
+    const order = await createPendingOrder(req.body, calculated, req.get('Idempotency-Key'));
     const transaction = await createPaystackTransaction(order);
     res.json({
       success: true,

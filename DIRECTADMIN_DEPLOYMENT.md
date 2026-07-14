@@ -1,6 +1,6 @@
 # DirectAdmin Frontend Deployment
 
-The final BISILE frontend host is DirectAdmin. Netlify is only temporary for preview/testing.
+The final BISILE frontend host is DirectAdmin. The production API is hosted on Render.
 
 ## Build Locally
 

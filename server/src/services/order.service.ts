@@ -15,7 +15,12 @@ const shippingPartners = [
   { id: 'postnet-to-address', name: 'PostNet to Address', price: 349.99 }
 ];
 
-const getShippingPartner = (id?: string) => shippingPartners.find((option) => option.id === id) || shippingPartners[0];
+const getShippingPartner = (id?: string) => {
+  if (!id) return shippingPartners[0];
+  const option = shippingPartners.find((partner) => partner.id === id);
+  if (!option) throw Object.assign(new Error('Invalid shipping option'), { statusCode: 400 });
+  return option;
+};
 const productLookup = (productId: string) => ({
   $or: [
     ...(productId.match(/^[a-f\d]{24}$/i) ? [{ _id: productId }] : []),
@@ -29,15 +34,25 @@ const productLookup = (productId: string) => ({
 export const checkoutSchema = z.object({
   items: z.array(checkoutItemSchema).min(1),
   customerInfo: z.object({
-    fullName: z.string().min(1),
+    fullName: z.string().trim().min(3).max(120),
     email: z.string().email(),
-    phone: z.string().optional()
+    phone: z.string().trim().max(40).optional()
   }).strict(),
-  shippingAddress: z.record(z.unknown()).optional(),
+  shippingAddress: z.object({
+    streetAddress: z.string().trim().min(5).max(200),
+    city: z.string().trim().min(1).max(100),
+    province: z.string().trim().min(1).max(100),
+    postalCode: z.string().trim().min(3).max(20),
+    country: z.string().trim().min(2).max(100),
+    deliveryInstructions: z.string().trim().max(1000).optional(),
+    orderNotes: z.string().trim().max(1000).optional(),
+    alternativePhone: z.string().trim().max(40).optional(),
+    instagramHandle: z.string().trim().max(100).optional(),
+  }).strict(),
   shippingPartner: z.object({
     id: z.string().min(1)
   }).strict().optional(),
-  discountCode: z.string().optional()
+  discountCode: z.string().trim().max(80).optional()
 }).strict();
 
 export const createOrderNumber = () => `BIS-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
@@ -117,9 +132,20 @@ export const calculateTrustedOrder = async (input: z.infer<typeof checkoutSchema
   };
 };
 
-export const createPendingOrder = async (input: z.infer<typeof checkoutSchema>, calculated: Awaited<ReturnType<typeof calculateTrustedOrder>>) => {
-  return Order.create({
+export const createPendingOrder = async (
+  input: z.infer<typeof checkoutSchema>,
+  calculated: Awaited<ReturnType<typeof calculateTrustedOrder>>,
+  checkoutIdempotencyKey?: string,
+) => {
+  const normalizedKey = checkoutIdempotencyKey?.trim().slice(0, 200);
+  if (normalizedKey) {
+    const existing = await Order.findOne({ checkoutIdempotencyKey: normalizedKey });
+    if (existing) return existing;
+  }
+
+  const orderData = {
     orderNumber: createOrderNumber(),
+    checkoutIdempotencyKey: normalizedKey,
     customerInfo: input.customerInfo,
     shippingAddress: input.shippingAddress || {},
     shippingPartner: calculated.shippingPartner,
@@ -142,5 +168,15 @@ export const createPendingOrder = async (input: z.infer<typeof checkoutSchema>, 
     paymentStatus: 'pending',
     orderStatus: 'pending',
     shippingStatus: 'not_shipped'
-  });
+  };
+
+  try {
+    return await Order.create(orderData);
+  } catch (error: any) {
+    if (normalizedKey && error?.code === 11000) {
+      const existing = await Order.findOne({ checkoutIdempotencyKey: normalizedKey });
+      if (existing) return existing;
+    }
+    throw error;
+  }
 };

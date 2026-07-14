@@ -51,9 +51,36 @@ const crud = (path: string, model: any, roles = ['owner', 'manager', 'support'])
 };
 
 crud('categories', Category, ['owner', 'manager']);
-crud('orders', Order, ['owner', 'manager', 'support']);
+adminRoutes.get('/orders', requireRole('owner', 'manager', 'support'), async (_req, res) => {
+  res.json({ orders: await Order.find().sort({ createdAt: -1 }) });
+});
+
+adminRoutes.patch('/orders/:id', requireRole('owner', 'manager', 'support'), async (req, res) => {
+  const allowed: Record<string, string> = {};
+  const orderStatuses = new Set(['pending', 'processing', 'shipped', 'delivered', 'completed', 'cancelled']);
+  const shippingStatuses = new Set(['not_shipped', 'processing', 'shipped', 'delivered', 'returned']);
+  if (req.body.orderStatus !== undefined && orderStatuses.has(String(req.body.orderStatus))) allowed.orderStatus = String(req.body.orderStatus);
+  if (req.body.shippingStatus !== undefined && shippingStatuses.has(String(req.body.shippingStatus))) allowed.shippingStatus = String(req.body.shippingStatus);
+  if (req.body.trackingNumber !== undefined) allowed.trackingNumber = String(req.body.trackingNumber).trim().slice(0, 100);
+  if (!Object.keys(allowed).length) return res.status(400).json({ error: 'Only operational order fields may be changed' });
+
+  const order = await Order.findByIdAndUpdate(req.params.id, { $set: { ...allowed, updatedAt: new Date() } }, { new: true });
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  res.json({ item: order });
+});
+
+adminRoutes.delete('/orders/:id', requireRole('owner', 'manager', 'support'), async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  if (order.paymentStatus === 'paid') return res.status(409).json({ error: 'Paid orders cannot be deleted' });
+  await order.deleteOne();
+  res.json({ ok: true });
+});
+
 crud('customers', Customer, ['owner', 'manager', 'support']);
-crud('payments', Payment, ['owner', 'manager']);
+adminRoutes.get('/payments', requireRole('owner', 'manager'), async (_req, res) => {
+  res.json({ payments: await Payment.find().sort({ createdAt: -1 }) });
+});
 crud('refunds', Refund, ['owner']);
 crud('contact-messages', ContactMessage, ['owner', 'manager', 'support']);
 crud('newsletter', NewsletterSubscriber, ['owner', 'manager']);

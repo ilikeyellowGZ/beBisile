@@ -33,13 +33,9 @@ const envSchema = z.object({
   BACKEND_WAKE_TOKEN: z.string().optional(),
   PAYSTACK_SECRET_KEY: z.string().min(1),
   FRONTEND_URL: z.string().url().default(defaultFrontendUrl),
-  TEMP_NETLIFY_URL: z.string().url().or(z.literal('')).optional(),
   CLIENT_URL: z.string().url().or(z.literal('')).optional(),
   SERVER_URL: z.string().url().optional(),
   CORS_ORIGINS: z.string().default(''),
-  RESEND_API_KEY: z.string().optional(),
-  SENDGRID_API_KEY: z.string().optional(),
-  FROM_EMAIL: z.string().email().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional()
@@ -59,6 +55,5 @@ export const corsOrigins = Array.from(new Set([
   ...(env.NODE_ENV === 'production' ? ['https://bisile.co.za', 'https://www.bisile.co.za'] : []),
   env.FRONTEND_URL,
   env.CLIENT_URL,
-  env.TEMP_NETLIFY_URL,
   ...env.CORS_ORIGINS.split(',').map((item) => item.trim()).filter(Boolean),
 ].filter(isString)));

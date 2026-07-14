@@ -53,7 +53,6 @@ When the frontend is served by the same Render service, leave `VITE_API_BASE_URL
 - `NODE_ENV`: use `production` on Render.
 - `PORT`: local port only; Render sets it automatically.
 - `FRONTEND_URL`: final frontend URL allowed by CORS, later the DirectAdmin domain.
-- `TEMP_NETLIFY_URL`: optional temporary Netlify preview URL allowed by CORS while testing.
 - `CLIENT_URL`: optional checkout redirect URL. Leave blank to use `FRONTEND_URL`.
 - `MONGODB_URI`: MongoDB connection string.
 - `MONGODB_DB`: MongoDB database name.

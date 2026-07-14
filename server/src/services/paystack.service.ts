@@ -1,8 +1,8 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import mongoose from 'mongoose';
 import { env } from '../config/env.js';
 import { paystackApiBase, paystackSecretKey } from '../config/paystack.js';
-import { DiscountCode, Order, Payment } from '../models/index.js';
-import { reduceStockForOrder } from './inventory.service.js';
+import { DiscountCode, InventoryLog, Order, Payment, Product } from '../models/index.js';
 
 type PaystackTransaction = {
   id?: number | string;
@@ -13,6 +13,8 @@ type PaystackTransaction = {
   channel?: string;
   paid_at?: string;
   receipt_url?: string;
+  domain?: string;
+  customer?: { email?: string };
   metadata?: { orderNumber?: string; orderId?: string; customerName?: string; shippingPartner?: string };
 };
 
@@ -25,16 +27,24 @@ type PaystackResponse<T> = {
 const toPaystackSubunit = (amount: number) => Math.round(Number(amount || 0) * 100);
 const makeReference = (orderNumber: string) => `${orderNumber}-${Date.now()}`.replace(/[^A-Za-z0-9-.=]/g, '-');
 
-const paystackRequest = async <T>(path: string, init: RequestInit = {}) => {
+export const paystackRequest = async <T>(path: string, init: RequestInit = {}) => {
   console.info('Paystack request', { path, method: init.method || 'GET' });
-  const response = await fetch(`${paystackApiBase}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${paystackSecretKey}`,
-      'Content-Type': 'application/json',
-      ...(init.headers || {})
-    }
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  let response: Response;
+  try {
+    response = await fetch(`${paystackApiBase}${path}`, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${paystackSecretKey}`,
+        'Content-Type': 'application/json',
+        ...(init.headers || {})
+      }
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const payload = await response.json().catch(() => ({})) as Partial<PaystackResponse<T>>;
   console.info('Paystack response', {
@@ -52,6 +62,14 @@ const paystackRequest = async <T>(path: string, init: RequestInit = {}) => {
 };
 
 export const createPaystackTransaction = async (order: InstanceType<typeof Order>) => {
+  if (order.paystackReference && order.paystackAuthorizationUrl) {
+    return {
+      authorization_url: order.paystackAuthorizationUrl,
+      access_code: order.paystackAccessCode,
+      reference: order.paystackReference,
+    };
+  }
+
   const reference = makeReference(order.orderNumber);
   const callbackUrl = `${env.CLIENT_URL}/order-complete?order=${encodeURIComponent(order.orderNumber)}&reference=${encodeURIComponent(reference)}`;
   const payload = await paystackRequest<{ authorization_url: string; access_code: string; reference: string }>('/transaction/initialize', {
@@ -101,41 +119,97 @@ export const verifyPaystackSignature = (body: Buffer, signature: string | string
 export const markPaystackOrderPaid = async (transaction: PaystackTransaction) => {
   if (!transaction.reference || transaction.status !== 'success') return null;
 
-  const order = await Order.findOne({ paystackReference: transaction.reference });
-  if (!order) return null;
-  if (order.paymentStatus === 'paid') return order;
+  const session = await mongoose.startSession();
+  let fulfilledOrder: any = null;
 
-  const paidAmount = Number(transaction.amount || 0) / 100;
-  if (Math.abs(paidAmount - Number(order.totalAmount || 0)) > 0.01) {
-    throw Object.assign(new Error('Verified Paystack amount does not match order total'), { statusCode: 400 });
+  try {
+    await session.withTransaction(async () => {
+      const order = await Order.findOne({ paystackReference: transaction.reference }).session(session);
+      if (!order) return;
+
+      const paidAmount = Number(transaction.amount || 0) / 100;
+      if (Math.abs(paidAmount - Number(order.totalAmount || 0)) > 0.01) {
+        throw Object.assign(new Error('Verified Paystack amount does not match order total'), { statusCode: 400 });
+      }
+
+      const currency = String(transaction.currency || order.currency || 'ZAR').toUpperCase();
+      if (currency !== String(order.currency || 'ZAR').toUpperCase()) {
+        throw Object.assign(new Error('Verified Paystack currency does not match order currency'), { statusCode: 400 });
+      }
+      if (env.NODE_ENV === 'production' && transaction.domain && transaction.domain !== 'live') {
+        throw Object.assign(new Error('A test-mode Paystack transaction cannot settle a production order'), { statusCode: 400 });
+      }
+      if (transaction.metadata?.orderNumber && transaction.metadata.orderNumber !== order.orderNumber) {
+        throw Object.assign(new Error('Paystack order metadata does not match the BISILE order'), { statusCode: 400 });
+      }
+      if (transaction.metadata?.orderId && transaction.metadata.orderId !== String(order._id)) {
+        throw Object.assign(new Error('Paystack order ID metadata does not match the BISILE order'), { statusCode: 400 });
+      }
+      if (transaction.customer?.email && transaction.customer.email.toLowerCase() !== String(order.customerInfo?.email || '').toLowerCase()) {
+        throw Object.assign(new Error('Paystack customer email does not match the BISILE order'), { statusCode: 400 });
+      }
+
+      if (['paid', 'partially_refunded', 'refunded'].includes(String(order.paymentStatus))) {
+        fulfilledOrder = order;
+        return;
+      }
+
+      for (const item of order.items) {
+        if (!item.productId) continue;
+        const quantity = Number(item.quantity || 0);
+        if (quantity < 1) continue;
+        const product = await Product.findOneAndUpdate(
+          { _id: item.productId, stock: { $gte: quantity } },
+          { $inc: { stock: -quantity } },
+          { new: true, session }
+        );
+        if (!product) {
+          throw Object.assign(new Error(`Insufficient stock to settle paid order ${order.orderNumber}`), { statusCode: 409 });
+        }
+        await InventoryLog.create([{
+          productId: product._id,
+          previousStock: product.stock + quantity,
+          newStock: product.stock,
+          changeAmount: -quantity,
+          reason: 'paid_order',
+          orderId: order._id,
+        }], { session });
+      }
+
+      const paidAt = transaction.paid_at ? new Date(transaction.paid_at) : new Date();
+      order.paymentStatus = 'paid';
+      order.orderStatus = 'paid';
+      order.paystackTransactionId = transaction.id == null ? undefined : String(transaction.id);
+      order.paystackPaidAt = paidAt;
+      order.paidAt = paidAt;
+      await order.save({ session });
+
+      await Payment.findOneAndUpdate(
+        { paystackReference: transaction.reference },
+        {
+          $setOnInsert: {
+            orderId: order._id,
+            customerId: order.customerId,
+            paystackReference: transaction.reference,
+            paystackTransactionId: transaction.id == null ? undefined : String(transaction.id),
+            amount: paidAmount,
+            currency,
+            status: 'paid',
+            paymentMethod: `paystack_${transaction.channel || 'checkout'}`,
+            receiptUrl: transaction.receipt_url,
+          },
+        },
+        { upsert: true, new: true, session }
+      );
+
+      if (order.discountCode) {
+        await DiscountCode.updateOne({ code: order.discountCode }, { $inc: { usedCount: 1 } }, { session });
+      }
+      fulfilledOrder = order;
+    });
+  } finally {
+    await session.endSession();
   }
 
-  const currency = String(transaction.currency || order.currency || 'ZAR').toUpperCase();
-  if (currency !== String(order.currency || 'ZAR').toUpperCase()) {
-    throw Object.assign(new Error('Verified Paystack currency does not match order currency'), { statusCode: 400 });
-  }
-
-  order.paymentStatus = 'paid';
-  order.orderStatus = 'paid';
-  order.paystackTransactionId = transaction.id == null ? undefined : String(transaction.id);
-  order.paystackPaidAt = transaction.paid_at ? new Date(transaction.paid_at) : new Date();
-  order.paidAt = order.paystackPaidAt;
-  await order.save();
-
-  await Payment.create({
-    orderId: order._id,
-    customerId: order.customerId,
-    paystackReference: transaction.reference,
-    paystackTransactionId: transaction.id == null ? undefined : String(transaction.id),
-    amount: paidAmount,
-    currency,
-    status: 'paid',
-    paymentMethod: `paystack_${transaction.channel || 'checkout'}`,
-    receiptUrl: transaction.receipt_url
-  });
-
-  await reduceStockForOrder(order);
-  if (order.discountCode) await DiscountCode.updateOne({ code: order.discountCode }, { $inc: { usedCount: 1 } });
-
-  return order;
+  return fulfilledOrder;
 };

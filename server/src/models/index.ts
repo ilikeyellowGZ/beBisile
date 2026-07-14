@@ -110,7 +110,10 @@ export const Order = mongoose.model('Order', new Schema({
   paidAt: Date,
   deliveredAt: Date,
   cancelledAt: Date,
-  refundedAt: Date
+  refundedAt: Date,
+  refundedAmount: { type: Number, default: 0 },
+  stockRestoredAt: Date,
+  checkoutIdempotencyKey: { type: String, unique: true, sparse: true, index: true }
 }, timestamps));
 
 export const Payment = mongoose.model('Payment', new Schema({
@@ -167,7 +170,33 @@ export const Refund = mongoose.model('Refund', new Schema({
   reason: String,
   status: String,
   paystackRefundId: String,
+  paystackRefundReference: { type: String, unique: true, sparse: true, index: true },
   approvedBy: { type: Schema.Types.ObjectId, ref: 'Admin' }
+}, timestamps));
+
+export const PaystackTransfer = mongoose.model('PaystackTransfer', new Schema({
+  paystackTransferReference: { type: String, required: true, unique: true, index: true },
+  paystackTransferId: String,
+  amount: Number,
+  currency: String,
+  status: String,
+  recipient: Schema.Types.Mixed,
+  reason: String,
+  failures: Schema.Types.Mixed,
+  event: String,
+  occurredAt: Date,
+}, timestamps));
+
+export const PaystackPaymentRequest = mongoose.model('PaystackPaymentRequest', new Schema({
+  requestCode: { type: String, required: true, unique: true, index: true },
+  paystackRequestId: String,
+  amount: Number,
+  currency: String,
+  status: String,
+  customer: Schema.Types.Mixed,
+  transactions: [Schema.Types.Mixed],
+  event: String,
+  occurredAt: Date,
 }, timestamps));
 
 export const ContactMessage = mongoose.model('ContactMessage', new Schema({

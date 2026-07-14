@@ -18,7 +18,7 @@ paymentsRoutes.post('/initialize', rejectPriceFields, validate(checkoutSchema), 
       },
     });
     const calculated = await calculateTrustedOrder(req.body);
-    const order = await createPendingOrder(req.body, calculated);
+    const order = await createPendingOrder(req.body, calculated, req.get('Idempotency-Key'));
     const transaction = await createPaystackTransaction(order);
     console.info('Payment initialization completed', {
       orderNumber: order.orderNumber,

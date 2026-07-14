@@ -5,23 +5,20 @@ Luxury React storefront for BISILE fragrance, processed virgin hair, wig laundry
 ## Project Overview
 
 - Frontend: Vite, React, TypeScript, Tailwind-style utility classes.
-- Temporary preview host: Netlify.
 - Final frontend host: DirectAdmin static hosting.
 - Final backend host: Render Web Service.
 - Backend: Express/Mongoose API in `server/`.
-- Temporary serverless checkout/admin flow: Netlify Functions in `netlify/functions/`.
 
 ## Current Status
 
-- Temporary frontend: https://shimmering-churros-307714.netlify.app/
-- Verified Resend email domain: `bisile.co.za`
-- Resend status: verified and test email accepted from `orders@bisile.co.za`
+- Production frontend: https://bisile.co.za/
+- Production backend: https://bebisile.onrender.com/
 - Database: MongoDB Atlas database name `bisile`
 - Admin login: create or reset the owner account with `npm run seed:admin` or `npm run reset:admin-login`; do not ship demo credentials.
 - Cloudinary: migration script and mapping helper are ready; dry-run checks active website assets only. Actual upload still requires running `npm run migrate:cloudinary` with network/upload approval.
 - Local image fallback: local assets remain in the repo and are used whenever `src/data/cloudinary-image-map.json` has no matching Cloudinary URL.
 
-Netlify environment variables must be added in the Netlify dashboard. Backend/server secrets must not be exposed as frontend `VITE_` variables. If using Netlify Functions locally, run `netlify dev`; if using the Render backend later, set `VITE_API_BASE_URL` to the Render API origin.
+Backend/server secrets must not be exposed as frontend `VITE_` variables. The production frontend uses the Render API origin through `VITE_API_BASE_URL`.
 
 ## Local Development
 
@@ -37,15 +34,7 @@ npm --prefix server install
 npm run dev:api
 ```
 
-The Vite dev server proxies `/api/*` to `http://127.0.0.1:5000`. The payment page calls `/api/checkout/create-paystack-transaction` by default, so Vite alone is not enough unless the Express API is also running.
-
-To test the temporary Netlify Functions flow instead, use Netlify Dev:
-
-```bash
-netlify dev
-```
-
-Netlify production maps `/api/checkout/create-paystack-transaction` to `/.netlify/functions/create-paystack-transaction` and `/api/checkout/verify-paystack-transaction` to `/.netlify/functions/verify-paystack-transaction`.
+The Vite dev server proxies `/api/*` to `http://127.0.0.1:5000`. The payment page calls the Express API, so Vite alone is not enough unless the Express API is also running.
 
 ## Environment Variables
 
@@ -63,8 +52,8 @@ Public browser variables must start with `VITE_` because this project uses Vite:
 - `VITE_API_BASE_URL`: optional public API base URL, for example the Render backend URL.
 - `VITE_PAYSTACK_PUBLIC_KEY`: optional public Paystack key if a future inline flow needs it. The current hosted checkout flow does not require it in browser code.
 - `VITE_WHATSAPP_NUMBER`: public WhatsApp number used by enquiry and contact buttons.
-- `VITE_PAYSTACK_CHECKOUT_API_URL`: optional public checkout endpoint override. Leave blank on Netlify.
-- `VITE_PAYSTACK_VERIFY_API_URL`: optional public payment verification endpoint override. Leave blank on Netlify.
+- `VITE_PAYSTACK_CHECKOUT_API_URL`: optional public checkout endpoint override. Leave blank for the Render API.
+- `VITE_PAYSTACK_VERIFY_API_URL`: optional public payment verification endpoint override. Leave blank for the Render API.
 - `VITE_ENABLE_VIDEO_HERO`: public toggle for the desktop split-screen video hero.
 
 Server-only variables must not use the `VITE_` prefix:
@@ -74,7 +63,6 @@ Server-only variables must not use the `VITE_` prefix:
 - `JWT_SECRET`, `ADMIN_JWT_SECRET`, `ADMIN_PASSWORD_SECRET`: dashboard/auth secrets.
 - `PAYSTACK_SECRET_KEY`: Paystack backend secret used to initialize, verify, and validate payment webhooks.
 - `NODE_ENV`, `PORT`, `SERVER_URL`, `CORS_ORIGINS`: optional server configuration.
-- `RESEND_API_KEY`, `SENDGRID_API_KEY`, `FROM_EMAIL`: optional email settings.
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: optional image upload settings.
 
 After editing `.env`, restart the dev server so Vite and any backend process can read the new values.
@@ -87,7 +75,6 @@ After editing `.env`, restart the dev server so Vite and any backend process can
 npm run seed:admin
 npm run seed:catalog
 npm run test:db
-npm run test:resend
 npm run test:paystack
 ```
 
@@ -95,7 +82,6 @@ npm run test:paystack
 - `reset:admin-login`: updates or creates the owner admin with `RESET_ADMIN_CURRENT`, `RESET_ADMIN_USERNAME`, `RESET_ADMIN_EMAIL`, and `RESET_ADMIN_PASSWORD`.
 - `seed:catalog`: seeds BISILE products, categories, shipping options, and default store settings into the `bisile` database.
 - `test:db`: connects to MongoDB, creates/verifies required collections inside `bisile`, and performs a temporary write/delete probe.
-- `test:resend`: sends `BISILE Test Email` to `officialheyywebb@gmail.com` using Resend and logs the send to `emailLogs` if MongoDB is configured.
 - `test:paystack`: creates a standalone Paystack test transaction and prints the authorization URL/reference. It does not create a BISILE order.
 - `migrate:cloudinary`: uploads active local images/videos to Cloudinary and writes `src/data/cloudinary-image-map.json`. Run only after confirming Cloudinary credentials and desired upload timing. Local files are not deleted.
 
@@ -132,26 +118,16 @@ Error:
 Failed to execute 'json' on 'Response': Unexpected end of JSON input
 ```
 
-Cause: the frontend called a missing or incorrect API endpoint and received an empty/HTML/404 response instead of JSON. This happened locally when Vite was running without Netlify Dev or the Express API.
+Cause: the frontend called a missing or incorrect API endpoint and received an empty/HTML/404 response instead of JSON. This happens locally when Vite is running without the Express API.
 
-Fix: run `npm run dev:api` beside `npm run dev`, or run `netlify dev` when testing Netlify Functions. The frontend now checks `response.ok`, reads raw response text before parsing JSON, and shows a useful error instead of throwing a JSON parse failure.
+Fix: run `npm run dev:api` beside `npm run dev`. The frontend checks `response.ok`, reads raw response text before parsing JSON, and shows a useful error instead of throwing a JSON parse failure.
 
-The production flow uses Netlify Functions:
+The production flow uses the Render Express API:
 
-- `create-paystack-transaction`: recalculates product prices on the server, creates a MongoDB order, and opens Paystack Checkout.
-- `verify-paystack-transaction`: verifies returned Paystack references from the success page.
-- `paystack-webhook`: verifies Paystack signatures and marks successful orders as paid.
-- `admin-setup`: creates the first dashboard owner admin user in MongoDB.
-- `admin-login`: checks the MongoDB admin email/password and returns a temporary dashboard session.
-- `orders`: returns recent orders only when a valid dashboard session is supplied.
-
-Configure the server-only values from `.env.example` in Netlify. Never expose `PAYSTACK_SECRET_KEY`, `MONGODB_URI`, `JWT_SECRET`, `ADMIN_JWT_SECRET`, or `ADMIN_PASSWORD_SECRET` as `VITE_` variables.
-
-Create the first dashboard user by sending a POST request to:
-
-```text
-https://your-domain.example/.netlify/functions/admin-setup
-```
+- `POST /api/payments/initialize`: recalculates trusted prices, creates a pending order, and opens Paystack Checkout.
+- `GET /api/payments/verify/:reference`: verifies the returned Paystack reference.
+- `POST /api/webhooks/paystack`: verifies Paystack signatures and processes payment, refund, transfer, and payment-request events.
+- `POST /api/auth/login`: authenticates the dashboard owner/admin.
 
 Create a real root `.env` file from `.env.example`. Restart the dev server after changing env values because Vite reads them at startup.
 
@@ -212,18 +188,7 @@ The response should be:
 { "status": "ok" }
 ```
 
-When the frontend is served by the same Render service, leave `VITE_API_BASE_URL` blank so browser requests use `/api/*` on the same origin. If the frontend is hosted separately on DirectAdmin or Netlify, use the Render URL as `VITE_API_BASE_URL`.
-
-## Temporary Netlify Preview
-
-Netlify is temporary for previews/testing. `netlify.toml` keeps the Vite defaults:
-
-- Build command: `npm run build`
-- Publish directory: `dist`
-- Functions directory: `netlify/functions`
-- Client-side route redirect to `index.html`
-
-Do not make Netlify-only behavior required for the final DirectAdmin production site.
+When the frontend is served by the same Render service, leave `VITE_API_BASE_URL` blank so browser requests use `/api/*` on the same origin. When the frontend is hosted on DirectAdmin, set it to `https://bebisile.onrender.com`.
 
 ## DirectAdmin Deployment
 
@@ -243,10 +208,9 @@ Do not make Netlify-only behavior required for the final DirectAdmin production 
 3. Set build command to `npm install && npm --prefix server install && npm run build && npm --prefix server run build`.
 4. Set start command to `npm --prefix server start`.
 5. Add backend env values from `server/.env.example`.
-6. Set `FRONTEND_URL` to the Render service URL if the frontend is served by Render, or to the separate frontend URL when using DirectAdmin/Netlify.
-7. Set `TEMP_NETLIFY_URL` while Netlify preview is still being used.
-8. Visit `/api/health` after deployment.
-9. Visit `/` and a nested route such as `/shop` to confirm the React app fallback is serving correctly.
+6. Set `FRONTEND_URL` and `CLIENT_URL` to `https://bisile.co.za`.
+7. Visit `/api/health` after deployment.
+8. Visit `/` and a nested route such as `/shop` to confirm the React app fallback is serving correctly.
 
 `render.yaml` is included as an editable blueprint.
 
@@ -257,7 +221,7 @@ Real `.env` files are not committed. Public browser variables in Vite must start
 Frontend root variables:
 
 - `VITE_SITE_NAME`: public website name.
-- `VITE_SITE_URL`: final frontend URL, temporarily Netlify if needed.
+- `VITE_SITE_URL`: final frontend URL, `https://bisile.co.za`.
 - `VITE_API_BASE_URL`: Render backend URL.
 - `VITE_PAYSTACK_CHECKOUT_API_URL`: optional Paystack checkout endpoint override.
 - `VITE_PAYSTACK_VERIFY_API_URL`: optional Paystack verification endpoint override.
@@ -271,19 +235,16 @@ Backend/server-only variables:
 
 - `NODE_ENV`, `PORT`: backend runtime settings.
 - `FRONTEND_URL`: frontend URL allowed by CORS.
-- `TEMP_NETLIFY_URL`: temporary Netlify preview URL allowed by CORS.
 - `CLIENT_URL`: optional checkout redirect URL.
 - `MONGODB_URI`, `MONGODB_DB`: MongoDB connection.
 - `JWT_SECRET`: backend auth secret.
 - `PAYSTACK_SECRET_KEY`: Paystack server secret.
-- `RESEND_API_KEY`, `SENDGRID_API_KEY`, `FROM_EMAIL`: optional email settings.
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: optional upload settings.
 
 ## Common Errors And Fixes
 
 - Missing Vite env updates: restart `npm run dev`.
 - DirectAdmin route refresh 404: confirm `.htaccess` is present in `public_html`.
-- Render CORS error: set `FRONTEND_URL` to the exact frontend origin and add `TEMP_NETLIFY_URL` for preview.
-- Checkout still calls Netlify: set `VITE_API_BASE_URL` or `VITE_PAYSTACK_CHECKOUT_API_URL`, then rebuild.
-- Paystack webhook failing: confirm the webhook URL is `/api/paystack-webhook` on Netlify or `/api/webhooks/paystack` on Render, and that `PAYSTACK_SECRET_KEY` matches the Paystack integration.
+- Render CORS error: set `FRONTEND_URL` and `CLIENT_URL` to the exact frontend origin and rebuild the frontend if `VITE_API_BASE_URL` changed.
+- Paystack webhook failing: confirm the webhook URL is `/api/webhooks/paystack` on Render and that `PAYSTACK_SECRET_KEY` matches the Paystack integration.
 - Backend fails on Render startup: confirm MongoDB, Paystack, and JWT env values are present.

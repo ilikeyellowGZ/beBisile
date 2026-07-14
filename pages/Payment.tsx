@@ -27,6 +27,24 @@ type PaystackCheckoutResponse = {
 
 const formatDeliveryPrice = (price: number) => `R${price.toFixed(2).replace('.', ',')}`;
 
+const getIdempotencyKey = (items: Array<{ id: string; quantity: number }>, details: CheckoutDetails, shippingId: string) => {
+  const fingerprint = JSON.stringify({
+    items: items.map(({ id, quantity }) => ({ id, quantity })).sort((a, b) => a.id.localeCompare(b.id)),
+    email: details.email.trim().toLowerCase(),
+    shippingId,
+  });
+
+  try {
+    const stored = JSON.parse(localStorage.getItem('bisile-payment-idempotency-v1') || 'null') as { fingerprint?: string; key?: string } | null;
+    if (stored?.fingerprint === fingerprint && stored.key) return stored.key;
+    const key = typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem('bisile-payment-idempotency-v1', JSON.stringify({ fingerprint, key }));
+    return key;
+  } catch {
+    return undefined;
+  }
+};
+
 export const Payment: React.FC = () => {
   const { items, subtotal } = useCart();
   const navigate = useNavigate();
@@ -103,6 +121,7 @@ export const Payment: React.FC = () => {
       await ensureBackendReady({ signal: controller.signal });
       setServerReady(true);
       setIsCheckingBackend(false);
+      const idempotencyKey = getIdempotencyKey(items, details, selectedShipping.id);
 
       console.info('BISILE payment initialization request', { url: API_URL, itemCount: items.length });
       const response = await fetch(API_URL, {
@@ -110,6 +129,7 @@ export const Payment: React.FC = () => {
         signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
+          ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
         },
         body: JSON.stringify({
           customerInfo: {

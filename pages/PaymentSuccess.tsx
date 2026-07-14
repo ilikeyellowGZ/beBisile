@@ -56,6 +56,7 @@ export const PaymentSuccess: React.FC = () => {
 
     clearCart();
     sessionStorage.removeItem(CHECKOUT_STORAGE_KEY);
+    localStorage.removeItem('bisile-payment-idempotency-v1');
 
     const interval = window.setInterval(() => {
       setCountdown((current) => {
