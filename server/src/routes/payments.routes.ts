@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { rejectPriceFields, validate } from '../middleware/validate.middleware.js';
 import { calculateTrustedOrder, checkoutSchema, createPendingOrder } from '../services/order.service.js';
 import { createPaystackTransaction, verifyPaystackTransaction } from '../services/paystack.service.js';
+import { asyncHandler } from '../middleware/async-handler.js';
 
 export const paymentsRoutes = Router();
 
-paymentsRoutes.post('/initialize', rejectPriceFields, validate(checkoutSchema), async (req, res, next) => {
+paymentsRoutes.post('/initialize', rejectPriceFields, validate(checkoutSchema), asyncHandler(async (req, res, next) => {
   try {
     console.info('Payment initialization request', {
       itemCount: Array.isArray(req.body?.items) ? req.body.items.length : 0,
@@ -39,9 +40,9 @@ paymentsRoutes.post('/initialize', rejectPriceFields, validate(checkoutSchema), 
   } catch (error) {
     next(error);
   }
-});
+}));
 
-paymentsRoutes.get('/verify/:reference', async (req, res, next) => {
+paymentsRoutes.get('/verify/:reference', asyncHandler(async (req, res, next) => {
   try {
     const reference = String(req.params.reference || '').trim();
     if (!reference) return res.status(400).json({ success: false, message: 'Paystack reference is required' });
@@ -70,4 +71,4 @@ paymentsRoutes.get('/verify/:reference', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+}));

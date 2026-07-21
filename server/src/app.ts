@@ -2,6 +2,7 @@ import cors, { type CorsOptions } from 'cors';
 import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
+import mongoose from 'mongoose';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { corsOrigins } from './config/env.js';
@@ -24,10 +25,12 @@ const clientDistPath = [
 const defaultCorsFallbacks = [
   'https://bisile.co.za',
   'https://www.bisile.co.za',
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
+  ...(process.env.NODE_ENV === 'production' ? [] : [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ]),
 ];
 
 const corsOptions: CorsOptions = {
@@ -53,6 +56,7 @@ app.options('*', cors(corsOptions));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 200 }));
 const healthLimiter = rateLimit({ windowMs: 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false });
 const paymentLimiter = rateLimit({ windowMs: 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
+const authLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many login attempts. Please try again later.' } });
 
 app.get('/api/health', healthLimiter, (req, res) => {
   const payload = {
@@ -68,6 +72,11 @@ app.get('/api/health', healthLimiter, (req, res) => {
   res.json(payload);
 });
 
+app.get('/api/health/ready', healthLimiter, (_req, res) => {
+  const ready = mongoose.connection.readyState === 1;
+  res.status(ready ? 200 : 503).json({ success: ready, status: ready ? 'ready' : 'not_ready' });
+});
+
 app.get('/api/health/protected', healthLimiter, requireWakeJwt, (_req, res) => {
   res.json({
     success: true,
@@ -79,11 +88,16 @@ app.get('/api/health/protected', healthLimiter, requireWakeJwt, (_req, res) => {
 app.use('/api/webhooks', express.raw({ type: 'application/json' }), webhookRoutes);
 app.use(express.json({ limit: '1mb' }));
 
+app.use('/api/auth/login', authLoginLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/checkout', paymentLimiter, checkoutRoutes);
 app.use('/api/payments', paymentLimiter, paymentsRoutes);
 app.use('/api', publicRoutes);
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({ success: false, error: 'API route not found' });
+});
 
 if (clientDistPath) {
   app.use(express.static(clientDistPath));

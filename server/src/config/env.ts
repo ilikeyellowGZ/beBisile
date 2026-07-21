@@ -23,10 +23,12 @@ const defaultFrontendUrl = process.env.NODE_ENV === 'production' ? 'https://bisi
 const defaultCorsOrigins = [
   'https://bisile.co.za',
   'https://www.bisile.co.za',
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
+  ...(process.env.NODE_ENV === 'production' ? [] : [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+  ]),
 ];
 
 const envSchema = z.object({

@@ -17,6 +17,7 @@ export const Admin = mongoose.model('Admin', new Schema({
   role: { type: String, enum: ['owner', 'manager', 'support'], required: true },
   avatar: String,
   isActive: { type: Boolean, default: true },
+  mustChangePassword: { type: Boolean, default: false },
   lastLoginAt: Date
 }, timestamps));
 

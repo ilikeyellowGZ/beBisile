@@ -14,7 +14,7 @@ Luxury React storefront for BISILE fragrance, processed virgin hair, wig laundry
 - Production frontend: https://bisile.co.za/
 - Production backend: https://bebisile.onrender.com/
 - Database: MongoDB Atlas database name `bisile`
-- Admin login: create or reset the owner account with `npm run seed:admin` or `npm run reset:admin-login`; do not ship demo credentials.
+- Admin login: use `https://bisile.co.za/admin` (or `/bisile-studio`). The backend accepts the configured admin username or email; the password is server-side only and must never be placed in frontend env or committed files.
 - Cloudinary: migration script and mapping helper are ready; dry-run checks active website assets only. Actual upload still requires running `npm run migrate:cloudinary` with network/upload approval.
 - Local image fallback: local assets remain in the repo and are used whenever `src/data/cloudinary-image-map.json` has no matching Cloudinary URL.
 
@@ -246,5 +246,6 @@ Backend/server-only variables:
 - Missing Vite env updates: restart `npm run dev`.
 - DirectAdmin route refresh 404: confirm `.htaccess` is present in `public_html`.
 - Render CORS error: set `FRONTEND_URL` and `CLIENT_URL` to the exact frontend origin and rebuild the frontend if `VITE_API_BASE_URL` changed.
+- Backend JSON 404 after a code change: redeploy the Render service, then verify both `/api/health` and `/api/health/ready`; a stale deployment can still return HTML 404 pages for newer routes.
 - Paystack webhook failing: confirm the webhook URL is `/api/webhooks/paystack` on Render and that `PAYSTACK_SECRET_KEY` matches the Paystack integration.
 - Backend fails on Render startup: confirm MongoDB, Paystack, and JWT env values are present.

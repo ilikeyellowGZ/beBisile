@@ -21,7 +21,13 @@ Health check:
 
 ```text
 GET /api/health
-Response: { "status": "ok" }
+Response: { "success": true, "status": "online", "timestamp": "..." }
+```
+
+Readiness check (includes the MongoDB connection state):
+
+```text
+GET /api/health/ready
 ```
 
 ## Render Deployment
@@ -75,6 +81,7 @@ The backend fetches products from MongoDB, validates active status and stock, us
 ## Routes
 
 - `GET /api/health`
+- `GET /api/health/ready`
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
@@ -84,6 +91,7 @@ The backend fetches products from MongoDB, validates active status and stock, us
 - `GET/POST/PATCH/DELETE /api/admin/categories`
 - `GET/POST/PATCH/DELETE /api/admin/orders`
 - `GET/POST/PATCH/DELETE /api/admin/customers`
+- `GET /api/admin/customers/:id/history` (authenticated purchase history)
 - `GET/POST/PATCH/DELETE /api/admin/payments`
 - `GET/POST/PATCH/DELETE /api/admin/refunds`
 - `GET/POST/PATCH/DELETE /api/admin/contact-messages`

@@ -60,33 +60,6 @@ const collectionResource: Partial<Record<AdminSection, string>> = {
   settings: 'settings',
 };
 
-const demoOrders = [
-  {
-    _id: 'demo-1001',
-    orderNumber: 'BIS-DEMO-1001',
-    customerInfo: { fullName: 'A. Mokoena', email: 'demo@bisile.co.za', phone: '+27 60 000 0001' },
-    shippingAddress: { city: 'Johannesburg' },
-    items: [{ id: 'indoniyamanzi', productName: 'Indoniyamanzi', quantity: 2, unitPrice: 499.99, totalPrice: 999.98 }],
-    totalAmount: 999.98,
-    paymentStatus: 'paid',
-    orderStatus: 'paid',
-    shippingStatus: 'processing',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-  },
-  {
-    _id: 'demo-1002',
-    orderNumber: 'BIS-DEMO-1002',
-    customerInfo: { fullName: 'N. Dlamini', email: 'client@example.com', phone: '+27 60 000 0002' },
-    shippingAddress: { city: 'Windhoek' },
-    items: [{ id: 'khwezilokusa', productName: 'Khwezilokusa', quantity: 1, unitPrice: 2799.99, totalPrice: 2799.99 }],
-    totalAmount: 2799.99,
-    paymentStatus: 'pending',
-    orderStatus: 'pending',
-    shippingStatus: 'not_shipped',
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 42).toISOString(),
-  },
-];
-
 const statusTone = (status: string) => {
   const text = String(status || '').toLowerCase();
   if (text.includes('paid') || text.includes('active') || text.includes('approved') || text.includes('delivered')) return 'bg-[#edf7ef] text-[#1d6b36]';
@@ -210,7 +183,7 @@ const RevenueBars: React.FC<{ data: Array<{ date: string; value: number }> }> = 
 export const Dashboard: React.FC = () => {
   const [section, setSection] = useState<AdminSection>('overview');
   const [token, setToken] = useState(getToken());
-  const [loginIdentifier, setLoginIdentifier] = useState('admin');
+  const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -227,6 +200,8 @@ export const Dashboard: React.FC = () => {
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [customerHistory, setCustomerHistory] = useState<any[]>([]);
+  const [isLoadingCustomerHistory, setIsLoadingCustomerHistory] = useState(false);
 
   const loadDashboard = async () => {
     if (!getToken()) return;
@@ -352,6 +327,31 @@ export const Dashboard: React.FC = () => {
     else setIsLoading(false);
   }, [token]);
 
+  useEffect(() => {
+    if (!token || section !== 'customers' || !selectedCustomerId) {
+      setCustomerHistory([]);
+      setIsLoadingCustomerHistory(false);
+      return;
+    }
+
+    let active = true;
+    setIsLoadingCustomerHistory(true);
+    apiFetch(apiUrl(`/api/admin/customers/${selectedCustomerId}/history`))
+      .then((payload) => {
+        if (active) setCustomerHistory(payload.orders || []);
+      })
+      .catch(() => {
+        if (active) setCustomerHistory([]);
+      })
+      .finally(() => {
+        if (active) setIsLoadingCustomerHistory(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [section, selectedCustomerId, token]);
+
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoggingIn(true);
@@ -414,8 +414,6 @@ export const Dashboard: React.FC = () => {
   const currentRows = currentResource ? collections[currentResource] || [] : [];
   const selectedOrder = useMemo(() => filteredOrders.find((order) => String(order._id || order.id) === selectedOrderId) || null, [filteredOrders, selectedOrderId]);
   const selectedCustomer = useMemo(() => currentRows.find((row) => String(row._id || row.id) === selectedCustomerId) || null, [currentRows, selectedCustomerId]);
-  const customerOrderHistory = useMemo(() => filteredOrders.filter((order) => String(order.customerInfo?.email || '').toLowerCase() === String(selectedCustomer?.email || '').toLowerCase()), [filteredOrders, selectedCustomer?.email]);
-
   const renderOverview = () => (
     <div className="space-y-6">
       <div className="grid gap-px bg-[#e5e2dd] md:grid-cols-2 xl:grid-cols-6">
@@ -639,11 +637,12 @@ export const Dashboard: React.FC = () => {
                   <p><span className="font-medium text-primary">Last order:</span> {selectedCustomer.lastOrderAt ? dateFormatter.format(new Date(selectedCustomer.lastOrderAt)) : '—'}</p>
                 </div>
               </div>
-              {customerOrderHistory.length > 0 && (
+              {isLoadingCustomerHistory && <p className="mt-6 text-sm text-primary/55">Loading protected purchase history...</p>}
+              {!isLoadingCustomerHistory && customerHistory.length > 0 && (
                 <div className="mt-6">
                   <h4 className="font-inter text-lg font-light">Purchase history</h4>
                   <div className="mt-3 space-y-2">
-                    {customerOrderHistory.slice(0, 6).map((order) => (
+                    {customerHistory.slice(0, 6).map((order) => (
                       <div key={order._id || order.id} className="border border-[#e5e2dd] p-3 text-sm text-primary/70">
                         <p className="font-medium text-primary">{order.orderNumber}</p>
                         <p>{currency.format(normalizeOrderTotal(order))} • {order.paymentStatus} • {order.createdAt ? dateFormatter.format(new Date(order.createdAt)) : '—'}</p>
@@ -727,7 +726,7 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
             </div>
-            {error && <div className="mt-6 border border-[#e5e2dd] bg-[#f7f5f1] p-4 font-inter text-sm font-light text-primary/60">Live admin data could not load, showing local/demo data. Details: {error}</div>}
+            {error && <div className="mt-6 border border-[#e5e2dd] bg-[#f7f5f1] p-4 font-inter text-sm font-light text-primary/60">Live admin data could not load. Details: {error}</div>}
           </section>
 
           <section className="p-6 md:p-8">
