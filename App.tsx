@@ -92,6 +92,10 @@ const App: React.FC = () => {
               <Route path="/order-complete" element={<PaymentSuccess />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/bisile-studio" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin-login" element={<Dashboard />} />
+              <Route path="/admin-dashboard" element={<Dashboard />} />
               <Route path="/policies" element={<Policies />} />
               <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
               <Route path="/terms" element={<TermsAndConditions />} />

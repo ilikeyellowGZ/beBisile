@@ -36,6 +36,8 @@ const envSchema = z.object({
   CLIENT_URL: z.string().url().or(z.literal('')).optional(),
   SERVER_URL: z.string().url().optional(),
   CORS_ORIGINS: z.string().default(''),
+  RESEND_API_KEY: z.string().optional(),
+  FROM_EMAIL: z.string().email().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional()

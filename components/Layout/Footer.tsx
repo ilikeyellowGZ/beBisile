@@ -36,7 +36,6 @@ export const Footer: React.FC = () => (
               <li><Link to="/refund-and-shipping-policy" className="hover:text-[#A3915D]">Refund, Return &amp; Shipping Policy</Link></li>
               <li><a href={getWhatsAppUrl('Hello BISILE, I need help with an order.')} target="_blank" rel="noreferrer" className="hover:text-[#A3915D]">WhatsApp Support</a></li>
               <li><Link to="/checkout" className="hover:text-[#A3915D]">Checkout</Link></li>
-              <li><Link to="/dashboard" className="hover:text-[#A3915D]">Dashboard</Link></li>
             </ul>
           </div>
           <div>

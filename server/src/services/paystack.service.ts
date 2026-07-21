@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { env } from '../config/env.js';
 import { paystackApiBase, paystackSecretKey } from '../config/paystack.js';
 import { DiscountCode, InventoryLog, Order, Payment, Product } from '../models/index.js';
+import { sendAdminOrderNotificationEmail, sendOrderConfirmationEmail } from './email.service.js';
 
 type PaystackTransaction = {
   id?: number | string;
@@ -205,6 +206,13 @@ export const markPaystackOrderPaid = async (transaction: PaystackTransaction) =>
       if (order.discountCode) {
         await DiscountCode.updateOne({ code: order.discountCode }, { $inc: { usedCount: 1 } }, { session });
       }
+
+      void sendOrderConfirmationEmail({ order }).catch((error) => {
+        console.error('Customer order email failed', { orderNumber: order.orderNumber, error: error instanceof Error ? error.message : error });
+      });
+      void sendAdminOrderNotificationEmail({ order }).catch((error) => {
+        console.error('Admin order email failed', { orderNumber: order.orderNumber, error: error instanceof Error ? error.message : error });
+      });
       fulfilledOrder = order;
     });
   } finally {

@@ -1,11 +1,35 @@
 import { Router } from 'express';
+import type { Request } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { requireAdminManagement, requirePricePermission, requireRefundPermission, requireRole } from '../middleware/role.middleware.js';
 import { Admin, AdminLog, AuditLog, Category, ContactMessage, Customer, DiscountCode, EmailLog, InventoryLog, NewsletterSubscriber, Order, Payment, Product, Refund, Review, ShippingOption, StoreSettings, Upload, User } from '../models/index.js';
 import { writeAuditLog } from '../services/audit.service.js';
+import { createBisileEmailHtml, sendTransactionalEmail } from '../services/email.service.js';
 
 export const adminRoutes = Router();
 adminRoutes.use(requireAuth);
+
+const sanitizeAdmin = (admin: any) => ({
+  _id: admin?._id,
+  id: admin?._id,
+  fullName: admin?.fullName,
+  username: admin?.username,
+  email: admin?.email,
+  role: admin?.role,
+  avatar: admin?.avatar,
+  isActive: admin?.isActive,
+  createdAt: admin?.createdAt,
+  updatedAt: admin?.updatedAt,
+  lastLoginAt: admin?.lastLoginAt,
+});
+
+const sanitizeAdminPayload = (payload: any) => {
+  if (Array.isArray(payload)) return payload.map((item) => sanitizeAdmin(item));
+  if (payload && typeof payload === 'object' && 'admins' in payload) {
+    return { ...payload, admins: payload.admins.map((item: any) => sanitizeAdmin(item)) };
+  }
+  return payload;
+};
 
 adminRoutes.get('/dashboard/stats', async (_req, res) => {
   const [orders, products, customers, payments] = await Promise.all([
@@ -44,7 +68,15 @@ adminRoutes.delete('/products/:id', requireRole('owner', 'manager'), async (req:
 });
 
 const crud = (path: string, model: any, roles = ['owner', 'manager', 'support']) => {
-  adminRoutes.get(`/${path}`, requireRole(...roles as any), async (_req, res) => res.json({ [path]: await model.find().sort({ createdAt: -1 }) }));
+  adminRoutes.get(`/${path}`, requireRole(...roles as any), async (_req, res) => {
+    const records = await model.find().sort({ createdAt: -1 });
+    const payload = { [path]: records };
+    if (path === 'admins') {
+      res.json(sanitizeAdminPayload(payload));
+      return;
+    }
+    res.json(payload);
+  });
   adminRoutes.post(`/${path}`, requireRole(...roles as any), async (req, res) => res.status(201).json({ item: await model.create(req.body) }));
   adminRoutes.patch(`/${path}/:id`, requireRole(...roles as any), async (req, res) => res.json({ item: await model.findByIdAndUpdate(req.params.id, req.body, { new: true }) }));
   adminRoutes.delete(`/${path}/:id`, requireRole(...roles as any), async (req, res) => { await model.findByIdAndDelete(req.params.id); res.json({ ok: true }); });
@@ -95,6 +127,40 @@ crud('shipping-options', ShippingOption, ['owner', 'manager']);
 crud('email-logs', EmailLog, ['owner', 'manager', 'support']);
 crud('uploads', Upload, ['owner', 'manager']);
 crud('admin-logs', AdminLog, ['owner']);
+
+adminRoutes.post('/messages/send', requireRole('owner', 'manager', 'support'), async (req: Request & { admin?: { email?: string } }, res) => {
+  const recipientEmail = String(req.body.recipientEmail || '').trim();
+  const recipientName = String(req.body.recipientName || 'Customer').trim();
+  const subject = String(req.body.subject || 'Message from BISILE').trim();
+  const message = String(req.body.message || '').trim();
+
+  if (!recipientEmail || !message) return res.status(400).json({ error: 'Recipient email and message are required' });
+
+  try {
+    const html = createBisileEmailHtml({
+      title: subject,
+      intro: `Hello ${recipientName},`,
+      body: `<p>${message.replace(/\n/g, '<br />')}</p><p style="margin-top:16px;">Thanks,<br />The BISILE team</p>`,
+      footer: 'This message was sent from the BISILE admin dashboard.',
+    });
+
+    await sendTransactionalEmail({
+      to: recipientEmail,
+      subject,
+      html,
+      text: `${message}\n\nThanks,\nThe BISILE team`,
+      type: 'admin_message',
+      from: req.admin?.email ? `BISILE Admin <${req.admin.email}>` : undefined,
+      metadata: { recipientName, senderEmail: req.admin?.email },
+    });
+
+    await ContactMessage.create({ fullName: recipientName, email: recipientEmail, subject, message, status: 'sent' });
+    res.json({ ok: true, message: 'Message sent successfully' });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Message delivery failed';
+    res.status(502).json({ error: message });
+  }
+});
 
 adminRoutes.patch('/refunds/:id/approve', requireRefundPermission, async (req, res) => res.json({ refund: await Refund.findByIdAndUpdate(req.params.id, { status: 'approved' }, { new: true }) }));
 adminRoutes.patch('/admins/:id', requireAdminManagement, async (req, res) => res.json({ admin: await Admin.findByIdAndUpdate(req.params.id, req.body, { new: true }) }));

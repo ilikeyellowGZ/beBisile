@@ -168,7 +168,7 @@ const draftFromProduct = (product: any): ProductDraft => ({
 });
 const getProductRowId = (row: any) => String(row.productId || row.variantId || row.sku || row.id || row._id || '—');
 
-const DataTable: React.FC<{ title: string; rows: any[]; columns: Array<{ key: string; label: string; render?: (row: any) => React.ReactNode }> }> = ({ title, rows, columns }) => (
+const DataTable: React.FC<{ title: string; rows: any[]; columns: Array<{ key: string; label: string; render?: (row: any) => React.ReactNode }>; onRowClick?: (row: any) => void }> = ({ title, rows, columns, onRowClick }) => (
   <div className="border border-[#e5e2dd] bg-white">
     <div className="border-b border-[#e5e2dd] p-5">
       <h2 className="font-inter text-2xl font-light">{title}</h2>
@@ -182,7 +182,7 @@ const DataTable: React.FC<{ title: string; rows: any[]; columns: Array<{ key: st
         </thead>
         <tbody className="divide-y divide-[#e5e2dd]">
           {rows.map((row, index) => (
-            <tr key={row._id || row.id || index}>
+            <tr key={row._id || row.id || index} onClick={() => onRowClick?.(row)} className={onRowClick ? 'cursor-pointer hover:bg-[#f7f5f1]' : undefined}>
               {columns.map((column) => <td key={column.key} className="px-5 py-4 align-top font-inter text-sm font-light">{column.render ? column.render(row) : row[column.key] ?? '—'}</td>)}
             </tr>
           ))}
@@ -225,6 +225,8 @@ export const Dashboard: React.FC = () => {
   const [editingProductId, setEditingProductId] = useState('');
   const [productMessage, setProductMessage] = useState('');
   const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   const loadDashboard = async () => {
     if (!getToken()) return;
@@ -410,6 +412,9 @@ export const Dashboard: React.FC = () => {
 
   const currentResource = collectionResource[section];
   const currentRows = currentResource ? collections[currentResource] || [] : [];
+  const selectedOrder = useMemo(() => filteredOrders.find((order) => String(order._id || order.id) === selectedOrderId) || null, [filteredOrders, selectedOrderId]);
+  const selectedCustomer = useMemo(() => currentRows.find((row) => String(row._id || row.id) === selectedCustomerId) || null, [currentRows, selectedCustomerId]);
+  const customerOrderHistory = useMemo(() => filteredOrders.filter((order) => String(order.customerInfo?.email || '').toLowerCase() === String(selectedCustomer?.email || '').toLowerCase()), [filteredOrders, selectedCustomer?.email]);
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -556,27 +561,101 @@ export const Dashboard: React.FC = () => {
     }
 
     if (section === 'orders') {
-      return <DataTable title="Orders" rows={filteredOrders} columns={[
-        { key: 'orderNumber', label: 'Order' },
-        { key: 'customer', label: 'Customer', render: (row) => <div><p>{row.customerInfo?.fullName || '—'}</p><p className="text-xs text-primary/45">{row.customerInfo?.email}</p></div> },
-        {
-          key: 'items',
-          label: 'Items / IDs',
-          render: (row) => (
-            <div className="grid gap-2">
-              {(row.items || []).map((item: any) => (
-                <div key={`${row._id}-${normalizeOrderItemId(item)}`}>
-                  <p>{item.quantity}x {normalizeOrderItemName(item)}</p>
-                  <p className="text-[10px] uppercase tracking-[0.12em] text-primary/40">{normalizeOrderItemId(item)}</p>
+      return (
+        <div className="space-y-6">
+          <DataTable title="Orders" rows={filteredOrders} columns={[
+            { key: 'orderNumber', label: 'Order' },
+            { key: 'customer', label: 'Customer', render: (row) => <div><p>{row.customerInfo?.fullName || '—'}</p><p className="text-xs text-primary/45">{row.customerInfo?.email}</p></div> },
+            {
+              key: 'items',
+              label: 'Items / IDs',
+              render: (row) => (
+                <div className="grid gap-2">
+                  {(row.items || []).map((item: any) => (
+                    <div key={`${row._id}-${normalizeOrderItemId(item)}`}>
+                      <p>{item.quantity}x {normalizeOrderItemName(item)}</p>
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-primary/40">{normalizeOrderItemId(item)}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              ),
+            },
+            { key: 'totalAmount', label: 'Total', render: (row) => currency.format(normalizeOrderTotal(row)) },
+            { key: 'paymentStatus', label: 'Payment', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.paymentStatus)}`}>{row.paymentStatus}</span> },
+            { key: 'shippingStatus', label: 'Shipping', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.shippingStatus)}`}>{row.shippingStatus}</span> },
+          ]} onRowClick={(row) => setSelectedOrderId(String(row._id || row.id))} />
+          {selectedOrder && (
+            <div className="border border-[#e5e2dd] bg-white p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="bisile-kicker">Order details</p>
+                  <h3 className="font-inter text-2xl font-light">{selectedOrder.orderNumber}</h3>
+                </div>
+                <span className={`px-2 py-1 text-xs ${statusTone(selectedOrder.paymentStatus)}`}>{selectedOrder.paymentStatus}</span>
+              </div>
+              <div className="mt-6 grid gap-6 lg:grid-cols-2">
+                <div className="space-y-3 text-sm text-primary/70">
+                  <p><span className="font-medium text-primary">Customer:</span> {selectedOrder.customerInfo?.fullName || '—'}</p>
+                  <p><span className="font-medium text-primary">Email:</span> {selectedOrder.customerInfo?.email || '—'}</p>
+                  <p><span className="font-medium text-primary">Phone:</span> {selectedOrder.customerInfo?.phone || '—'}</p>
+                  <p><span className="font-medium text-primary">Address:</span> {selectedOrder.shippingAddress?.streetAddress || '—'}, {selectedOrder.shippingAddress?.city || '—'}</p>
+                </div>
+                <div className="space-y-3 text-sm text-primary/70">
+                  <p><span className="font-medium text-primary">Items:</span> {(selectedOrder.items || []).map((item: any) => `${item.quantity}x ${normalizeOrderItemName(item)}`).join(', ') || '—'}</p>
+                  <p><span className="font-medium text-primary">Shipping:</span> {selectedOrder.shippingPartner?.name || '—'}</p>
+                  <p><span className="font-medium text-primary">Reference:</span> {selectedOrder.paystackReference || '—'}</p>
+                  <p><span className="font-medium text-primary">Total:</span> {currency.format(normalizeOrderTotal(selectedOrder))}</p>
+                </div>
+              </div>
             </div>
-          ),
-        },
-        { key: 'totalAmount', label: 'Total', render: (row) => currency.format(normalizeOrderTotal(row)) },
-        { key: 'paymentStatus', label: 'Payment', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.paymentStatus)}`}>{row.paymentStatus}</span> },
-        { key: 'shippingStatus', label: 'Shipping', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.shippingStatus)}`}>{row.shippingStatus}</span> },
-      ]} />;
+          )}
+        </div>
+      );
+    }
+
+    if (section === 'customers') {
+      return (
+        <div className="space-y-6">
+          <DataTable title="Customers" rows={currentRows} columns={[
+            { key: 'name', label: 'Customer', render: (row) => <div><p>{row.fullName || '—'}</p><p className="text-xs text-primary/45">{row.email}</p></div> },
+            { key: 'phone', label: 'Phone', render: (row) => row.phone || '—' },
+            { key: 'totalOrders', label: 'Orders', render: (row) => row.totalOrders ?? '—' },
+            { key: 'totalSpent', label: 'Spent', render: (row) => currency.format(Number(row.totalSpent || 0)) },
+            { key: 'createdAt', label: 'Joined', render: (row) => row.createdAt ? dateFormatter.format(new Date(row.createdAt)) : '—' },
+          ]} onRowClick={(row) => setSelectedCustomerId(String(row._id || row.id))} />
+          {selectedCustomer && (
+            <div className="border border-[#e5e2dd] bg-white p-5">
+              <p className="bisile-kicker">Customer profile</p>
+              <h3 className="font-inter text-2xl font-light">{selectedCustomer.fullName || selectedCustomer.email}</h3>
+              <div className="mt-4 grid gap-6 lg:grid-cols-2">
+                <div className="space-y-3 text-sm text-primary/70">
+                  <p><span className="font-medium text-primary">Email:</span> {selectedCustomer.email || '—'}</p>
+                  <p><span className="font-medium text-primary">Phone:</span> {selectedCustomer.phone || '—'}</p>
+                  <p><span className="font-medium text-primary">Status:</span> {selectedCustomer.isBlocked ? 'Blocked' : 'Active'}</p>
+                </div>
+                <div className="space-y-3 text-sm text-primary/70">
+                  <p><span className="font-medium text-primary">Total spent:</span> {currency.format(Number(selectedCustomer.totalSpent || 0))}</p>
+                  <p><span className="font-medium text-primary">Orders:</span> {selectedCustomer.totalOrders ?? 0}</p>
+                  <p><span className="font-medium text-primary">Last order:</span> {selectedCustomer.lastOrderAt ? dateFormatter.format(new Date(selectedCustomer.lastOrderAt)) : '—'}</p>
+                </div>
+              </div>
+              {customerOrderHistory.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="font-inter text-lg font-light">Purchase history</h4>
+                  <div className="mt-3 space-y-2">
+                    {customerOrderHistory.slice(0, 6).map((order) => (
+                      <div key={order._id || order.id} className="border border-[#e5e2dd] p-3 text-sm text-primary/70">
+                        <p className="font-medium text-primary">{order.orderNumber}</p>
+                        <p>{currency.format(normalizeOrderTotal(order))} • {order.paymentStatus} • {order.createdAt ? dateFormatter.format(new Date(order.createdAt)) : '—'}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
     }
 
     return <DataTable title={sections.find((item) => item.id === section)?.label || 'Records'} rows={currentRows} columns={[
