@@ -64,6 +64,10 @@ When the frontend is served by the same Render service, leave `VITE_API_BASE_URL
 - `MONGODB_DB`: MongoDB database name.
 - `JWT_SECRET`: 32+ character auth secret.
 - `PAYSTACK_SECRET_KEY`: secret backend Paystack key used to initialize, verify, and validate payment webhooks.
+- `RESEND_API_KEY`: server-only Resend API key.
+- `RESEND_FROM_EMAIL`: verified-domain sender address, for example `orders@bisile.co.za`.
+- `RESEND_FROM_NAME`: optional display name, normally `BISILE`.
+- `ADMIN_NOTIFICATION_EMAIL`: business inbox for verified-order notifications.
 - `SERVER_URL`, `CORS_ORIGINS`, email, and Cloudinary variables are optional.
 
 ## Security Invariant

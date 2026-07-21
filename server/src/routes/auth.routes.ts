@@ -18,6 +18,7 @@ const loginSchema = z.object({
 }).strict().refine((value) => value.email || value.username, { message: 'Username or email is required' });
 
 authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req, res) => {
+  if (typeof req.body.password !== 'string') return res.status(400).json({ error: 'Password must be a string' });
   const identifier = String(req.body.email || req.body.username || '').toLowerCase().trim();
   const admin = await Admin.findOne({
     isActive: true,
@@ -36,7 +37,8 @@ authRoutes.post('/logout', (_req, res) => res.json({ ok: true }));
 authRoutes.get('/me', requireAuth, (req: AuthedRequest, res) => res.json({ admin: req.admin }));
 
 authRoutes.post('/change-password', requireAuth, asyncHandler(async (req: AuthedRequest, res) => {
-  const password = String(req.body.password || '');
+  if (typeof req.body?.password !== 'string') return res.status(400).json({ error: 'Password must be a string' });
+  const password = req.body.password;
   if (password.length < 10) return res.status(400).json({ error: 'Password must be at least 10 characters' });
   await Admin.findByIdAndUpdate(req.admin!.id, { passwordHash: await bcrypt.hash(password, 12), mustChangePassword: false });
   res.json({ ok: true });

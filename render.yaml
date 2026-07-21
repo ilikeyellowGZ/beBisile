@@ -24,3 +24,21 @@ services:
         sync: false
       - key: PAYSTACK_SECRET_KEY
         sync: false
+      - key: RESET_ADMIN_CURRENT
+        value: admin
+      - key: RESET_ADMIN_USERNAME
+        value: admin
+      - key: RESET_ADMIN_EMAIL
+        value: studio@bisile.co.za
+      - key: RESET_ADMIN_PASSWORD
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        value: orders@bisile.co.za
+      - key: RESEND_FROM_NAME
+        value: BISILE
+      - key: FROM_EMAIL
+        value: orders@bisile.co.za
+      - key: ADMIN_NOTIFICATION_EMAIL
+        value: studio@bisile.co.za

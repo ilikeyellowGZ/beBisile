@@ -57,6 +57,7 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 200 }));
 const healthLimiter = rateLimit({ windowMs: 60 * 1000, limit: 30, standardHeaders: true, legacyHeaders: false });
 const paymentLimiter = rateLimit({ windowMs: 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false });
 const authLoginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many login attempts. Please try again later.' } });
+const contactLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 8, standardHeaders: true, legacyHeaders: false, message: { error: 'Too many contact requests. Please try again later.' } });
 
 app.get('/api/health', healthLimiter, (req, res) => {
   const payload = {
@@ -93,6 +94,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/checkout', paymentLimiter, checkoutRoutes);
 app.use('/api/payments', paymentLimiter, paymentsRoutes);
+app.use('/api/contact', contactLimiter);
 app.use('/api', publicRoutes);
 
 app.use('/api', (_req, res) => {

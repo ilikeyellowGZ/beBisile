@@ -201,7 +201,8 @@ export const Dashboard: React.FC = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [customerHistory, setCustomerHistory] = useState<any[]>([]);
-  const [isLoadingCustomerHistory, setIsLoadingCustomerHistory] = useState(false);
+  const [customerHistoryState, setCustomerHistoryState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [customerHistoryError, setCustomerHistoryError] = useState('');
 
   const loadDashboard = async () => {
     if (!getToken()) return;
@@ -330,22 +331,34 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     if (!token || section !== 'customers' || !selectedCustomerId) {
       setCustomerHistory([]);
-      setIsLoadingCustomerHistory(false);
+      setCustomerHistoryState('idle');
+      setCustomerHistoryError('');
       return;
     }
 
     let active = true;
-    setIsLoadingCustomerHistory(true);
+    setCustomerHistory([]);
+    setCustomerHistoryError('');
+    setCustomerHistoryState('loading');
     apiFetch(apiUrl(`/api/admin/customers/${selectedCustomerId}/history`))
       .then((payload) => {
-        if (active) setCustomerHistory(payload.orders || []);
+        if (!active) return;
+        setCustomerHistory(payload.orders || []);
+        setCustomerHistoryState('ready');
       })
-      .catch(() => {
-        if (active) setCustomerHistory([]);
+      .catch((caught) => {
+        if (!active) return;
+        const message = caught instanceof Error ? caught.message : 'Purchase history could not be loaded.';
+        if (message.includes('401') || message.toLowerCase().includes('unauthorized')) {
+          clearStoredToken();
+          setToken('');
+          setError('Your admin session expired. Please sign in again.');
+        }
+        setCustomerHistory([]);
+        setCustomerHistoryError(message);
+        setCustomerHistoryState('error');
       })
-      .finally(() => {
-        if (active) setIsLoadingCustomerHistory(false);
-      });
+      .finally(() => undefined);
 
     return () => {
       active = false;
@@ -536,7 +549,7 @@ export const Dashboard: React.FC = () => {
         { key: 'id', label: 'ID / SKU', render: (row) => <span className="font-inter text-xs font-light text-primary/58">{getProductRowId(row)}</span> },
         { key: 'name', label: 'Product', render: (row) => <div><p>{row.name}</p><p className="mt-1 text-xs text-primary/42">{row.slug || row.sku}</p></div> },
         { key: 'price', label: 'Price', render: (row) => currency.format(Number(row.price || 0)) },
-        { key: 'stock', label: 'Stock', render: (row) => <span className={Number(row.stock || 0) <= Number(row.lowStockThreshold ?? 3) ? 'text-[#a63b2d]' : ''}>{row.stock ?? 'â€”'}</span> },
+        { key: 'stock', label: 'Stock', render: (row) => <span className={Number(row.stock || 0) <= Number(row.lowStockThreshold ?? 3) ? 'text-[#a63b2d]' : ''}>{row.stock ?? '—'}</span> },
         { key: 'status', label: 'Status', render: (row) => <span className={`px-2 py-1 text-xs ${statusTone(row.isActive === false ? 'inactive' : 'active')}`}>{row.isActive === false ? 'Inactive' : 'Active'}</span> },
         { key: 'actions', label: 'Actions', render: (row) => <div className="flex flex-wrap gap-2"><button type="button" onClick={() => editProduct(row)} className="border border-[#e5e2dd] px-3 py-2 text-xs hover:border-primary">Edit</button><button type="button" onClick={() => void archiveProduct(row)} className="border border-[#e5e2dd] px-3 py-2 text-xs text-[#a63b2d] hover:border-[#a63b2d]">Archive</button></div> },
       ]} />
@@ -637,8 +650,10 @@ export const Dashboard: React.FC = () => {
                   <p><span className="font-medium text-primary">Last order:</span> {selectedCustomer.lastOrderAt ? dateFormatter.format(new Date(selectedCustomer.lastOrderAt)) : '—'}</p>
                 </div>
               </div>
-              {isLoadingCustomerHistory && <p className="mt-6 text-sm text-primary/55">Loading protected purchase history...</p>}
-              {!isLoadingCustomerHistory && customerHistory.length > 0 && (
+              {customerHistoryState === 'loading' && <p className="mt-6 text-sm text-primary/55">Loading protected purchase history...</p>}
+              {customerHistoryState === 'error' && <p className="mt-6 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">Purchase history could not be loaded. {customerHistoryError}</p>}
+              {customerHistoryState === 'ready' && customerHistory.length === 0 && <p className="mt-6 text-sm text-primary/55">No purchases recorded for this customer.</p>}
+              {customerHistoryState === 'ready' && customerHistory.length > 0 && (
                 <div className="mt-6">
                   <h4 className="font-inter text-lg font-light">Purchase history</h4>
                   <div className="mt-3 space-y-2">

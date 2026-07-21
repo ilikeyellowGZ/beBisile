@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import mongoose from 'mongoose';
 import { env } from '../config/env.js';
 import { paystackApiBase, paystackSecretKey } from '../config/paystack.js';
-import { DiscountCode, InventoryLog, Order, Payment, Product } from '../models/index.js';
+import { Customer, DiscountCode, InventoryLog, Order, Payment, Product } from '../models/index.js';
 import { sendAdminOrderNotificationEmail, sendOrderConfirmationEmail } from './email.service.js';
 
 type PaystackTransaction = {
@@ -122,6 +122,7 @@ export const markPaystackOrderPaid = async (transaction: PaystackTransaction) =>
 
   const session = await mongoose.startSession();
   let fulfilledOrder: any = null;
+  let shouldNotify = false;
 
   try {
     await session.withTransaction(async () => {
@@ -151,7 +152,7 @@ export const markPaystackOrderPaid = async (transaction: PaystackTransaction) =>
       }
 
       if (['paid', 'partially_refunded', 'refunded'].includes(String(order.paymentStatus))) {
-        fulfilledOrder = order;
+        fulfilledOrder = order.toObject();
         return;
       }
 
@@ -203,20 +204,49 @@ export const markPaystackOrderPaid = async (transaction: PaystackTransaction) =>
         { upsert: true, new: true, session }
       );
 
+      await Customer.findOneAndUpdate(
+        order.customerId ? { _id: order.customerId } : { email: String(order.customerInfo?.email || '').toLowerCase() },
+        {
+          $set: {
+            fullName: order.customerInfo?.fullName,
+            email: String(order.customerInfo?.email || '').toLowerCase(),
+            phone: order.customerInfo?.phone,
+            lastOrderAt: new Date(),
+          },
+          $inc: { totalOrders: 1, totalSpent: Number(order.totalAmount || 0) },
+        },
+        { upsert: true, new: true, session, setDefaultsOnInsert: true },
+      );
+
       if (order.discountCode) {
         await DiscountCode.updateOne({ code: order.discountCode }, { $inc: { usedCount: 1 } }, { session });
       }
 
-      void sendOrderConfirmationEmail({ order }).catch((error) => {
-        console.error('Customer order email failed', { orderNumber: order.orderNumber, error: error instanceof Error ? error.message : error });
-      });
-      void sendAdminOrderNotificationEmail({ order }).catch((error) => {
-        console.error('Admin order email failed', { orderNumber: order.orderNumber, error: error instanceof Error ? error.message : error });
-      });
-      fulfilledOrder = order;
+      fulfilledOrder = order.toObject();
+      shouldNotify = true;
     });
   } finally {
     await session.endSession();
+  }
+
+  // Email is deliberately started only after the payment transaction has
+  // committed. A Resend outage can never roll back a paid order or make the
+  // payment endpoint return a failure. The order-state transition above is
+  // also the webhook idempotency guard, so duplicate webhooks do not notify twice.
+  if (shouldNotify && fulfilledOrder) {
+    void Promise.allSettled([
+      sendOrderConfirmationEmail({ order: fulfilledOrder }),
+      sendAdminOrderNotificationEmail({ order: fulfilledOrder }),
+    ]).then((results) => {
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          console.error(index === 0 ? 'Customer order email failed' : 'Admin order email failed', {
+            orderNumber: fulfilledOrder.orderNumber,
+            error: result.reason instanceof Error ? result.reason.message : result.reason,
+          });
+        }
+      });
+    });
   }
 
   return fulfilledOrder;

@@ -20,6 +20,8 @@ Luxury React storefront for BISILE fragrance, processed virgin hair, wig laundry
 
 Backend/server secrets must not be exposed as frontend `VITE_` variables. The production frontend uses the Render API origin through `VITE_API_BASE_URL`.
 
+For the requested owner account, set these on Render before running the reset script from a secure machine: `RESET_ADMIN_CURRENT=admin`, `RESET_ADMIN_USERNAME=admin`, `RESET_ADMIN_EMAIL=studio@bisile.co.za`, and `RESET_ADMIN_PASSWORD` to the password you supplied. Keep `RESET_ADMIN_PASSWORD` out of `.env.example`, Git, screenshots, and chat. The reset script stores only a bcrypt hash in MongoDB.
+
 ## Local Development
 
 ```bash

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { findTrustedProduct } from './trustedCatalog.js';
-import { DiscountCode, Order, Product, StoreSettings } from '../models/index.js';
+import { Customer, DiscountCode, Order, Product, StoreSettings } from '../models/index.js';
 
 export const checkoutItemSchema = z.object({
   productId: z.string().min(1),
@@ -143,9 +143,23 @@ export const createPendingOrder = async (
     if (existing) return existing;
   }
 
+  const customer = await Customer.findOneAndUpdate(
+    { email: input.customerInfo.email.toLowerCase().trim() },
+    {
+      $set: {
+        fullName: input.customerInfo.fullName,
+        email: input.customerInfo.email.toLowerCase().trim(),
+        phone: input.customerInfo.phone || undefined,
+      },
+      $setOnInsert: { totalOrders: 0, totalSpent: 0 },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+
   const orderData = {
     orderNumber: createOrderNumber(),
     checkoutIdempotencyKey: normalizedKey,
+    customerId: customer._id,
     customerInfo: input.customerInfo,
     shippingAddress: input.shippingAddress || {},
     shippingPartner: calculated.shippingPartner,

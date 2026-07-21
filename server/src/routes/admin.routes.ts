@@ -37,23 +37,46 @@ const sanitizeAdminPayload = (payload: any) => {
 };
 
 adminRoutes.get('/dashboard/stats', asyncHandler(async (_req, res) => {
-  const [orders, products, customers, payments] = await Promise.all([
+  const chartStart = new Date();
+  chartStart.setHours(0, 0, 0, 0);
+  chartStart.setDate(chartStart.getDate() - 13);
+  const [orders, products, customers, payments, totalOrders, pendingOrders, completedOrders, cancelledOrders, revenueTotals, revenueByDay] = await Promise.all([
     Order.find().sort({ createdAt: -1 }).limit(500).lean(),
     Product.find({ isArchived: { $ne: true } }).lean(),
     Customer.countDocuments(),
-    Payment.find().sort({ createdAt: -1 }).limit(20).lean()
+    Payment.find().sort({ createdAt: -1 }).limit(20).lean(),
+    Order.countDocuments(),
+    Order.countDocuments({ orderStatus: 'pending' }),
+    Order.countDocuments({ orderStatus: { $in: ['paid', 'delivered', 'completed'] } }),
+    Order.countDocuments({ orderStatus: { $in: ['cancelled', 'refunded'] } }),
+    Order.aggregate([
+      { $match: { paymentStatus: { $in: ['paid', 'partially_refunded'] } } },
+      { $group: { _id: null, value: { $sum: '$totalAmount' } } },
+    ]),
+    Order.aggregate([
+      { $match: { paymentStatus: { $in: ['paid', 'partially_refunded'] }, createdAt: { $gte: chartStart } } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, value: { $sum: '$totalAmount' } } },
+      { $sort: { _id: 1 } },
+    ]),
   ]);
-  const paidOrders = orders.filter((order) => String(order.paymentStatus).includes('paid'));
+  const chartValues = new Map(revenueByDay.map((item: { _id: string; value: number }) => [item._id, Number(item.value || 0)]));
+  const revenueChart = Array.from({ length: 14 }, (_, index) => {
+    const date = new Date(chartStart);
+    date.setDate(chartStart.getDate() + index);
+    const key = date.toISOString().slice(0, 10);
+    return { date: key.slice(5), value: chartValues.get(key) || 0 };
+  });
   res.json({
-    totalRevenue: paidOrders.reduce((sum, order) => sum + Number(order.totalAmount ?? 0), 0),
-    totalOrders: orders.length,
-    pendingOrders: orders.filter((order) => order.orderStatus === 'pending').length,
-    completedOrders: orders.filter((order) => ['paid', 'delivered', 'completed'].includes(order.orderStatus)).length,
-    cancelledOrders: orders.filter((order) => ['cancelled', 'refunded'].includes(order.orderStatus)).length,
+    totalRevenue: Number(revenueTotals[0]?.value || 0),
+    totalOrders,
+    pendingOrders,
+    completedOrders,
+    cancelledOrders,
     totalCustomers: customers,
     lowStockProducts: products.filter((product) => Number(product.stock ?? 0) <= Number(product.lowStockThreshold ?? 3)),
     recentOrders: orders.slice(0, 10),
-    recentPayments: payments
+    recentPayments: payments,
+    revenueChart,
   });
 }));
 
@@ -63,13 +86,15 @@ adminRoutes.patch('/products/:id', requireRole('owner', 'manager'), asyncHandler
   if (!isValidObjectId(req.params.id)) return res.status(400).json({ error: 'Invalid product ID' });
   if (req.body.price !== undefined && req.admin.role !== 'owner') return res.status(403).json({ error: 'Only owners can change prices' });
   const before = await Product.findById(req.params.id).lean();
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  if (!product) return res.status(404).json({ error: 'Product not found' });
   await writeAuditLog(req, { adminId: req.admin.id, action: req.body.price !== undefined ? 'product_price_changed' : 'product_updated', entityType: 'product', entityId: req.params.id, oldValue: before, newValue: req.body });
   res.json({ product });
 }));
 adminRoutes.delete('/products/:id', requireRole('owner', 'manager'), asyncHandler(async (req: any, res) => {
   if (!isValidObjectId(req.params.id)) return res.status(400).json({ error: 'Invalid product ID' });
-  await Product.findByIdAndUpdate(req.params.id, { isArchived: true, isActive: false });
+  const product = await Product.findByIdAndUpdate(req.params.id, { isArchived: true, isActive: false }, { new: true });
+  if (!product) return res.status(404).json({ error: 'Product not found' });
   await writeAuditLog(req, { adminId: req.admin.id, action: 'product_deleted', entityType: 'product', entityId: req.params.id });
   res.json({ ok: true });
 }));
