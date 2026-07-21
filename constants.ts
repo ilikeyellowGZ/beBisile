@@ -6,6 +6,7 @@ export const WHATSAPP_NUMBER = (import.meta.env.VITE_WHATSAPP_NUMBER ?? '2760895
 export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'bisilebeautyandmakeup@gmail.com';
 export const ORDER_EMAIL = import.meta.env.VITE_CONTACT_EMAIL ?? 'bisilebeautyandmakeup@gmail.com';
 export const CONTACT_PHONE = '+27 60 895 7481';
+export const WIG_DELIVERY_NOTE = 'Turnaround time for delivery is 14–21 days after purchase.';
 export const INSTAGRAM_URL = import.meta.env.VITE_INSTAGRAM_URL ?? 'https://www.instagram.com/be_bisile/';
 export const PINTEREST_URL = import.meta.env.VITE_PINTEREST_URL ?? 'https://za.pinterest.com/be_bisile/';
 

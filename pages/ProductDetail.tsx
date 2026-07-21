@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Heart, MessageCircle, Minus, Plus, ShieldCheck, Truck, X, ZoomIn } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { useCart } from '../CartContext';
-import { ALL_HAIR_PRODUCTS, CONTACT_PHONE, FRAGRANCE_PRODUCTS, HAIR_PRODUCTS, LAYBYE_TERMS, ORDER_EMAIL, PRODUCTS, SERVICE_PRODUCTS, getWhatsAppUrl } from '../constants';
+import { ALL_HAIR_PRODUCTS, CONTACT_PHONE, FRAGRANCE_PRODUCTS, HAIR_PRODUCTS, LAYBYE_TERMS, ORDER_EMAIL, PRODUCTS, SERVICE_PRODUCTS, WIG_DELIVERY_NOTE, getWhatsAppUrl } from '../constants';
 import { FadeIn } from '../components/UI/FadeIn';
 import { OptimizedImage } from '../components/UI/OptimizedImage';
 import { ProductCard } from '../components/UI/ProductCard';
@@ -256,11 +256,12 @@ export const ProductDetail: React.FC = () => {
   const backPath = product.category === 'bundle' ? '/hair/bundles' : product.category === 'closure' ? '/hair/closures' : product.category === 'laundry' ? '/hair/laundry' : product.collection === 'hair' ? '/hair/wigs' : '/shop';
   const relatedSource = product.collection === 'fragrance' ? FRAGRANCE_PRODUCTS : product.collection === 'hair' ? ALL_HAIR_PRODUCTS : SERVICE_PRODUCTS;
   const relatedProducts = relatedSource.filter((item) => item.id !== product.id).slice(0, 4);
+  const shippingCopy = product.category === 'wig' ? `${WIG_DELIVERY_NOTE} ${copy.shipping}` : copy.shipping;
   const detailSections = [
     { title: 'Description', body: product.description },
     { title: product.collection === 'fragrance' ? 'Scent and finish' : 'Material and finish', body: copy.material },
     { title: 'Care', body: copy.care },
-    { title: 'Shipping', body: copy.shipping },
+    { title: 'Shipping', body: shippingCopy },
     { title: 'Bhelekazi Laybye Payments', body: `${LAYBYE_TERMS.join(' ')} Proof of payment is required to confirm and process your order. Without proof of payment, your order will be cancelled. WhatsApp: ${CONTACT_PHONE}. Email: ${ORDER_EMAIL}.` },
   ];
   const toggleDetailSection = (title: string) => {

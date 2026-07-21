@@ -3,7 +3,7 @@ import { ArrowRight, MessageCircle, SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FadeIn } from '../components/UI/FadeIn';
 import { ProductCard } from '../components/UI/ProductCard';
-import { CONTACT_PHONE, WIG_PRODUCTS, getWhatsAppUrl } from '../constants';
+import { CONTACT_PHONE, WIG_DELIVERY_NOTE, WIG_PRODUCTS, getWhatsAppUrl } from '../constants';
 
 type WigTier = 'all' | 'everyday' | 'soft' | 'premium';
 
@@ -56,6 +56,10 @@ export const Wigs: React.FC = () => {
         <div className="border-y bisile-rule py-4 font-inter text-sm font-light text-primary/50">
           {tierOptions.find((option) => option.value === tier)?.label} / {products.length} wig{products.length === 1 ? '' : 's'}
         </div>
+
+        <p className="mt-5 border-l-2 border-accent bg-[#f7f5f1] px-4 py-3 font-inter text-sm font-light leading-6 text-primary/65">
+          {WIG_DELIVERY_NOTE}
+        </p>
 
         <div className="mt-10 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product, index) => (
