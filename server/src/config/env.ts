@@ -20,6 +20,14 @@ loadEnvFile(path.resolve(process.cwd(), '.env'));
 loadEnvFile(path.resolve(process.cwd(), '..', '.env'));
 
 const defaultFrontendUrl = process.env.NODE_ENV === 'production' ? 'https://bisile.co.za' : 'http://localhost:5173';
+const defaultCorsOrigins = [
+  'https://bisile.co.za',
+  'https://www.bisile.co.za',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
 
 const envSchema = z.object({
   NODE_ENV: z.string().default('development'),
@@ -54,7 +62,7 @@ export const env = {
 const isString = (value: string | undefined): value is string => Boolean(value);
 
 export const corsOrigins = Array.from(new Set([
-  ...(env.NODE_ENV === 'production' ? ['https://bisile.co.za', 'https://www.bisile.co.za'] : []),
+  ...defaultCorsOrigins,
   env.FRONTEND_URL,
   env.CLIENT_URL,
   ...env.CORS_ORIGINS.split(',').map((item) => item.trim()).filter(Boolean),

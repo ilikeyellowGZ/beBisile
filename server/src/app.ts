@@ -21,15 +21,26 @@ const clientDistPath = [
   path.resolve(process.cwd(), '..', 'dist'),
   path.resolve(process.cwd(), 'dist'),
 ].find((candidate) => fs.existsSync(path.join(candidate, 'index.html')));
+const defaultCorsFallbacks = [
+  'https://bisile.co.za',
+  'https://www.bisile.co.za',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+
 const corsOptions: CorsOptions = {
   origin(origin, callback) {
-    if (!origin || corsOrigins.includes(origin)) {
+    const allowedOrigins = Array.from(new Set([...defaultCorsFallbacks, ...corsOrigins]));
+
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
       return;
     }
 
-    console.warn('CORS blocked request', { origin, allowedOrigins: corsOrigins });
-    callback(new Error('Not allowed by CORS'));
+    console.warn('CORS blocked request', { origin, allowedOrigins });
+    callback(null, false);
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key'],
