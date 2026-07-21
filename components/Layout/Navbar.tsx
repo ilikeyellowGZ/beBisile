@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowRight, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
+import { ArrowRight, Menu, Search, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../../CartContext';
 import { ALL_HAIR_PRODUCTS, FRAGRANCE_PRODUCTS } from '../../constants';
 import { brandImages, carouselImages, hairImages, heroImages, packageImages } from '../../src/assets/images';
@@ -265,9 +265,6 @@ export const Navbar: React.FC = () => {
               <button onClick={openSearch} className={`transition-colors duration-500 ease-out ${navIconClass}`} aria-label="Search">
                 <Search size={19} strokeWidth={1.25} />
               </button>
-              <Link to="/dashboard" className={`transition-colors duration-500 ease-out ${navIconClass}`} aria-label="Account">
-                <UserRound size={19} strokeWidth={1.25} />
-              </Link>
               <Link to="/cart" className={`relative transition-colors duration-500 ease-out ${navIconClass}`} aria-label="Shopping bag">
                 <ShoppingBag size={19} strokeWidth={1.25} />
                 {totalItems > 0 && <span className="absolute -right-3 -top-2 rounded-full bg-[#8A6F35] px-1.5 py-0.5 text-[10px] leading-none text-[#F7F4EF]">{totalItems}</span>}
@@ -427,20 +424,13 @@ export const Navbar: React.FC = () => {
             ))}
           </div>
 
-          <div className="mt-8 grid grid-cols-2 gap-3">
+          <div className="mt-8 grid grid-cols-1 gap-3">
             <Link
               to="/contact"
               onClick={() => setIsMobileMenuOpen(false)}
               className="field-light flex h-12 items-center justify-center font-inter text-[11px] font-light uppercase tracking-[0.16em] text-primary/70 transition-colors hover:border-primary/25 hover:text-accent"
             >
               Contact
-            </Link>
-            <Link
-              to="/dashboard"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="field-light flex h-12 items-center justify-center font-inter text-[11px] font-light uppercase tracking-[0.16em] text-primary/70 transition-colors hover:border-primary/25 hover:text-accent"
-            >
-              Dashboard
             </Link>
           </div>
         </div>
