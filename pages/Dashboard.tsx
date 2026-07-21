@@ -381,6 +381,7 @@ export const Dashboard: React.FC = () => {
       sessionStorage.setItem(ADMIN_TOKEN_KEY, payload.token);
       setToken(payload.token);
       setLoginPassword('');
+      setShowLoginPassword(false);
     } catch (caught) {
       setLoginError(caught instanceof Error ? caught.message : 'Admin login failed');
     } finally {

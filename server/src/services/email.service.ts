@@ -14,6 +14,8 @@ export type EmailSendOptions = {
 
 const senderAddress = env.RESEND_FROM_EMAIL || env.FROM_EMAIL || 'orders@bisile.co.za';
 const defaultSender = env.RESEND_FROM_NAME ? `${env.RESEND_FROM_NAME} <${senderAddress}>` : senderAddress;
+const emailSiteUrl = String(env.FRONTEND_URL || env.CLIENT_URL || 'https://bisile.co.za').replace(/\/$/, '');
+const emailLogoUrl = `${env.NODE_ENV === 'production' ? emailSiteUrl : 'https://bisile.co.za'}/media/bisile/logo.png`;
 
 export const escapeHtml = (value: string) => String(value ?? '')
   .replace(/&/g, '&amp;')
@@ -40,18 +42,30 @@ export const createBisileEmailHtml = ({
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(title)}</title>
   </head>
-  <body style="margin:0;padding:0;background:#f7f4ef;font-family:Inter, Arial, sans-serif;color:#2a2114;">
-    <div style="max-width:680px;margin:24px auto;background:#ffffff;border:1px solid #e7dfd3;border-radius:12px;overflow:hidden;">
-      <div style="background:#2a2114;padding:24px 32px;">
-        <div style="font-size:24px;font-weight:600;color:#f7f4ef;letter-spacing:0.04em;">BISILE</div>
-      </div>
-      <div style="padding:32px;">
-        <h1 style="margin:0 0 12px;font-size:24px;color:#2a2114;">${escapeHtml(title)}</h1>
-        <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#5f584f;">${escapeHtml(intro)}</p>
-        <div style="background:#f9f6f1;border:1px solid #ece7de;border-radius:8px;padding:18px 20px;line-height:1.7;font-size:15px;color:#2a2114;">${body}</div>
-        ${footer ? `<p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#7d756c;">${escapeHtml(footer)}</p>` : ''}
-      </div>
-    </div>
+  <body style="margin:0;padding:0;background:#eee8df;font-family:Arial, Helvetica, sans-serif;color:#2a2114;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escapeHtml(intro)}</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background:#eee8df;">
+      <tr><td align="center" style="padding:28px 12px;">
+        <table role="presentation" width="680" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:680px;background:#ffffff;border:1px solid #dfd5c8;border-radius:14px;overflow:hidden;">
+          <tr><td style="height:4px;background:#a3915d;font-size:0;line-height:0;">&nbsp;</td></tr>
+          <tr><td align="center" style="padding:24px 28px 20px;background:#ffffff;border-bottom:1px solid #eee8df;">
+            <a href="${escapeHtml(emailSiteUrl)}" style="text-decoration:none;">
+              <img src="${escapeHtml(emailLogoUrl)}" width="210" alt="BISILE Be Luxury" style="display:block;width:210px;max-width:80%;height:auto;margin:0 auto;border:0;outline:none;text-decoration:none;" />
+            </a>
+          </td></tr>
+          <tr><td style="padding:34px 32px 30px;background:#ffffff;">
+            <p style="margin:0 0 10px;font-size:11px;line-height:1.4;letter-spacing:0.18em;text-transform:uppercase;color:#a3915d;">BISILE / BE LUXURY</p>
+            <h1 style="margin:0 0 12px;font-size:26px;line-height:1.25;font-weight:500;color:#2a2114;">${escapeHtml(title)}</h1>
+            <p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#6c6257;">${escapeHtml(intro)}</p>
+            <div style="background:#faf8f4;border:1px solid #e8dfd4;border-radius:10px;padding:22px 20px;line-height:1.7;font-size:15px;color:#2a2114;">${body}</div>
+            ${footer ? `<p style="margin:20px 0 0;font-size:13px;line-height:1.7;color:#83796e;">${escapeHtml(footer)}</p>` : ''}
+          </td></tr>
+          <tr><td style="padding:18px 28px;background:#2a2114;text-align:center;">
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#eee8df;">BISILE Be Luxury · <a href="${escapeHtml(emailSiteUrl)}" style="color:#d9c992;text-decoration:none;">bisile.co.za</a></p>
+          </td></tr>
+        </table>
+      </td></tr>
+    </table>
   </body>
 </html>`;
 
@@ -110,21 +124,25 @@ const orderSummaryText = (order: any) => {
 export const sendOrderConfirmationEmail = async ({ order }: { order: any }) => {
   const storeSettings = await getStoreSettings();
   const customerName = String(order?.customerInfo?.fullName || 'Customer').trim();
-  const orderNumber = String(order?.orderNumber || '');
-  const supportEmail = String(storeSettings?.storeEmail || env.ADMIN_NOTIFICATION_EMAIL || senderAddress).trim();
+  const customerEmail = String(order?.customerInfo?.email || '').trim();
+  const customerPhone = String(order?.customerInfo?.phone || '').trim();
+  const orderNumber = String(order?.orderNumber || '').trim() || 'Not available';
+  const paymentReference = String(order?.paystackReference || '').trim() || 'Not available';
+  const paymentStatus = String(order?.paymentStatus || '').trim() || 'pending';
+  const supportEmail = String(storeSettings?.storeEmail || env.ADMIN_NOTIFICATION_EMAIL || senderAddress).trim() || senderAddress;
   const currency = String(order?.currency || 'ZAR');
   const html = createBisileEmailHtml({
     title: 'Your BISILE order is confirmed',
     intro: `Hello ${customerName}, your order has been received and is now being processed.`,
-    body: `<p><strong>Order number:</strong> ${escapeHtml(orderNumber)}</p><p><strong>Payment reference:</strong> ${escapeHtml(String(order?.paystackReference || 'Not available'))}</p><p><strong>Payment status:</strong> ${escapeHtml(String(order?.paymentStatus || 'pending'))}</p><p><strong>Order date:</strong> ${escapeHtml(formatDate(order?.createdAt))}</p>${orderSummaryMarkup(order)}<p style="margin-top:18px;"><strong>Delivery address:</strong><br />${formatAddress(order?.shippingAddress)}</p><p><strong>Customer contact:</strong> ${escapeHtml(String(order?.customerInfo?.email || ''))}${order?.customerInfo?.phone ? ` · ${escapeHtml(String(order.customerInfo.phone))}` : ''}</p>`,
+    body: `<p><strong>Order number:</strong> ${escapeHtml(orderNumber)}</p><p><strong>Payment reference:</strong> ${escapeHtml(paymentReference)}</p><p><strong>Payment status:</strong> ${escapeHtml(paymentStatus)}</p><p><strong>Order date:</strong> ${escapeHtml(formatDate(order?.createdAt))}</p>${orderSummaryMarkup(order)}<p style="margin-top:18px;"><strong>Delivery address:</strong><br />${formatAddress(order?.shippingAddress)}</p><p><strong>Customer contact:</strong> ${escapeHtml(customerEmail || 'Not provided')}${customerPhone ? ` · ${escapeHtml(customerPhone)}` : ''}</p>`,
     footer: `Thank you for shopping with ${String(storeSettings?.storeName || 'BISILE')}. Support: ${supportEmail} (${currency}).`,
   });
 
   return sendTransactionalEmail({
-    to: String(order?.customerInfo?.email || ''),
+    to: customerEmail,
     subject: `BISILE order confirmation ${orderNumber}`,
     html,
-    text: `Hi ${customerName},\nYour BISILE order ${orderNumber} has been received.\nPayment status: ${order?.paymentStatus || 'pending'}.`,
+    text: [`Hello ${customerName}, your BISILE order has been received and is now being processed.`, `Order number: ${orderNumber}`, `Payment reference: ${paymentReference}`, `Payment status: ${paymentStatus}`, `Order date: ${formatDate(order?.createdAt)}`, '', orderSummaryText(order), '', `Delivery address: ${formatAddressText(order?.shippingAddress)}`, `Customer contact: ${customerEmail || 'Not provided'}${customerPhone ? ` · ${customerPhone}` : ''}`, `Support: ${supportEmail}`].join('\n'),
     type: 'customer_order_confirmation',
     from: defaultSender,
     metadata: { orderNumber },
@@ -139,20 +157,26 @@ export const sendAdminOrderNotificationEmail = async ({ order }: { order: any })
     return { ok: false, skipped: true };
   }
   const customerEmail = String(order?.customerInfo?.email || '').trim();
-  const adminDashboardUrl = `${String(env.CLIENT_URL || env.FRONTEND_URL || 'https://bisile.co.za').replace(/\/$/, '')}/admin`;
+  const customerName = String(order?.customerInfo?.fullName || '').trim() || 'Not provided';
+  const customerPhone = String(order?.customerInfo?.phone || '').trim() || 'Not provided';
+  const orderNumber = String(order?.orderNumber || '').trim() || 'Not available';
+  const orderStatus = String(order?.orderStatus || '').trim() || 'paid';
+  const paymentStatus = String(order?.paymentStatus || '').trim() || 'paid';
+  const paymentReference = String(order?.paystackReference || '').trim() || 'Not available';
+  const adminDashboardUrl = `${emailSiteUrl}/admin`;
   const deliveryInstructions = String(order?.shippingAddress?.deliveryInstructions || '').trim();
   const html = createBisileEmailHtml({
     title: 'New BISILE order received',
     intro: 'A verified Paystack payment has been matched to a BISILE order.',
-    body: `<p><strong>Customer:</strong> ${escapeHtml(String(order?.customerInfo?.fullName || ''))}</p><p><strong>Email:</strong> ${escapeHtml(customerEmail)}</p><p><strong>Phone:</strong> ${escapeHtml(String(order?.customerInfo?.phone || 'Not provided'))}</p><p><strong>Order number:</strong> ${escapeHtml(String(order?.orderNumber || ''))}</p><p><strong>Order status:</strong> ${escapeHtml(String(order?.orderStatus || 'paid'))}</p><p><strong>Payment status:</strong> ${escapeHtml(String(order?.paymentStatus || 'paid'))}</p><p><strong>Payment reference:</strong> ${escapeHtml(String(order?.paystackReference || 'Not available'))}</p><p><strong>Order date:</strong> ${escapeHtml(formatDate(order?.createdAt))}</p><h2 style="margin:24px 0 10px;font-size:17px;">Order breakdown</h2>${orderSummaryMarkup(order)}<p style="margin-top:18px;"><strong>Delivery address:</strong><br />${formatAddress(order?.shippingAddress)}</p>${deliveryInstructions ? `<p><strong>Delivery instructions:</strong><br />${escapeHtml(deliveryInstructions)}</p>` : ''}<p style="margin-top:22px;"><a href="${escapeHtml(adminDashboardUrl)}" style="display:inline-block;background:#2a2114;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 18px;">Open BISILE dashboard</a></p>`,
+    body: `<p><strong>Customer:</strong> ${escapeHtml(customerName)}</p><p><strong>Email:</strong> ${escapeHtml(customerEmail || 'Not provided')}</p><p><strong>Phone:</strong> ${escapeHtml(customerPhone)}</p><p><strong>Order number:</strong> ${escapeHtml(orderNumber)}</p><p><strong>Order status:</strong> ${escapeHtml(orderStatus)}</p><p><strong>Payment status:</strong> ${escapeHtml(paymentStatus)}</p><p><strong>Payment reference:</strong> ${escapeHtml(paymentReference)}</p><p><strong>Order date:</strong> ${escapeHtml(formatDate(order?.createdAt))}</p><h2 style="margin:24px 0 10px;font-size:17px;">Order breakdown</h2>${orderSummaryMarkup(order)}<p style="margin-top:18px;"><strong>Delivery address:</strong><br />${formatAddress(order?.shippingAddress)}</p>${deliveryInstructions ? `<p><strong>Delivery instructions:</strong><br />${escapeHtml(deliveryInstructions)}</p>` : ''}<p style="margin-top:22px;"><a href="${escapeHtml(adminDashboardUrl)}" style="display:inline-block;background:#2a2114;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 18px;">Open BISILE dashboard</a></p>`,
     footer: `This notification was sent to ${String(storeSettings?.storeName || 'BISILE')} admin.`,
   });
 
   return sendTransactionalEmail({
     to: adminEmail,
-    subject: `New BISILE order ${order?.orderNumber || ''}`,
+    subject: `New BISILE order ${orderNumber}`,
     html,
-    text: `New BISILE order received\n\nCustomer: ${order?.customerInfo?.fullName || 'Not provided'}\nEmail: ${customerEmail || 'Not provided'}\nPhone: ${order?.customerInfo?.phone || 'Not provided'}\nOrder number: ${order?.orderNumber || 'Not available'}\nOrder status: ${order?.orderStatus || 'paid'}\nPayment status: ${order?.paymentStatus || 'paid'}\nPayment reference: ${order?.paystackReference || 'Not available'}\nOrder date: ${formatDate(order?.createdAt)}\n\n${orderSummaryText(order)}\n\nDelivery address: ${formatAddressText(order?.shippingAddress)}${deliveryInstructions ? `\nDelivery instructions: ${deliveryInstructions}` : ''}\n\nOpen dashboard: ${adminDashboardUrl}`,
+    text: `New BISILE order received\n\nCustomer: ${customerName}\nEmail: ${customerEmail || 'Not provided'}\nPhone: ${customerPhone}\nOrder number: ${orderNumber}\nOrder status: ${orderStatus}\nPayment status: ${paymentStatus}\nPayment reference: ${paymentReference}\nOrder date: ${formatDate(order?.createdAt)}\n\n${orderSummaryText(order)}\n\nDelivery address: ${formatAddressText(order?.shippingAddress)}${deliveryInstructions ? `\nDelivery instructions: ${deliveryInstructions}` : ''}\n\nOpen dashboard: ${adminDashboardUrl}`,
     type: 'admin_order_notification',
     from: defaultSender,
     replyTo: customerEmail || undefined,
