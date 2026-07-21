@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, Boxes, CircleDollarSign, ClipboardList, Gauge, Inbox, KeyRound, Layers, Mail, PackageCheck, Percent, RefreshCw, Search, Settings, ShieldCheck, ShoppingBag, Star, Truck, Users } from 'lucide-react';
+import { Activity, Boxes, CircleDollarSign, ClipboardList, Eye, EyeOff, Gauge, Inbox, KeyRound, Layers, Mail, PackageCheck, Percent, RefreshCw, Search, Settings, ShieldCheck, ShoppingBag, Star, Truck, Users } from 'lucide-react';
 import { CONFIGURABLE_HAIR_PRODUCTS, PRODUCTS } from '../constants';
 import { packageImages } from '../src/assets/images';
 import { apiUrl, readJsonResponse } from '../utils/http';
@@ -185,6 +185,7 @@ export const Dashboard: React.FC = () => {
   const [token, setToken] = useState(getToken());
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [orders, setOrders] = useState<any[]>([]);
@@ -370,9 +371,10 @@ export const Dashboard: React.FC = () => {
     setIsLoggingIn(true);
     setLoginError('');
     try {
+      const identifier = loginIdentifier.trim();
       const payload = await apiFetch(apiUrl('/api/auth/login'), {
         method: 'POST',
-        body: JSON.stringify({ username: loginIdentifier.trim(), email: loginIdentifier.trim(), password: loginPassword }),
+        body: JSON.stringify({ username: identifier, password: loginPassword }),
       });
       if (!payload.token) throw new Error('Login did not return a token');
       clearStoredToken();
@@ -686,14 +688,31 @@ export const Dashboard: React.FC = () => {
         <form onSubmit={login} className="bisile-card-surface w-full max-w-md p-7">
           <p className="bisile-kicker mb-3">Admin Login</p>
           <h1 className="font-inter text-3xl font-light">BISILE dashboard.</h1>
-          <p className="mt-3 text-sm leading-6 text-primary/58">Use your admin username or email to access live backend data.</p>
+          <p className="mt-3 text-sm leading-6 text-primary/58">Use your admin username to access live backend data.</p>
           <label className="mt-7 block">
-            <span className="mb-2 block text-[10px] uppercase tracking-[0.14em] text-[#5B3A24]/68">Username or email</span>
+            <span className="mb-2 block text-[10px] uppercase tracking-[0.14em] text-[#5B3A24]/68">Username</span>
             <input value={loginIdentifier} onChange={(event) => setLoginIdentifier(event.target.value)} className="field-light w-full px-4 py-4 text-sm" autoComplete="username" />
           </label>
           <label className="mt-4 block">
             <span className="mb-2 block text-[10px] uppercase tracking-[0.14em] text-[#5B3A24]/68">Password</span>
-            <input value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} type="password" className="field-light w-full px-4 py-4 text-sm" autoComplete="current-password" />
+            <span className="relative block">
+              <input value={loginPassword} onChange={(event) => setLoginPassword(event.target.value)} type={showLoginPassword ? 'text' : 'password'} className="field-light w-full px-4 py-4 pr-12 text-sm" autoComplete="current-password" />
+              <button
+                type="button"
+                onClick={() => setShowLoginPassword((visible) => !visible)}
+                className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center justify-center rounded-full p-1.5 text-primary/45 transition-all duration-200 ease-out hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                aria-pressed={showLoginPassword}
+                title={showLoginPassword ? 'Hide password' : 'Show password'}
+              >
+                <span className={`transition-all duration-200 ease-out ${showLoginPassword ? 'scale-100 rotate-0 opacity-100' : 'absolute scale-75 -rotate-12 opacity-0'}`} aria-hidden="true">
+                  <Eye size={17} strokeWidth={1.5} />
+                </span>
+                <span className={`transition-all duration-200 ease-out ${showLoginPassword ? 'absolute scale-75 rotate-12 opacity-0' : 'scale-100 rotate-0 opacity-100'}`} aria-hidden="true">
+                  <EyeOff size={17} strokeWidth={1.5} />
+                </span>
+              </button>
+            </span>
           </label>
           {loginError && <p className="mt-4 border border-red-300 bg-red-50 px-4 py-3 text-xs leading-6 text-red-800">{loginError}</p>}
           <button disabled={isLoggingIn} className="mt-6 flex h-12 w-full items-center justify-center bg-primary px-6 text-sm font-light text-white transition-colors hover:bg-accent disabled:opacity-50">

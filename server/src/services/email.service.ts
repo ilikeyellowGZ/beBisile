@@ -80,11 +80,31 @@ const formatDate = (value: unknown) => {
   }
 };
 const formatAddress = (address: any) => [address?.streetAddress, address?.city, address?.province, address?.postalCode, address?.country].filter(Boolean).map((value) => escapeHtml(String(value))).join(', ') || 'Not provided';
+const formatAddressText = (address: any) => [address?.streetAddress, address?.city, address?.province, address?.postalCode, address?.country].filter(Boolean).map((value) => String(value)).join(', ') || 'Not provided';
 
 const orderSummaryMarkup = (order: any) => {
   const currency = String(order?.currency || 'ZAR');
   const rows = (order?.items || []).map((item: any) => `<tr><td style="padding:8px 0;border-bottom:1px solid #ece7de;">${escapeHtml(String(item.productName || 'Product'))}</td><td style="padding:8px 0;border-bottom:1px solid #ece7de;text-align:center;">${escapeHtml(String(item.quantity || 0))}</td><td style="padding:8px 0;border-bottom:1px solid #ece7de;text-align:right;">${escapeHtml(formatMoney(item.unitPrice, currency))}</td><td style="padding:8px 0;border-bottom:1px solid #ece7de;text-align:right;">${escapeHtml(formatMoney(item.totalPrice, currency))}</td></tr>`).join('');
-  return `<table role="presentation" style="width:100%;border-collapse:collapse;"><thead><tr><th style="padding:8px 0;text-align:left;font-size:12px;color:#7d756c;">Product</th><th style="padding:8px 0;text-align:center;font-size:12px;color:#7d756c;">Qty</th><th style="padding:8px 0;text-align:right;font-size:12px;color:#7d756c;">Unit</th><th style="padding:8px 0;text-align:right;font-size:12px;color:#7d756c;">Total</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No items recorded</td></tr>'}</tbody></table><div style="margin-top:16px;border-top:1px solid #d9d0c3;padding-top:12px;"><p style="margin:4px 0;"><strong>Subtotal:</strong> ${escapeHtml(formatMoney(order?.subtotal, currency))}</p><p style="margin:4px 0;"><strong>Shipping:</strong> ${escapeHtml(String(order?.shippingPartner?.name || 'Standard'))} (${escapeHtml(formatMoney(order?.deliveryFee, currency))})</p><p style="margin:4px 0;"><strong>Total:</strong> ${escapeHtml(formatMoney(order?.totalAmount, currency))}</p></div>`;
+  const discount = Number(order?.discountAmount || 0);
+  const tax = Number(order?.taxAmount || 0);
+  return `<table role="presentation" style="width:100%;border-collapse:collapse;"><thead><tr><th style="padding:8px 0;text-align:left;font-size:12px;color:#7d756c;">Product</th><th style="padding:8px 0;text-align:center;font-size:12px;color:#7d756c;">Qty</th><th style="padding:8px 0;text-align:right;font-size:12px;color:#7d756c;">Unit</th><th style="padding:8px 0;text-align:right;font-size:12px;color:#7d756c;">Total</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No items recorded</td></tr>'}</tbody></table><div style="margin-top:16px;border-top:1px solid #d9d0c3;padding-top:12px;"><p style="margin:4px 0;"><strong>Subtotal:</strong> ${escapeHtml(formatMoney(order?.subtotal, currency))}</p>${discount > 0 ? `<p style="margin:4px 0;"><strong>Discount${order?.discountCode ? ` (${escapeHtml(String(order.discountCode))})` : ''}:</strong> -${escapeHtml(formatMoney(discount, currency))}</p>` : ''}<p style="margin:4px 0;"><strong>Shipping:</strong> ${escapeHtml(String(order?.shippingPartner?.name || order?.shippingPartner?.id || 'Standard'))} (${escapeHtml(formatMoney(order?.deliveryFee, currency))})</p>${tax > 0 ? `<p style="margin:4px 0;"><strong>Tax:</strong> ${escapeHtml(formatMoney(tax, currency))}</p>` : ''}<p style="margin:8px 0 0;font-size:16px;"><strong>Total:</strong> ${escapeHtml(formatMoney(order?.totalAmount, currency))}</p></div>`;
+};
+
+const orderSummaryText = (order: any) => {
+  const currency = String(order?.currency || 'ZAR');
+  const products = (order?.items || []).map((item: any) => `- ${item.quantity || 0} x ${item.productName || 'Product'} | Unit: ${formatMoney(item.unitPrice, currency)} | Line total: ${formatMoney(item.totalPrice, currency)}`).join('\n') || '- No items recorded';
+  const discount = Number(order?.discountAmount || 0);
+  const tax = Number(order?.taxAmount || 0);
+  return [
+    'Products:',
+    products,
+    `Subtotal: ${formatMoney(order?.subtotal, currency)}`,
+    ...(discount > 0 ? [`Discount${order?.discountCode ? ` (${order.discountCode})` : ''}: -${formatMoney(discount, currency)}`] : []),
+    `Shipping method: ${order?.shippingPartner?.name || order?.shippingPartner?.id || 'Standard'}`,
+    `Shipping cost: ${formatMoney(order?.deliveryFee, currency)}`,
+    ...(tax > 0 ? [`Tax: ${formatMoney(tax, currency)}`] : []),
+    `Total: ${formatMoney(order?.totalAmount, currency)}`,
+  ].join('\n');
 };
 
 export const sendOrderConfirmationEmail = async ({ order }: { order: any }) => {
@@ -119,10 +139,12 @@ export const sendAdminOrderNotificationEmail = async ({ order }: { order: any })
     return { ok: false, skipped: true };
   }
   const customerEmail = String(order?.customerInfo?.email || '').trim();
+  const adminDashboardUrl = `${String(env.CLIENT_URL || env.FRONTEND_URL || 'https://bisile.co.za').replace(/\/$/, '')}/admin`;
+  const deliveryInstructions = String(order?.shippingAddress?.deliveryInstructions || '').trim();
   const html = createBisileEmailHtml({
     title: 'New BISILE order received',
     intro: 'A verified Paystack payment has been matched to a BISILE order.',
-    body: `<p><strong>Customer:</strong> ${escapeHtml(String(order?.customerInfo?.fullName || ''))}</p><p><strong>Email:</strong> ${escapeHtml(customerEmail)}</p><p><strong>Phone:</strong> ${escapeHtml(String(order?.customerInfo?.phone || ''))}</p><p><strong>Order number:</strong> ${escapeHtml(String(order?.orderNumber || ''))}</p><p><strong>Payment status:</strong> ${escapeHtml(String(order?.paymentStatus || 'paid'))}</p><p><strong>Payment reference:</strong> ${escapeHtml(String(order?.paystackReference || ''))}</p><p><strong>Order date:</strong> ${escapeHtml(formatDate(order?.createdAt))}</p>${orderSummaryMarkup(order)}<p style="margin-top:18px;"><strong>Delivery address:</strong><br />${formatAddress(order?.shippingAddress)}</p>`,
+    body: `<p><strong>Customer:</strong> ${escapeHtml(String(order?.customerInfo?.fullName || ''))}</p><p><strong>Email:</strong> ${escapeHtml(customerEmail)}</p><p><strong>Phone:</strong> ${escapeHtml(String(order?.customerInfo?.phone || 'Not provided'))}</p><p><strong>Order number:</strong> ${escapeHtml(String(order?.orderNumber || ''))}</p><p><strong>Order status:</strong> ${escapeHtml(String(order?.orderStatus || 'paid'))}</p><p><strong>Payment status:</strong> ${escapeHtml(String(order?.paymentStatus || 'paid'))}</p><p><strong>Payment reference:</strong> ${escapeHtml(String(order?.paystackReference || 'Not available'))}</p><p><strong>Order date:</strong> ${escapeHtml(formatDate(order?.createdAt))}</p><h2 style="margin:24px 0 10px;font-size:17px;">Order breakdown</h2>${orderSummaryMarkup(order)}<p style="margin-top:18px;"><strong>Delivery address:</strong><br />${formatAddress(order?.shippingAddress)}</p>${deliveryInstructions ? `<p><strong>Delivery instructions:</strong><br />${escapeHtml(deliveryInstructions)}</p>` : ''}<p style="margin-top:22px;"><a href="${escapeHtml(adminDashboardUrl)}" style="display:inline-block;background:#2a2114;color:#ffffff;text-decoration:none;border-radius:6px;padding:12px 18px;">Open BISILE dashboard</a></p>`,
     footer: `This notification was sent to ${String(storeSettings?.storeName || 'BISILE')} admin.`,
   });
 
@@ -130,7 +152,7 @@ export const sendAdminOrderNotificationEmail = async ({ order }: { order: any })
     to: adminEmail,
     subject: `New BISILE order ${order?.orderNumber || ''}`,
     html,
-    text: `New order received for ${order?.customerInfo?.fullName || ''}.`,
+    text: `New BISILE order received\n\nCustomer: ${order?.customerInfo?.fullName || 'Not provided'}\nEmail: ${customerEmail || 'Not provided'}\nPhone: ${order?.customerInfo?.phone || 'Not provided'}\nOrder number: ${order?.orderNumber || 'Not available'}\nOrder status: ${order?.orderStatus || 'paid'}\nPayment status: ${order?.paymentStatus || 'paid'}\nPayment reference: ${order?.paystackReference || 'Not available'}\nOrder date: ${formatDate(order?.createdAt)}\n\n${orderSummaryText(order)}\n\nDelivery address: ${formatAddressText(order?.shippingAddress)}${deliveryInstructions ? `\nDelivery instructions: ${deliveryInstructions}` : ''}\n\nOpen dashboard: ${adminDashboardUrl}`,
     type: 'admin_order_notification',
     from: defaultSender,
     replyTo: customerEmail || undefined,

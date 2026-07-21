@@ -14,7 +14,7 @@ Luxury React storefront for BISILE fragrance, processed virgin hair, wig laundry
 - Production frontend: https://bisile.co.za/
 - Production backend: https://bebisile.onrender.com/
 - Database: MongoDB Atlas database name `bisile`
-- Admin login: use `https://bisile.co.za/admin` (or `/bisile-studio`). The backend accepts the configured admin username or email; the password is server-side only and must never be placed in frontend env or committed files.
+- Admin login: use `https://bisile.co.za/admin` (or `/bisile-studio`). The backend accepts the configured admin username only; the password is server-side only and must never be placed in frontend env or committed files.
 - Cloudinary: migration script and mapping helper are ready; dry-run checks active website assets only. Actual upload still requires running `npm run migrate:cloudinary` with network/upload approval.
 - Local image fallback: local assets remain in the repo and are used whenever `src/data/cloudinary-image-map.json` has no matching Cloudinary URL.
 

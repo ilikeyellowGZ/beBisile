@@ -12,17 +12,16 @@ import { asyncHandler } from '../middleware/async-handler.js';
 export const authRoutes = Router();
 
 const loginSchema = z.object({
-  email: z.string().optional(),
-  username: z.string().optional(),
+  username: z.string().trim().min(1).max(100),
   password: z.string().min(1)
-}).strict().refine((value) => value.email || value.username, { message: 'Username or email is required' });
+}).strict();
 
 authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req, res) => {
   if (typeof req.body.password !== 'string') return res.status(400).json({ error: 'Password must be a string' });
-  const identifier = String(req.body.email || req.body.username || '').toLowerCase().trim();
+  const identifier = req.body.username.toLowerCase().trim();
   const admin = await Admin.findOne({
     isActive: true,
-    $or: [{ email: identifier }, { username: identifier }]
+    username: identifier,
   });
   if (!admin || !(await bcrypt.compare(req.body.password, admin.passwordHash))) return res.status(401).json({ error: 'Invalid login' });
   admin.lastLoginAt = new Date();
