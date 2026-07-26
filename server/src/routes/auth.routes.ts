@@ -10,6 +10,7 @@ import { writeAuditLog } from '../services/audit.service.js';
 import { asyncHandler } from '../middleware/async-handler.js';
 
 export const authRoutes = Router();
+const LOGOUT_AUDIT_GRACE_SECONDS = 5 * 60;
 
 const loginSchema = z.object({
   username: z.string().trim().min(1).max(100),
@@ -24,8 +25,9 @@ const getLogoutAdminId = async (req: Request) => {
   try {
     // The token signature is still verified, but expiry is ignored so a timeout
     // can be audited even when the 30-minute session has just ended.
-    const claims = jwt.verify(token, env.JWT_SECRET, { ignoreExpiration: true }) as { sub?: string };
-    if (!claims.sub) return null;
+    const claims = jwt.verify(token, env.JWT_SECRET, { ignoreExpiration: true }) as { sub?: string; exp?: number };
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    if (!claims.sub || typeof claims.exp !== 'number' || claims.exp < nowSeconds - LOGOUT_AUDIT_GRACE_SECONDS) return null;
     const admin = await Admin.findById(claims.sub).select('_id').lean();
     return admin ? String(admin._id) : null;
   } catch {
@@ -50,10 +52,19 @@ authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req, res) =
 
 authRoutes.post('/logout', asyncHandler(async (req, res) => {
   const adminId = await getLogoutAdminId(req);
+  let auditRecorded = false;
   if (adminId) {
-    await writeAuditLog(req, { adminId, action: 'admin_logout', entityType: 'admin', entityId: adminId });
+    try {
+      await writeAuditLog(req, { adminId, action: 'admin_logout', entityType: 'admin', entityId: adminId });
+      auditRecorded = true;
+    } catch (error) {
+      console.error('Admin logout audit could not be written; logout will still succeed.', {
+        adminId,
+        error: error instanceof Error ? error.message : error,
+      });
+    }
   }
-  res.json({ ok: true });
+  res.json({ ok: true, auditRecorded });
 }));
 
 authRoutes.get('/me', requireAuth, (req: AuthedRequest, res) => res.json({ admin: req.admin }));

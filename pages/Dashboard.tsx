@@ -71,6 +71,7 @@ const statusTone = (status: string) => {
 const ADMIN_TOKEN_KEY = 'bisileAdminToken';
 const ADMIN_SESSION_STARTED_AT_KEY = 'bisileAdminSessionStartedAt';
 const ADMIN_SESSION_LIFETIME_MS = 30 * 60 * 1000;
+let pendingExpiredTokenForAudit = '';
 
 const decodeJwtPayload = (token: string): { exp?: number; iat?: number } | null => {
   try {
@@ -91,11 +92,17 @@ const clearStoredToken = () => {
 };
 
 const getStoredToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) ?? localStorage.getItem(ADMIN_TOKEN_KEY) ?? localStorage.getItem('adminToken') ?? '';
+const takePendingExpiredToken = () => {
+  const token = pendingExpiredTokenForAudit;
+  pendingExpiredTokenForAudit = '';
+  return token;
+};
 
 const getToken = () => {
   const token = getStoredToken();
   const expiresAt = decodeJwtPayload(token)?.exp;
   if (expiresAt && expiresAt * 1000 <= Date.now()) {
+    pendingExpiredTokenForAudit = token;
     clearStoredToken();
     return '';
   }
@@ -193,7 +200,7 @@ const RevenueBars: React.FC<{ data: Array<{ date: string; value: number }> }> = 
 
 export const Dashboard: React.FC = () => {
   const [section, setSection] = useState<AdminSection>('overview');
-  const [token, setToken] = useState(getToken());
+  const [token, setToken] = useState(() => getToken());
   const [loginIdentifier, setLoginIdentifier] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -216,8 +223,11 @@ export const Dashboard: React.FC = () => {
   const [customerHistoryState, setCustomerHistoryState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [customerHistoryError, setCustomerHistoryError] = useState('');
 
-  const logout = useCallback(async (reason: 'manual' | 'expired' = 'manual') => {
-    const currentToken = getStoredToken();
+  const logout = useCallback(async (reason: 'manual' | 'expired' = 'manual', tokenOverride?: string) => {
+    const currentToken = tokenOverride || getStoredToken() || takePendingExpiredToken();
+    const sessionEndedMessage = reason === 'expired'
+      ? 'For your security, your 30-minute admin session has ended. Please sign in again.'
+      : '';
     clearStoredToken();
     setToken('');
     setIsLoading(false);
@@ -231,17 +241,29 @@ export const Dashboard: React.FC = () => {
     setCustomerHistoryState('idle');
     setCustomerHistoryError('');
     setError(null);
-    setLoginError(reason === 'expired' ? 'For your security, your 30-minute admin session has ended. Please sign in again.' : '');
+    setLoginError(sessionEndedMessage);
 
-    if (currentToken) {
+    if (!currentToken) {
+      setLoginError(`${sessionEndedMessage} Sign-out audit could not be confirmed because the session token was unavailable.`.trim());
+      return;
+    }
+
+    try {
+      const response = await fetch(apiUrl('/api/auth/logout'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${currentToken}` },
+      });
+      let payload: { auditRecorded?: boolean } = {};
       try {
-        await fetch(apiUrl('/api/auth/logout'), {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${currentToken}` },
-        });
+        payload = await response.json();
       } catch {
-        // The local session is already cleared if the audit request cannot reach the API.
+        // The status check below still reports a failed audit response.
       }
+      if (!response.ok || payload.auditRecorded !== true) {
+        setLoginError(`${sessionEndedMessage} Sign-out audit could not be confirmed.`.trim());
+      }
+    } catch {
+      setLoginError(`${sessionEndedMessage} Sign-out audit could not be confirmed because the API was unreachable.`.trim());
     }
   }, []);
 
@@ -417,11 +439,18 @@ export const Dashboard: React.FC = () => {
     const remainingMs = Math.max(0, expiresAt - Date.now());
 
     sessionStorage.setItem(ADMIN_SESSION_STARTED_AT_KEY, String(sessionStartedAt));
+    const sessionToken = token;
     const timeout = window.setTimeout(() => {
-      void logout('expired');
+      void logout('expired', sessionToken);
     }, remainingMs);
 
     return () => window.clearTimeout(timeout);
+  }, [token, logout]);
+
+  useEffect(() => {
+    if (token) return;
+    const expiredToken = takePendingExpiredToken();
+    if (expiredToken) void logout('expired', expiredToken);
   }, [token, logout]);
 
   useEffect(() => {
