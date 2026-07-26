@@ -69,9 +69,8 @@ const statusTone = (status: string) => {
 };
 
 const ADMIN_TOKEN_KEY = 'bisileAdminToken';
-const ADMIN_LAST_ACTIVITY_KEY = 'bisileAdminLastActivityAt';
-const ADMIN_SESSION_TIMEOUT_MS = 30 * 60 * 1000;
-const ACTIVITY_WRITE_THROTTLE_MS = 5 * 1000;
+const ADMIN_SESSION_STARTED_AT_KEY = 'bisileAdminSessionStartedAt';
+const ADMIN_SESSION_LIFETIME_MS = 30 * 60 * 1000;
 
 const decodeJwtPayload = (token: string): { exp?: number; iat?: number } | null => {
   try {
@@ -86,21 +85,19 @@ const decodeJwtPayload = (token: string): { exp?: number; iat?: number } | null 
 
 const clearStoredToken = () => {
   sessionStorage.removeItem(ADMIN_TOKEN_KEY);
-  sessionStorage.removeItem(ADMIN_LAST_ACTIVITY_KEY);
+  sessionStorage.removeItem(ADMIN_SESSION_STARTED_AT_KEY);
   localStorage.removeItem(ADMIN_TOKEN_KEY);
   localStorage.removeItem('adminToken');
 };
 
+const getStoredToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) ?? localStorage.getItem(ADMIN_TOKEN_KEY) ?? localStorage.getItem('adminToken') ?? '';
+
 const getToken = () => {
-  const token = sessionStorage.getItem(ADMIN_TOKEN_KEY) ?? localStorage.getItem(ADMIN_TOKEN_KEY) ?? localStorage.getItem('adminToken') ?? '';
+  const token = getStoredToken();
   const expiresAt = decodeJwtPayload(token)?.exp;
   if (expiresAt && expiresAt * 1000 <= Date.now()) {
     clearStoredToken();
     return '';
-  }
-  if (token && !sessionStorage.getItem(ADMIN_LAST_ACTIVITY_KEY)) {
-    const issuedAt = decodeJwtPayload(token)?.iat;
-    sessionStorage.setItem(ADMIN_LAST_ACTIVITY_KEY, String(issuedAt ? issuedAt * 1000 : Date.now()));
   }
   return token;
 };
@@ -219,8 +216,8 @@ export const Dashboard: React.FC = () => {
   const [customerHistoryState, setCustomerHistoryState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [customerHistoryError, setCustomerHistoryError] = useState('');
 
-  const logout = useCallback((reason: 'manual' | 'expired' = 'manual') => {
-    const currentToken = getToken();
+  const logout = useCallback(async (reason: 'manual' | 'expired' = 'manual') => {
+    const currentToken = getStoredToken();
     clearStoredToken();
     setToken('');
     setIsLoading(false);
@@ -234,13 +231,17 @@ export const Dashboard: React.FC = () => {
     setCustomerHistoryState('idle');
     setCustomerHistoryError('');
     setError(null);
-    setLoginError(reason === 'expired' ? 'For your security, you were signed out after 30 minutes of inactivity.' : '');
+    setLoginError(reason === 'expired' ? 'For your security, your 30-minute admin session has ended. Please sign in again.' : '');
 
     if (currentToken) {
-      void fetch(apiUrl('/api/auth/logout'), {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${currentToken}` },
-      }).catch(() => undefined);
+      try {
+        await fetch(apiUrl('/api/auth/logout'), {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${currentToken}` },
+        });
+      } catch {
+        // The local session is already cleared if the audit request cannot reach the API.
+      }
     }
   }, []);
 
@@ -258,7 +259,7 @@ export const Dashboard: React.FC = () => {
       const settledResults = [statsResult, ordersResult, productsResult];
       const authFailure = settledResults.find((result) => result.status === 'rejected' && isUnauthorizedError(result.reason));
       if (authFailure?.status === 'rejected') {
-        logout('expired');
+        void logout('expired');
         return;
       }
 
@@ -298,7 +299,7 @@ export const Dashboard: React.FC = () => {
       setError(partialErrors.length ? partialErrors.join(' ') : null);
     } catch (caught) {
       if (isUnauthorizedError(caught)) {
-        logout('expired');
+        void logout('expired');
         return;
       }
       setError(caught instanceof Error ? caught.message : 'Could not load live dashboard data');
@@ -319,7 +320,7 @@ export const Dashboard: React.FC = () => {
       setCollections((current) => ({ ...current, [resource]: payload[resource] || payload[nextSection] || [] }));
     } catch (caught) {
       if (isUnauthorizedError(caught)) {
-        logout('expired');
+        void logout('expired');
         return;
       }
       setCollections((current) => ({ ...current, [resource]: [] }));
@@ -404,39 +405,23 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     if (!token) return;
 
-    const issuedAt = decodeJwtPayload(token)?.iat;
-    const storedActivityAt = Number(sessionStorage.getItem(ADMIN_LAST_ACTIVITY_KEY));
-    let lastActivityAt = Number.isFinite(storedActivityAt) && storedActivityAt > 0
-      ? storedActivityAt
-      : (issuedAt ? issuedAt * 1000 : Date.now());
-    sessionStorage.setItem(ADMIN_LAST_ACTIVITY_KEY, String(lastActivityAt));
+    const tokenPayload = decodeJwtPayload(token);
+    const issuedAt = tokenPayload?.iat ? tokenPayload.iat * 1000 : Date.now();
+    const storedSessionStartedAt = Number(sessionStorage.getItem(ADMIN_SESSION_STARTED_AT_KEY));
+    const sessionStartedAt = Number.isFinite(storedSessionStartedAt) && storedSessionStartedAt > 0
+      ? storedSessionStartedAt
+      : issuedAt;
+    const expiresAt = tokenPayload?.exp
+      ? tokenPayload.exp * 1000
+      : sessionStartedAt + ADMIN_SESSION_LIFETIME_MS;
+    const remainingMs = Math.max(0, expiresAt - Date.now());
 
-    if (Date.now() - lastActivityAt >= ADMIN_SESSION_TIMEOUT_MS) {
-      logout('expired');
-      return;
-    }
+    sessionStorage.setItem(ADMIN_SESSION_STARTED_AT_KEY, String(sessionStartedAt));
+    const timeout = window.setTimeout(() => {
+      void logout('expired');
+    }, remainingMs);
 
-    const markActivity = () => {
-      const now = Date.now();
-      if (now - lastActivityAt < ACTIVITY_WRITE_THROTTLE_MS) return;
-      lastActivityAt = now;
-      sessionStorage.setItem(ADMIN_LAST_ACTIVITY_KEY, String(now));
-    };
-
-    const checkInactivity = () => {
-      const storedAt = Number(sessionStorage.getItem(ADMIN_LAST_ACTIVITY_KEY));
-      const latestActivityAt = Number.isFinite(storedAt) && storedAt > 0 ? storedAt : lastActivityAt;
-      if (Date.now() - latestActivityAt >= ADMIN_SESSION_TIMEOUT_MS) logout('expired');
-    };
-
-    const activityEvents: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'scroll', 'touchstart'];
-    activityEvents.forEach((eventName) => window.addEventListener(eventName, markActivity, { passive: true }));
-    const interval = window.setInterval(checkInactivity, 5 * 1000);
-
-    return () => {
-      activityEvents.forEach((eventName) => window.removeEventListener(eventName, markActivity));
-      window.clearInterval(interval);
-    };
+    return () => window.clearTimeout(timeout);
   }, [token, logout]);
 
   useEffect(() => {
@@ -461,7 +446,7 @@ export const Dashboard: React.FC = () => {
         if (!active) return;
         const message = caught instanceof Error ? caught.message : 'Purchase history could not be loaded.';
         if (isUnauthorizedError(caught)) {
-          logout('expired');
+          void logout('expired');
           return;
         }
         setCustomerHistory([]);
@@ -488,7 +473,7 @@ export const Dashboard: React.FC = () => {
       if (!payload.token) throw new Error('Login did not return a token');
       clearStoredToken();
       sessionStorage.setItem(ADMIN_TOKEN_KEY, payload.token);
-      sessionStorage.setItem(ADMIN_LAST_ACTIVITY_KEY, String(Date.now()));
+      sessionStorage.setItem(ADMIN_SESSION_STARTED_AT_KEY, String(Date.now()));
       setToken(payload.token);
       setLoginPassword('');
       setShowLoginPassword(false);
@@ -843,7 +828,7 @@ export const Dashboard: React.FC = () => {
               <p className="bisile-kicker">Admin</p>
               <button
                 type="button"
-                onClick={() => logout()}
+                onClick={() => void logout()}
                 className="inline-flex items-center gap-2 border border-primary/20 px-3 py-2 font-inter text-xs font-light text-primary/65 transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
                 aria-label="Log out of the admin dashboard"
                 title="Log out"

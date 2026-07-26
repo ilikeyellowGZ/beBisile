@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { Router } from 'express';
+import { Router, type Request } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { env } from '../config/env.js';
@@ -16,6 +16,23 @@ const loginSchema = z.object({
   password: z.string().min(1)
 }).strict();
 
+const getLogoutAdminId = async (req: Request) => {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : req.cookies?.adminToken;
+  if (!token) return null;
+
+  try {
+    // The token signature is still verified, but expiry is ignored so a timeout
+    // can be audited even when the 30-minute session has just ended.
+    const claims = jwt.verify(token, env.JWT_SECRET, { ignoreExpiration: true }) as { sub?: string };
+    if (!claims.sub) return null;
+    const admin = await Admin.findById(claims.sub).select('_id').lean();
+    return admin ? String(admin._id) : null;
+  } catch {
+    return null;
+  }
+};
+
 authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req, res) => {
   if (typeof req.body.password !== 'string') return res.status(400).json({ error: 'Password must be a string' });
   const identifier = req.body.username.toLowerCase().trim();
@@ -31,8 +48,11 @@ authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req, res) =
   res.json({ token, admin: { id: admin._id, fullName: admin.fullName, username: admin.username, email: admin.email, role: admin.role, mustChangePassword: Boolean(admin.mustChangePassword) } });
 }));
 
-authRoutes.post('/logout', requireAuth, asyncHandler(async (req: AuthedRequest, res) => {
-  await writeAuditLog(req, { adminId: req.admin!.id, action: 'admin_logout', entityType: 'admin', entityId: req.admin!.id });
+authRoutes.post('/logout', asyncHandler(async (req, res) => {
+  const adminId = await getLogoutAdminId(req);
+  if (adminId) {
+    await writeAuditLog(req, { adminId, action: 'admin_logout', entityType: 'admin', entityId: adminId });
+  }
   res.json({ ok: true });
 }));
 
