@@ -27,11 +27,14 @@ authRoutes.post('/login', validate(loginSchema), asyncHandler(async (req, res) =
   admin.lastLoginAt = new Date();
   await admin.save();
   await writeAuditLog(req, { adminId: String(admin._id), action: 'admin_login', entityType: 'admin', entityId: admin._id });
-  const token = jwt.sign({ sub: String(admin._id), email: admin.email, role: admin.role }, env.JWT_SECRET, { expiresIn: '15m' });
+  const token = jwt.sign({ sub: String(admin._id), email: admin.email, role: admin.role }, env.JWT_SECRET, { expiresIn: '30m' });
   res.json({ token, admin: { id: admin._id, fullName: admin.fullName, username: admin.username, email: admin.email, role: admin.role, mustChangePassword: Boolean(admin.mustChangePassword) } });
 }));
 
-authRoutes.post('/logout', (_req, res) => res.json({ ok: true }));
+authRoutes.post('/logout', requireAuth, asyncHandler(async (req: AuthedRequest, res) => {
+  await writeAuditLog(req, { adminId: req.admin!.id, action: 'admin_logout', entityType: 'admin', entityId: req.admin!.id });
+  res.json({ ok: true });
+}));
 
 authRoutes.get('/me', requireAuth, (req: AuthedRequest, res) => res.json({ admin: req.admin }));
 

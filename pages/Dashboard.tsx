@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Activity, Boxes, CircleDollarSign, ClipboardList, Eye, EyeOff, Gauge, Inbox, KeyRound, Layers, Mail, PackageCheck, Percent, RefreshCw, Search, Settings, ShieldCheck, ShoppingBag, Star, Truck, Users } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Activity, Boxes, CircleDollarSign, ClipboardList, Eye, EyeOff, Gauge, Inbox, KeyRound, Layers, LogOut, Mail, PackageCheck, Percent, RefreshCw, Search, Settings, ShieldCheck, ShoppingBag, Star, Truck, Users } from 'lucide-react';
 import { CONFIGURABLE_HAIR_PRODUCTS, PRODUCTS } from '../constants';
 import { packageImages } from '../src/assets/images';
-import { apiUrl, readJsonResponse } from '../utils/http';
+import { ApiError, apiUrl, readJsonResponse } from '../utils/http';
 import { getImageUrl } from '../utils/images';
 import { OptimizedImage } from '../components/UI/OptimizedImage';
 
@@ -69,8 +69,11 @@ const statusTone = (status: string) => {
 };
 
 const ADMIN_TOKEN_KEY = 'bisileAdminToken';
+const ADMIN_LAST_ACTIVITY_KEY = 'bisileAdminLastActivityAt';
+const ADMIN_SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+const ACTIVITY_WRITE_THROTTLE_MS = 5 * 1000;
 
-const decodeJwtPayload = (token: string): { exp?: number } | null => {
+const decodeJwtPayload = (token: string): { exp?: number; iat?: number } | null => {
   try {
     const payload = token.split('.')[1];
     if (!payload) return null;
@@ -83,6 +86,7 @@ const decodeJwtPayload = (token: string): { exp?: number } | null => {
 
 const clearStoredToken = () => {
   sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  sessionStorage.removeItem(ADMIN_LAST_ACTIVITY_KEY);
   localStorage.removeItem(ADMIN_TOKEN_KEY);
   localStorage.removeItem('adminToken');
 };
@@ -93,6 +97,10 @@ const getToken = () => {
   if (expiresAt && expiresAt * 1000 <= Date.now()) {
     clearStoredToken();
     return '';
+  }
+  if (token && !sessionStorage.getItem(ADMIN_LAST_ACTIVITY_KEY)) {
+    const issuedAt = decodeJwtPayload(token)?.iat;
+    sessionStorage.setItem(ADMIN_LAST_ACTIVITY_KEY, String(issuedAt ? issuedAt * 1000 : Date.now()));
   }
   return token;
 };
@@ -109,6 +117,12 @@ const apiFetch = async (url: string, options: RequestInit = {}) => {
   });
   return readJsonResponse<any>(response, `${url} returned ${response.status}`);
 };
+
+const isUnauthorizedError = (caught: unknown) => (
+  caught instanceof ApiError
+    ? caught.status === 401
+    : caught instanceof Error && (caught.message.includes('401') || caught.message.toLowerCase().includes('unauthorized'))
+);
 
 const normalizeOrderItemId = (item: any) => String(item.productId || item.variantId || item.sku || item.id || normalizeOrderItemName(item));
 const normalizeOrderItemName = (item: any) => item.productName || item.name || item.id || 'Product';
@@ -205,18 +219,62 @@ export const Dashboard: React.FC = () => {
   const [customerHistoryState, setCustomerHistoryState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
   const [customerHistoryError, setCustomerHistoryError] = useState('');
 
+  const logout = useCallback((reason: 'manual' | 'expired' = 'manual') => {
+    const currentToken = getToken();
+    clearStoredToken();
+    setToken('');
+    setIsLoading(false);
+    setOrders([]);
+    setProducts([]);
+    setDashboard(null);
+    setCollections({});
+    setSelectedOrderId(null);
+    setSelectedCustomerId(null);
+    setCustomerHistory([]);
+    setCustomerHistoryState('idle');
+    setCustomerHistoryError('');
+    setError(null);
+    setLoginError(reason === 'expired' ? 'For your security, you were signed out after 30 minutes of inactivity.' : '');
+
+    if (currentToken) {
+      void fetch(apiUrl('/api/auth/logout'), {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${currentToken}` },
+      }).catch(() => undefined);
+    }
+  }, []);
+
   const loadDashboard = async () => {
     if (!getToken()) return;
     setIsLoading(true);
     setError(null);
     try {
-      const [statsPayload, ordersPayload, productsPayload] = await Promise.all([
+      const [statsResult, ordersResult, productsResult] = await Promise.allSettled([
         apiFetch(apiUrl('/api/admin/dashboard/stats')),
         apiFetch(apiUrl('/api/admin/orders')),
         apiFetch(apiUrl('/api/admin/products')),
       ]);
-      setOrders(ordersPayload.orders || statsPayload.recentOrders || []);
-      setProducts(productsPayload.products || []);
+
+      const settledResults = [statsResult, ordersResult, productsResult];
+      const authFailure = settledResults.find((result) => result.status === 'rejected' && isUnauthorizedError(result.reason));
+      if (authFailure?.status === 'rejected') {
+        logout('expired');
+        return;
+      }
+
+      const statsPayload = statsResult.status === 'fulfilled' ? statsResult.value : {};
+      const ordersPayload = ordersResult.status === 'fulfilled' ? ordersResult.value : {};
+      const productsPayload = productsResult.status === 'fulfilled' ? productsResult.value : {};
+      const nextOrders = Array.isArray(ordersPayload.orders)
+        ? ordersPayload.orders
+        : (Array.isArray(statsPayload.recentOrders) ? statsPayload.recentOrders : []);
+
+      if (statsResult.status === 'rejected' && ordersResult.status === 'rejected') {
+        throw ordersResult.reason;
+      }
+
+      setOrders(nextOrders);
+      setProducts(Array.isArray(productsPayload.products) ? productsPayload.products : []);
       setDashboard({
         totals: {
           totalRevenue: statsPayload.totalRevenue,
@@ -228,10 +286,20 @@ export const Dashboard: React.FC = () => {
         },
         revenueChart: statsPayload.revenueChart || [],
       });
+
+      const partialErrors: string[] = [];
+      if (statsResult.status === 'rejected') partialErrors.push('Dashboard summary could not be loaded.');
+      if (ordersResult.status === 'rejected') partialErrors.push('Orders could not be loaded from the orders endpoint; recent orders are shown when available.');
+      if (productsResult.status === 'rejected') {
+        partialErrors.push(productsResult.reason instanceof ApiError && productsResult.reason.status === 403
+          ? 'Some product tools are restricted for this admin role.'
+          : 'Product data could not be loaded.');
+      }
+      setError(partialErrors.length ? partialErrors.join(' ') : null);
     } catch (caught) {
-      if (caught instanceof Error && (caught.message.includes('401') || caught.message.toLowerCase().includes('unauthorized'))) {
-        clearStoredToken();
-        setToken('');
+      if (isUnauthorizedError(caught)) {
+        logout('expired');
+        return;
       }
       setError(caught instanceof Error ? caught.message : 'Could not load live dashboard data');
       setOrders([]);
@@ -249,7 +317,11 @@ export const Dashboard: React.FC = () => {
     try {
       const payload = await apiFetch(apiUrl(`/api/admin/${resource}`));
       setCollections((current) => ({ ...current, [resource]: payload[resource] || payload[nextSection] || [] }));
-    } catch {
+    } catch (caught) {
+      if (isUnauthorizedError(caught)) {
+        logout('expired');
+        return;
+      }
       setCollections((current) => ({ ...current, [resource]: [] }));
     }
   };
@@ -330,6 +402,44 @@ export const Dashboard: React.FC = () => {
   }, [token]);
 
   useEffect(() => {
+    if (!token) return;
+
+    const issuedAt = decodeJwtPayload(token)?.iat;
+    const storedActivityAt = Number(sessionStorage.getItem(ADMIN_LAST_ACTIVITY_KEY));
+    let lastActivityAt = Number.isFinite(storedActivityAt) && storedActivityAt > 0
+      ? storedActivityAt
+      : (issuedAt ? issuedAt * 1000 : Date.now());
+    sessionStorage.setItem(ADMIN_LAST_ACTIVITY_KEY, String(lastActivityAt));
+
+    if (Date.now() - lastActivityAt >= ADMIN_SESSION_TIMEOUT_MS) {
+      logout('expired');
+      return;
+    }
+
+    const markActivity = () => {
+      const now = Date.now();
+      if (now - lastActivityAt < ACTIVITY_WRITE_THROTTLE_MS) return;
+      lastActivityAt = now;
+      sessionStorage.setItem(ADMIN_LAST_ACTIVITY_KEY, String(now));
+    };
+
+    const checkInactivity = () => {
+      const storedAt = Number(sessionStorage.getItem(ADMIN_LAST_ACTIVITY_KEY));
+      const latestActivityAt = Number.isFinite(storedAt) && storedAt > 0 ? storedAt : lastActivityAt;
+      if (Date.now() - latestActivityAt >= ADMIN_SESSION_TIMEOUT_MS) logout('expired');
+    };
+
+    const activityEvents: Array<keyof WindowEventMap> = ['pointerdown', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach((eventName) => window.addEventListener(eventName, markActivity, { passive: true }));
+    const interval = window.setInterval(checkInactivity, 5 * 1000);
+
+    return () => {
+      activityEvents.forEach((eventName) => window.removeEventListener(eventName, markActivity));
+      window.clearInterval(interval);
+    };
+  }, [token, logout]);
+
+  useEffect(() => {
     if (!token || section !== 'customers' || !selectedCustomerId) {
       setCustomerHistory([]);
       setCustomerHistoryState('idle');
@@ -350,10 +460,9 @@ export const Dashboard: React.FC = () => {
       .catch((caught) => {
         if (!active) return;
         const message = caught instanceof Error ? caught.message : 'Purchase history could not be loaded.';
-        if (message.includes('401') || message.toLowerCase().includes('unauthorized')) {
-          clearStoredToken();
-          setToken('');
-          setError('Your admin session expired. Please sign in again.');
+        if (isUnauthorizedError(caught)) {
+          logout('expired');
+          return;
         }
         setCustomerHistory([]);
         setCustomerHistoryError(message);
@@ -379,6 +488,7 @@ export const Dashboard: React.FC = () => {
       if (!payload.token) throw new Error('Login did not return a token');
       clearStoredToken();
       sessionStorage.setItem(ADMIN_TOKEN_KEY, payload.token);
+      sessionStorage.setItem(ADMIN_LAST_ACTIVITY_KEY, String(Date.now()));
       setToken(payload.token);
       setLoginPassword('');
       setShowLoginPassword(false);
@@ -729,7 +839,19 @@ export const Dashboard: React.FC = () => {
       <div className="grid lg:grid-cols-[280px_1fr]">
         <aside className="border-r border-[#D8D0C3] bg-[#F7F4EF] lg:min-h-[calc(100vh-4rem)]">
           <div className="sticky top-16 p-5">
-            <p className="bisile-kicker mb-4">Admin</p>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <p className="bisile-kicker">Admin</p>
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="inline-flex items-center gap-2 border border-primary/20 px-3 py-2 font-inter text-xs font-light text-primary/65 transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                aria-label="Log out of the admin dashboard"
+                title="Log out"
+              >
+                <LogOut size={14} strokeWidth={1.5} />
+                Log out
+              </button>
+            </div>
             <div className="grid gap-1">
               {sections.map((item) => (
                 <button key={item.id} onClick={() => void loadCollection(item.id)} className={`flex items-center gap-3 px-3 py-2.5 text-left font-inter text-sm font-light transition-colors ${section === item.id ? 'bg-[#f7f5f1] text-primary' : 'text-primary/55 hover:bg-[#f7f5f1] hover:text-primary'}`}>

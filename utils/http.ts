@@ -3,6 +3,13 @@ type ApiErrorPayload = {
   message?: string;
 };
 
+export class ApiError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 export const API_BASE_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
 const isAbsoluteUrl = (value: string) => /^https?:\/\//i.test(value);
@@ -39,13 +46,13 @@ export const readJsonResponse = async <T>(response: Response, fallbackMessage: s
         });
       }
 
-      throw new Error(response.ok ? fallbackMessage : `${fallbackMessage} (${response.status} ${response.statusText})`);
+      throw new ApiError(response.ok ? fallbackMessage : `${fallbackMessage} (${response.status} ${response.statusText})`, response.status);
     }
   }
 
   if (!response.ok) {
     const errorPayload = payload as ApiErrorPayload;
-    throw new Error(errorPayload.message || errorPayload.error || `${fallbackMessage} (${response.status} ${response.statusText})`);
+    throw new ApiError(errorPayload.message || errorPayload.error || `${fallbackMessage} (${response.status} ${response.statusText})`, response.status);
   }
 
   return payload as T;
