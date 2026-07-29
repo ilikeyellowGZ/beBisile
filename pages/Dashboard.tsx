@@ -268,7 +268,14 @@ export const Dashboard: React.FC = () => {
   }, []);
 
   const loadDashboard = async () => {
-    if (!getToken()) return;
+    const requestToken = getToken();
+    if (!requestToken) {
+      // getToken() clears expired credentials before a request is sent. Carry
+      // that exact token into logout so the server can record the expiry.
+      const expiredToken = takePendingExpiredToken();
+      if (expiredToken) void logout('expired', expiredToken);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
