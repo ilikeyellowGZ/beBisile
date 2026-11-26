@@ -1,0 +1,7 @@
+name = "bisile-storefront"
+compatibility_date = "2026-11-26"
+pages_build_output_dir = "dist"
+
+[vars]
+VITE_SITE_URL = "https://bisile.co.za"
+VITE_API_BASE_URL = "https://api.bisile.co.za"

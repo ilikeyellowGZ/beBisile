@@ -5,14 +5,14 @@ Luxury React storefront for BISILE fragrance, processed virgin hair, wig laundry
 ## Project Overview
 
 - Frontend: Vite, React, TypeScript, Tailwind-style utility classes.
-- Final frontend host: DirectAdmin static hosting.
-- Final backend host: Render Web Service.
+- Final frontend host: Cloudflare Pages.
+- Final backend host: Cloudflare Container.
 - Backend: Express/Mongoose API in `server/`.
 
 ## Current Status
 
 - Production frontend: https://bisile.co.za/
-- Production backend: https://bebisile.onrender.com/
+- Production backend: https://api.bisile.co.za/
 - Database: MongoDB Atlas database name `bisile`
 - Admin login: use `https://bisile.co.za/admin` (or `/bisile-studio`). The backend accepts the configured admin username only; the password is server-side only and must never be placed in frontend env or committed files.
 - Cloudinary: migration script and mapping helper are ready; dry-run checks active website assets only. Actual upload still requires running `npm run migrate:cloudinary` with network/upload approval.
@@ -145,7 +145,7 @@ Use `server/.env.example` as the backend template.
 
 ## Frontend Hosting Plan
 
-The final frontend host is DirectAdmin. Build the static frontend with:
+The final frontend host is Cloudflare Pages. Build the static frontend with:
 
 ```bash
 npm run build
@@ -161,9 +161,9 @@ Upload the contents inside `dist` to the DirectAdmin public folder, usually `pub
 
 See `DIRECTADMIN_DEPLOYMENT.md` for the full DirectAdmin checklist.
 
-## Render Hosting Plan
+## Cloudflare Hosting Plan
 
-Render can host the API and the built Vite site from the same Web Service.
+Cloudflare Pages hosts the Vite site and Cloudflare Container hosts the Node/Mongoose API.
 
 Render service type:
 
@@ -203,7 +203,7 @@ When the frontend is served by the same Render service, leave `VITE_API_BASE_URL
 7. Make sure `VITE_API_BASE_URL` points to the Render backend URL.
 8. Test the live frontend.
 
-## Render Deployment
+## Cloudflare Deployment
 
 1. Create a Render Web Service.
 2. Leave root directory blank.
@@ -214,7 +214,7 @@ When the frontend is served by the same Render service, leave `VITE_API_BASE_URL
 7. Visit `/api/health` after deployment.
 8. Visit `/` and a nested route such as `/shop` to confirm the React app fallback is serving correctly.
 
-`render.yaml` is included as an editable blueprint.
+See `CLOUDFLARE_DEPLOYMENT.md` for the Pages and Container settings.
 
 ## Environment Variables
 
