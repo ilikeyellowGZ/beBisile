@@ -9,7 +9,7 @@ BISILE uses two Cloudflare services:
 
 The `bebisile` Workers build connected to this repository uses the repository root, `main` as its production branch, `npm run build` as its build command, and `npx wrangler deploy` as its deploy command. The included `wrangler.toml` points to `dist` and serves `index.html` for client-side routes such as `/shop` and `/admin`. The Git-deployed storefront is at `https://bebisile.service-heyywebb.workers.dev` until a custom domain is attached.
 
-The public production values in `.env.production` are read by Vite at build time. API requests use the storefront's `/api/*` path. The Worker forwards them to `API_UPSTREAM_URL` in `wrangler.toml`, which currently points to the live Render API. Change it when the Cloudflare Container is ready. This same-origin route avoids needing to add a temporary `workers.dev` origin to the API's CORS list. Backend secrets must stay in the API environment, never in a `VITE_` variable.
+The public production values in `.env.production` are read by Vite at build time. API requests use the storefront's `/api/*` path. The Worker forwards them to `API_UPSTREAM_URL` in `wrangler.toml`, which currently points to the live Render API. The same Worker also serves `api.bisile.co.za/api/*` through a custom domain. When the Cloudflare Container is ready, change the upstream URL or move the API custom domain off this Worker before attaching it to the Container. Backend secrets must stay in the API environment, never in a `VITE_` variable.
 
 `npm run build` omits files over Cloudflare's 25 MiB asset limit when they have a Cloudinary URL in `src/data/cloudinary-image-map.json`. It fails if an oversized file has no mapping. Keep mapped Cloudinary assets available because the app loads them directly.
 
