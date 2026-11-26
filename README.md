@@ -205,16 +205,7 @@ When the frontend is served by the same Render service, leave `VITE_API_BASE_URL
 
 ## Cloudflare Deployment
 
-1. Create a Render Web Service.
-2. Leave root directory blank.
-3. Set build command to `npm install && npm --prefix server install && npm run build && npm --prefix server run build`.
-4. Set start command to `npm --prefix server start`.
-5. Add backend env values from `server/.env.example`.
-6. Set `FRONTEND_URL` and `CLIENT_URL` to `https://bisile.co.za`.
-7. Visit `/api/health` after deployment.
-8. Visit `/` and a nested route such as `/shop` to confirm the React app fallback is serving correctly.
-
-See `CLOUDFLARE_DEPLOYMENT.md` for the Pages and Container settings.
+The Git-connected storefront is a Cloudflare Worker serving the Vite build from `dist`. Build with `npm run build` and deploy with `npx wrangler deploy`. The Worker forwards `/api/*` to the live Render API until the Cloudflare Container is ready. See `CLOUDFLARE_DEPLOYMENT.md` for configuration and verification steps.
 
 ## Environment Variables
 

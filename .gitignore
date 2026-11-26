@@ -10,9 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+.wrangler/
 *.local
 .env*
 !.env.example
+!.env.production
 !server/.env.example
 
 # Editor directories and files

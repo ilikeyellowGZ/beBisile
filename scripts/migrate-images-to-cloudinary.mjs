@@ -6,6 +6,11 @@ import { loadEnv, requireEnv } from './lib/env.mjs';
 loadEnv();
 
 const dryRun = process.argv.includes('--dry-run');
+const onlyIndex = process.argv.indexOf('--only');
+const onlyPath = onlyIndex === -1 ? null : process.argv[onlyIndex + 1]?.replaceAll('\\', '/');
+if (onlyIndex !== -1 && (!onlyPath || onlyPath.startsWith('/') || onlyPath.includes('..'))) {
+  throw new Error('Pass a relative asset path after --only.');
+}
 const cloudName = requireEnv('CLOUDINARY_CLOUD_NAME');
 const apiKey = requireEnv('CLOUDINARY_API_KEY');
 const apiSecret = requireEnv('CLOUDINARY_API_SECRET');
@@ -77,7 +82,9 @@ const upload = async (filePath, relativePath) => {
 };
 
 const currentMap = JSON.parse(await fs.readFile(outputPath, 'utf8').catch(() => '{}'));
-const files = (await Promise.all(includeRoots.map((dir) => walk(path.join(root, dir))))).flat();
+const files = (await Promise.all(includeRoots.map((dir) => walk(path.join(root, dir))))).flat()
+  .filter((file) => !onlyPath || path.relative(root, file).replaceAll('\\', '/') === onlyPath);
+if (onlyPath && files.length !== 1) throw new Error(`Asset not found: ${onlyPath}`);
 const nextMap = { ...currentMap };
 
 console.log(`${dryRun ? 'Dry run:' : 'Uploading'} ${files.length} assets to Cloudinary.`);
